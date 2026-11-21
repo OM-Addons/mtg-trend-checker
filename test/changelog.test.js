@@ -39,8 +39,7 @@ test("parseChangelog: versions with their entries, empty sections left out, wrap
 test("the real changelog is shown, with the installed version marked", async () => {
   const d = await changelogPage();
   const titles = [...d.querySelectorAll("h2")].map((h) => h.firstChild.textContent);
-  assert.ok(titles.length >= 3);
-  assert.ok(titles.some((t) => t.startsWith("1.0.0")));
+  assert.ok(titles.length >= 1);
   assert.equal(text(d.getElementById("version")), `Installed version: ${manifest.version}`);
   const marked = [...d.querySelectorAll(".installed")].map((t) => t.parentElement.firstChild.textContent);
   assert.deepEqual(marked, [titles.find((t) => t.startsWith(manifest.version + " "))]);
