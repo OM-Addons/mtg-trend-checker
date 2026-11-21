@@ -65,6 +65,7 @@ npm run build        # unsigned zip in dist/
 - Keep user-facing text short and in English.
 - Keep `README.md` (user docs) in sync when behaviour or settings change, and add a line to `CHANGELOG.md` under "Unreleased".
 - **Commit after each change** (owner's wish): once a change is done and `npm run check` passes, commit it on its own with a short message saying what changed and why. One logical change per commit; don't wait to be asked.
+- **One branch per feature** (owner's wish): start each new feature or fix on its own branch off an up-to-date `main` (e.g. `feature/scan-all-pages`, `fix/cart-parser`), never commit straight to `main`. Ask the owner before merging into `main` or pushing.
 
 ## Cardmarket pages (the fragile part)
 
