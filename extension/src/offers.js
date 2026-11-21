@@ -173,7 +173,6 @@
         // cheapBelow is 0 when the first range starts at €0: then nothing is skipped by price.
         const skipped = stats.cheapBelow > 0 ? `Skipped ${stats.cheap} under ${fmt(stats.cheapBelow)} · ` : "Skipped ";
         box.appendChild(el("div", "cmc-muted", `${skipped}${stats.lang} non-English`));
-        if (stats.checked) box.appendChild(el("div", "cmc-muted", "Hover a card name to see its price vs trend."));
       }
       if (stats && stats.failed.length) {
         const det = el("details", "cmc-muted");

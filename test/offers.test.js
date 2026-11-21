@@ -137,3 +137,10 @@ test("rows added during a run are checked; unknown cards are listed", async () =
   assert.match(overview, /Mystery: no English trend found/);
   assert.ok(inner.calls.some((c) => c.includes("fuzzy=Mystery")), "fuzzy name fallback is tried");
 });
+
+test("overview has no 'hover a card name' hint (owner's wish), but the tooltips are still there", async () => {
+  const { w } = listPage();
+  await w.CMC.runOffers();
+  assert.doesNotMatch(text(w.document.querySelector(".cmc-overview")), /hover/i);
+  assert.ok(w.document.querySelector("#articleRow3 a").title.startsWith("Price read:"));
+});
