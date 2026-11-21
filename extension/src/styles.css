@@ -41,7 +41,7 @@
 .cmc-list { margin: 6px 0; padding-left: 16px; }
 .cmc-good-text { color: #1e8e3e; }
 .cmc-bad-text { color: #c5221f; }
-.cmc-btn { border: 1px solid #ccc; background: #fafafa; border-radius: 4px; cursor: pointer; padding: 0 6px; }
+.cmc-btn { border: 1px solid #ccc; background: #fafafa; color: #222; font: inherit; border-radius: 4px; cursor: pointer; padding: 0 6px; }
 .cmc-refresh { margin-top: 4px; padding: 2px 8px; }
 .cmc-mode { display: flex; gap: 4px; margin-bottom: 6px; }
 .cmc-mode-btn { padding: 2px 8px; }
