@@ -75,6 +75,7 @@ npm run build        # unsigned zip in dist/
 - **One branch per feature** (owner's wish): start each new feature or fix on its own branch off an up-to-date `main` (e.g. `feature/scan-all-pages`, `fix/cart-parser`), never commit straight to `main`. Ask the owner before merging into `main` or pushing.
 - **Dependabot PRs** (`.github/dependabot.yml`): minor/patch updates are grouped; merge when CI is green. A major update (like web-ext 8 → 10) needs a look at its changelog and, if it touches `web-ext`, a check that `npm start` and the `web-ext sign` flags in the release skill still work.
 - **Merge through pull requests**: when the work is done, push the branch and open a PR with `gh pr create` (what changed, why, how it was tested, what the owner should check in the browser). CI (`.github/workflows/ci.yml`) runs `npm run check`; merge only when it's green and the owner agrees, then delete the branch and switch back to an updated `main`.
+  **Merge locally, never with GitHub's merge button / `gh pr merge`**: GitHub writes the merge commit under the owner's account e-mail. Instead: `git switch main && git pull && git merge --no-ff <branch> -m "Merge pull request #<n> from <branch>"` (commits as `mtg-tools`), `git push origin main` (GitHub then marks the PR merged), then `git push origin --delete <branch>` and `git branch -d <branch>`. Before pushing `main`, check `git log --format='%an <%ae>' origin/main..main` shows only `mtg-tools` (and `github-actions[bot]`).
 
 ## Cardmarket pages (the fragile part)
 
