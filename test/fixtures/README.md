@@ -5,10 +5,10 @@ These HTML files stand in for Cardmarket pages in the tests.
 | File | Page | Kind | Used by |
 |---|---|---|---|
 | `real-cart.html` | `/Magic/ShoppingCart`, 2 sellers | **real** (saved 2026-11-21, anonymised) | `real-pages.test.js` |
-| `real-offers-list.html` | Seller offers, list layout (`.article-row` divs), 20 offers | **real** (saved 2026-11-21, anonymised) | `real-pages.test.js` |
+| `real-offers-list.html` | Seller offers (`.article-row` divs, the only layout), 20 offers | **real** (saved 2026-11-21, anonymised) | `real-pages.test.js` |
 | `cart.html` | `/Magic/ShoppingCart` with 3 sellers | hand-made | `cart.test.js` |
-| `offers-list.html` | Seller offers, list layout | hand-made | `offers.test.js` |
-| `offers-table.html` | Seller offers, table layout (`<tr>` rows, Name / Info columns) | hand-made, no real page yet | `offers.test.js` |
+| `offers-list.html` | Seller offers, edge cases | hand-made | `offers.test.js` |
+| `offers-table.html` | Seller offers as `<tr>` rows: robustness test, not a real Cardmarket layout | hand-made | `offers.test.js` |
 
 The hand-made files cover edge cases the real pages don't have (non-English offers, foil-only trends, unknown cards, deals in every price bracket). Keep both kinds.
 

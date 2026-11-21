@@ -77,9 +77,8 @@
   }
 
   /**
-   * Works on both layouts: the classic div list (.article-row) and the table
-   * view (<tr> rows with Name / Info columns). Anchors on the card link and
-   * walks up to its row, so it doesn't depend on exact column classes.
+   * Anchors on the card link and walks up to its row (.article-row on the real
+   * site, or a <tr> as a fallback), so it doesn't depend on exact column classes.
    */
   /** @param {Document} doc @returns {Offer[]} */
   function parseOffers(doc) {
