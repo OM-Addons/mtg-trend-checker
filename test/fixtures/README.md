@@ -2,15 +2,24 @@
 
 These HTML files stand in for Cardmarket pages in the tests.
 
-**The current files are hand-made imitations**, based on another extension's selectors and a screenshot, not on real saved pages. Replace them with real pages when you can:
+| File | Page | Kind | Used by |
+|---|---|---|---|
+| `real-cart.html` | `/Magic/ShoppingCart`, 2 sellers | **real** (saved 2026-11-21, anonymised) | `real-pages.test.js` |
+| `real-offers-list.html` | Seller offers, list layout (`.article-row` divs), 20 offers | **real** (saved 2026-11-21, anonymised) | `real-pages.test.js` |
+| `cart.html` | `/Magic/ShoppingCart` with 3 sellers | hand-made | `cart.test.js` |
+| `offers-list.html` | Seller offers, list layout | hand-made | `offers.test.js` |
+| `offers-table.html` | Seller offers, table layout (`<tr>` rows, Name / Info columns) | hand-made, no real page yet | `offers.test.js` |
 
-1. Open the page on Cardmarket (logged in), press **Ctrl+S** and choose **"Web Page, HTML only"**.
-2. Remove personal data before committing: your name, address, username, e-mail, order numbers, and anything else you don't want public. Search the file for them.
-3. Optionally cut it down to the relevant part (the cart blocks or the offers table). Keep the real structure and class names as they are.
-4. Save it here under the same name, and update the expected values in the matching test.
+The hand-made files cover edge cases the real pages don't have (non-English offers, foil-only trends, unknown cards, deals in every price bracket). Keep both kinds.
 
-| File | Page | Used by |
-|---|---|---|
-| `cart.html` | `/Magic/ShoppingCart` with 3 sellers | `cart.test.js` |
-| `offers-list.html` | Seller offers, older list layout (`.article-row` divs) | `offers.test.js` |
-| `offers-table.html` | Seller offers, table layout (`<tr>` rows, Name / Info columns) | `offers.test.js` |
+## Adding a real page
+
+1. Open the page on Cardmarket (logged in), press **Ctrl+S**, choose **"Web Page, HTML only"**, and save it in `incoming-pages/` (git-ignored).
+2. Clean it:
+   ```bash
+   node scripts/clean-page.js cart   "incoming-pages/<file>.htm" test/fixtures/real-<name>.html
+   node scripts/clean-page.js offers "incoming-pages/<file>.htm" test/fixtures/real-<name>.html
+   ```
+   It keeps only what the parsers read, removes scripts, forms and tokens, replaces usernames with `Seller1`, `Seller2`, …, removes account IDs, and refuses to write if anything from the account name, shipping address, tokens or usernames is left. Add `--forbid "a,b"` for other words that must not appear (e.g. your real name), and `--debug` to see where a leak is.
+3. **Check the result yourself** (search it for your name, address, e-mail, username) before committing.
+4. Add tests for it, then delete the raw file from `incoming-pages/`.
