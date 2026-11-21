@@ -94,7 +94,6 @@ interface Settings {
   brackets: Bracket[];
   dealMode: DealMode;
   englishOnly: boolean;
-  desktopNotify: boolean;
 }
 
 /** Everything the scripts put on the shared global object. */

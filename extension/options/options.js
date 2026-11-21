@@ -4,8 +4,8 @@
   "use strict";
   const { MAX_BRACKETS, defaults, getSettings, saveSettings, normalizeBrackets, validateBrackets, rangeLabel, fmtEuro } = window.CMC;
 
-  /** @type {Array<"englishOnly" | "desktopNotify">} */
-  const boolKeys = ["englishOnly", "desktopNotify"];
+  /** @type {Array<"englishOnly">} */
+  const boolKeys = ["englishOnly"];
 
   /**
    * @param {string} id
@@ -129,7 +129,7 @@
       return;
     }
     /** @type {Settings} */
-    const s = { brackets: normalizeBrackets(rows), dealMode: readMode(), englishOnly: $("englishOnly").checked, desktopNotify: $("desktopNotify").checked };
+    const s = { brackets: normalizeBrackets(rows), dealMode: readMode(), englishOnly: $("englishOnly").checked };
     await saveSettings(s);
     fill(s); // shows the ranges sorted, as they are applied
     flash("Saved ✓");
