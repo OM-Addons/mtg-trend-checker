@@ -7,7 +7,7 @@ description: Set up GitHub Actions (checks + Mozilla signing + auto-updates) for
 
 Friends install a **signed `.xpi`** from GitHub Releases of `OM-Addons/mtg-trend-checker`. The add-on is signed by Mozilla as **unlisted** (not visible on addons.mozilla.org). Firefox desktop auto-updates it through `update_url` → `updates.json` on `main`. Android is not supported for now (owner's decision).
 
-Pushing a tag `v<version>` runs `.github/workflows/release.yml`, which: runs `npm run check`; checks the tag matches `manifest.json`/`package.json`, is on `main`, and has a `CHANGELOG.md` section; signs with `web-ext sign --channel unlisted`; creates a GitHub release with `mtg-trend-checker-<version>.xpi`; and commits a new entry (link + sha256) to `updates.json` on `main` as `github-actions[bot]`.
+Pushing a tag `v<version>` runs `.github/workflows/release.yml`, which: runs `npm run check`; checks the tag matches `manifest.json`/`package.json`, is on `main`, and has a section in `extension/CHANGELOG.md`; signs with `web-ext sign --channel unlisted`; creates a GitHub release with `mtg-trend-checker-<version>.xpi`; and commits a new entry (link + sha256) to `updates.json` on `main` as `github-actions[bot]`.
 
 ---
 
@@ -42,7 +42,7 @@ After the first release, ask the owner to:
 1. Start from an up-to-date `main` with a clean tree; create branch `release/v<version>`.
 2. Pick the version with the owner (semver): fix → patch, new feature → minor.
 3. Set the same version in `extension/manifest.json` and `package.json`.
-4. In `CHANGELOG.md`, rename "Unreleased" to `## <version> - <YYYY-MM-DD>` and add a new empty "Unreleased" section above it. Write the entries for friends, not developers. The workflow uses this section as release notes and fails if it's empty.
+4. In `extension/CHANGELOG.md`, rename "Unreleased" to `## <version> - <YYYY-MM-DD>` and add a new empty "Unreleased" section above it. Write the entries for friends, not developers: the add-on shows this file as its "What's new" page (empty sections are hidden there). The workflow uses this section as release notes and fails if it's empty.
 5. `npm run check`; commit `Release v<version>`; with the owner's OK push the branch and open a PR. Merge when CI is green and the owner agrees.
 6. Tag the merge commit on `main` and push the tag (owner's go-ahead): `git switch main && git pull && git tag v<version> && git push origin v<version>`.
 7. Watch the workflow (`gh run watch`). If signing fails:

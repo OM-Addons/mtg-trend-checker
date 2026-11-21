@@ -128,3 +128,15 @@ interface CMCNamespace {
 declare var CMC: CMCNamespace;
 /** Set by tests to stop the content scripts from running on load. */
 declare var CMC_NO_AUTORUN: boolean | undefined;
+
+/** One version on the "What's new" page (a "## " section of extension/CHANGELOG.md). */
+interface ChangelogSection {
+  title: string;
+  items: string[];
+}
+
+/** changelog.js (the "What's new" page) exposes its helpers for tests. */
+declare var CMC_CHANGELOG: {
+  parseChangelog(md: string): ChangelogSection[];
+  render(doc: Document, sections: ChangelogSection[], installed: string | null): void;
+};

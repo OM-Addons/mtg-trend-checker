@@ -130,5 +130,13 @@
     flash("Defaults restored ✓");
   };
 
+  // The settings page is embedded in about:addons; open "What's new" as a normal tab.
+  // (tabs.create needs no extra permission; the plain link is the fallback.)
+  $("whatsnew").onclick = (e) => {
+    if (typeof browser === "undefined" || !browser.tabs) return;
+    e.preventDefault();
+    browser.tabs.create({ url: browser.runtime.getURL("changelog/changelog.html") });
+  };
+
   fill(await getSettings());
 })();

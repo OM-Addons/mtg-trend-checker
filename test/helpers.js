@@ -30,9 +30,17 @@ function fakeBrowser(initial = {}) {
     async remove(keys) { for (const k of [].concat(keys)) delete data[k]; },
   };
   const messages = [];
+  const opened = [];
+  const manifest = JSON.parse(fs.readFileSync(path.join(SRC, "..", "manifest.json"), "utf8"));
   return {
     storage: { local, onChanged: { addListener() {} } },
-    runtime: { messages, async sendMessage(m) { messages.push(m); } },
+    runtime: {
+      messages,
+      async sendMessage(m) { messages.push(m); },
+      getURL: (p) => `moz-extension://test/${p}`,
+      getManifest: () => manifest,
+    },
+    tabs: { opened, async create(o) { opened.push(o.url); } },
   };
 }
 
