@@ -1,7 +1,13 @@
 {
   "addons": {
     "mtg-trend-checker@mtg-tools": {
-      "updates": []
+      "updates": [
+        {
+          "version": "1.2.1",
+          "update_link": "https://github.com/OM-Addons/mtg-trend-checker/releases/download/v1.2.1/mtg-trend-checker-1.2.1.xpi",
+          "update_hash": "sha256:1505477ac744570ad840cb5e2a1f5de8144885034aad952a5054ec63096a9a75"
+        }
+      ]
     }
   }
 }
