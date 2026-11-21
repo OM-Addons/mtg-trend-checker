@@ -10,7 +10,7 @@
     "start": "web-ext run --source-dir extension --start-url https://www.cardmarket.com/en/Magic/ShoppingCart",
     "test": "node --test \"test/*.test.js\"",
     "typecheck": "tsc -p jsconfig.json",
-    "lint": "web-ext lint --source-dir extension",
+    "lint": "web-ext lint --source-dir extension --self-hosted",
     "check": "npm run typecheck && npm test && npm run lint",
     "build": "web-ext build --source-dir extension --artifacts-dir dist --overwrite-dest"
   },

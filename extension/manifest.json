@@ -5,7 +5,8 @@
   "description": "Compares Cardmarket MTG prices with the trend price of the cheapest English printing: checks your cart per seller and flags under-trend offers on seller pages.",
   "browser_specific_settings": {
     "gecko": {
-      "id": "cm-cart-checker@local",
+      "id": "mtg-trend-checker@mtg-tools",
+      "update_url": "https://raw.githubusercontent.com/OM-Addons/mtg-trend-checker/main/updates.json",
       "strict_min_version": "109.0",
       "data_collection_permissions": { "required": ["none"] }
     }

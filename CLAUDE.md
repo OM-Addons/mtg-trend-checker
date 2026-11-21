@@ -41,6 +41,8 @@ extension/            ← exactly what Firefox loads (no build step)
 types/globals.d.ts    shared types for the checker (not shipped)
 test/                 node:test + jsdom; fixtures/ = sample Cardmarket pages
 .github/workflows/ci.yml npm run check on every PR and push to main
+.github/workflows/release.yml  tag v* → sign (unlisted) → GitHub release → updates.json
+updates.json          self-hosted update manifest (written by the release workflow)
 .claude/skills/release/  how to set up CI/signing and ship a version
 ```
 
@@ -68,6 +70,7 @@ npm run build        # unsigned zip in dist/
 - Keep user-facing text short and in English.
 - **Update `README.md` with every change** (owner's wish): whenever a change affects anything the README describes (features, behaviour, settings, installation, development commands or setup), update it in the same commit. Also add a line to `CHANGELOG.md` under "Unreleased" for user-visible changes.
 - **Tests with every change**: a bug fix starts with a test that fails because of the bug; a new feature comes with tests for its rules. Business rules above (strictly-lower comparison, price brackets, no API calls < €1 / skipped languages) must each stay covered.
+- **Keep the owner's name out of the repo** (it will be public at `OM-Addons/mtg-trend-checker`): commits are authored as `mtg-tools <noreply@mtg-trend-checker.invalid>` (repo-local git config; set it again in a fresh clone), and no real names, e-mail addresses or usernames go into files, commit messages, fixtures or the add-on. The owner's GitHub username on PRs is accepted. Never rewrite history or force-push without asking.
 - **Commit after each change** (owner's wish): once a change is done and `npm run check` passes, commit it on its own with a short message saying what changed and why. One logical change per commit; don't wait to be asked.
 - **One branch per feature** (owner's wish): start each new feature or fix on its own branch off an up-to-date `main` (e.g. `feature/scan-all-pages`, `fix/cart-parser`), never commit straight to `main`. Ask the owner before merging into `main` or pushing.
 - **Dependabot PRs** (`.github/dependabot.yml`): minor/patch updates are grouped; merge when CI is green. A major update (like web-ext 8 → 10) needs a look at its changelog and, if it touches `web-ext`, a check that `npm start` and the `web-ext sign` flags in the release skill still work.
@@ -88,10 +91,11 @@ npm run build        # unsigned zip in dist/
 
 ## Releasing
 
-Use the `release` skill (`.claude/skills/release/SKILL.md`). It covers the one-time setup (GitHub Actions for checks and Mozilla signing, auto-updates for friends) and the steps for each release. **Never change the add-on ID** (`browser_specific_settings.gecko.id`) after the first signed release: installed copies would stop updating.
+Use the `release` skill (`.claude/skills/release/SKILL.md`). It covers the one-time setup (GitHub Actions for checks and Mozilla signing, auto-updates for friends) and the steps for each release. **Never change the add-on ID** (`mtg-trend-checker@mtg-tools`, in `browser_specific_settings.gecko.id`): installed copies would stop updating.
 
 ## Ideas discussed, not built yet
 
 - **Scan all pages of a seller**: a "Scan all pages" button; fetch the seller's other pages with the current filters/sort, ~1 page per 1.5–2 s, one sorted deal list with links and progress. Cardmarket may cap results (possibly 300); suggest the user set a min-price filter of €1. Not automatic, and no scanning many sellers in a row.
 - Chrome support (MV3 + browser polyfill) only if a friend asks.
+- Firefox for Android: left out for now (owner's decision). Self-hosted installs there need the hidden "Install extension from file" menu, auto-updates are unconfirmed, the notifications API doesn't exist, and the mobile Cardmarket layout is untested.
 - Replace the hand-made fixtures with real saved pages.

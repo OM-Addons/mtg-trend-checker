@@ -1,0 +1,108 @@
+# Ship a version: push a tag like v1.3.0 (on a commit that is on main).
+# Checks, signs the add-on with Mozilla (unlisted), creates a GitHub release
+# with the .xpi, and adds the version to updates.json so installed copies
+# auto-update. See .claude/skills/release/SKILL.md.
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write # create the release and push updates.json to main
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    env:
+      TAG: ${{ github.ref_name }}
+      REPO_URL: https://github.com/${{ github.repository }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # needed to check that the tag is on main
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+      - run: npm run check
+
+      - name: Check tag, versions and changelog
+        run: |
+          VERSION="${TAG#v}"
+          MANIFEST_VERSION=$(node -p "require('./extension/manifest.json').version")
+          PACKAGE_VERSION=$(node -p "require('./package.json').version")
+          if [ "$VERSION" != "$MANIFEST_VERSION" ] || [ "$VERSION" != "$PACKAGE_VERSION" ]; then
+            echo "::error::Tag $TAG doesn't match manifest ($MANIFEST_VERSION) / package.json ($PACKAGE_VERSION)"
+            exit 1
+          fi
+          if ! git merge-base --is-ancestor "$GITHUB_SHA" origin/main; then
+            echo "::error::Tag $TAG is not on main. Merge the release PR first, then tag main."
+            exit 1
+          fi
+          # Release notes = the "## <version> ..." section of CHANGELOG.md.
+          awk -v h="## $VERSION" 'index($0, h) == 1 {f=1; next} /^## / {if (f) exit} f' CHANGELOG.md \
+            | sed '/^[[:space:]]*$/d' > "$RUNNER_TEMP/notes.md"
+          if [ ! -s "$RUNNER_TEMP/notes.md" ]; then
+            echo "::error::No entries under '## $VERSION' in CHANGELOG.md"
+            exit 1
+          fi
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+
+      - name: Sign with Mozilla (unlisted)
+        env:
+          AMO_JWT_ISSUER: ${{ secrets.AMO_JWT_ISSUER }}
+          AMO_JWT_SECRET: ${{ secrets.AMO_JWT_SECRET }}
+        run: |
+          if [ -z "$AMO_JWT_ISSUER" ] || [ -z "$AMO_JWT_SECRET" ]; then
+            echo "::error::Repository secrets AMO_JWT_ISSUER / AMO_JWT_SECRET are not set"
+            exit 1
+          fi
+          npx web-ext sign --source-dir extension --artifacts-dir dist --channel unlisted \
+            --api-key "$AMO_JWT_ISSUER" --api-secret "$AMO_JWT_SECRET" \
+            --approval-timeout 900000
+          # web-ext names the file after the add-on name; give it a stable, neutral name.
+          shopt -s nullglob
+          files=(dist/*.xpi)
+          if [ "${#files[@]}" -ne 1 ]; then
+            echo "::error::Expected exactly one signed .xpi in dist/, found ${#files[@]}"
+            exit 1
+          fi
+          mv "${files[0]}" "dist/mtg-trend-checker-$VERSION.xpi"
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$TAG" "dist/mtg-trend-checker-$VERSION.xpi" \
+            --title "$TAG" --notes-file "$RUNNER_TEMP/notes.md"
+
+      - name: Add version to updates.json on main
+        run: |
+          XPI="dist/mtg-trend-checker-$VERSION.xpi"
+          export UPDATE_LINK="$REPO_URL/releases/download/$TAG/mtg-trend-checker-$VERSION.xpi"
+          export UPDATE_HASH="sha256:$(sha256sum "$XPI" | cut -d' ' -f1)"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -B main origin/main
+          node -e '
+            const fs = require("fs");
+            const id = require("./extension/manifest.json").browser_specific_settings.gecko.id;
+            const data = JSON.parse(fs.readFileSync("updates.json", "utf8"));
+            const list = data.addons[id].updates;
+            if (!list.some((u) => u.version === process.env.VERSION)) {
+              list.push({ version: process.env.VERSION, update_link: process.env.UPDATE_LINK, update_hash: process.env.UPDATE_HASH });
+            }
+            fs.writeFileSync("updates.json", JSON.stringify(data, null, 2) + "\n");
+          '
+          git add updates.json
+          git commit -m "updates.json: add $VERSION"
+          # Retry once if main moved in the meantime.
+          git push origin main || { git pull --rebase origin main && git push origin main; }
