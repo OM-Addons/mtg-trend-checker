@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+- Desktop notifications for deals are gone. The overview box on the page shows the deals.
 
 ## 1.3.0 - 2026-11-21
 - Settings: the price ranges for deals can be edited, added and removed (up to 10). The page shows each range and which offers are ignored. Your old percentages are kept.

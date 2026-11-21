@@ -20,7 +20,6 @@
     // (no price minimum) and anything strictly below trend is a deal. Toggled on seller pages.
     dealMode: "ranges",
     englishOnly: true,     // only check offers whose card language is English
-    desktopNotify: true,   // show a Firefox notification when deals are found
   };
   const MAX_BRACKETS = 10;
 
@@ -102,7 +101,8 @@
     s.brackets = normalizeBrackets(s.brackets);
     /** @type {DealMode} */
     const dealMode = s.dealMode === "anyUnder" ? "anyUnder" : "ranges";
-    return { brackets: s.brackets, dealMode, englishOnly: !!s.englishOnly, desktopNotify: !!s.desktopNotify };
+    // Only known keys are returned, so old ones (pctLow…, desktopNotify before 1.4) drop out on the next save.
+    return { brackets: s.brackets, dealMode, englishOnly: !!s.englishOnly };
   }
 
   /** @returns {Promise<Settings>} */

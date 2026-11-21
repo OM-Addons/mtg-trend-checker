@@ -25,7 +25,7 @@ Firefox extension that compares Magic: The Gathering prices on cardmarket.com wi
 - Card name tooltip: price read + trend (for verifying).
 - `englishOnly` setting (default on): non-English offers are skipped **without API calls**. Unknown language → checked anyway.
 - Overview box (bottom-right) always appears, including diagnostics ("No card offers recognised", "couldn't be priced" list).
-- Optional desktop notification for new deals.
+- No desktop notifications (removed in 1.4 at the owner's request; the add-on no longer has the permission).
 
 ## Layout
 
@@ -37,7 +37,7 @@ extension/            ← exactly what Firefox loads (no build step)
   src/settings.js     defaults, storage, price brackets (requiredDiscount)
   src/content.js      cart page: evaluate + render
   src/offers.js       seller pages: parse rows, judge, render, re-run on DOM changes
-  src/background.js   desktop notifications, open settings page
+  src/background.js   opens the settings page
   src/styles.css      all injected styles (classes prefixed `cmc-`)
   options/            settings page (links to "What's new")
   changelog/          "What's new" page: renders ../CHANGELOG.md (tiny Markdown subset, no library)
@@ -105,4 +105,4 @@ Use the `release` skill (`.claude/skills/release/SKILL.md`). It covers the one-t
 
 - **Scan all pages of a seller**: a "Scan all pages" button; fetch the seller's other pages with the current filters/sort, ~1 page per 1.5–2 s, one sorted deal list with links and progress. Cardmarket may cap results (possibly 300); suggest the user set a min-price filter of €1. Not automatic, and no scanning many sellers in a row.
 - Chrome support (MV3 + browser polyfill) only if a friend asks.
-- Firefox for Android: left out for now (owner's decision). Self-hosted installs there need the hidden "Install extension from file" menu, auto-updates are unconfirmed, the notifications API doesn't exist, and the mobile Cardmarket layout is untested.
+- Firefox for Android: left out for now (owner's decision). Self-hosted installs there need the hidden "Install extension from file" menu, auto-updates are unconfirmed, and the mobile Cardmarket layout is untested.

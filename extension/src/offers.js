@@ -241,7 +241,6 @@
   let running = false;
   let again = false; // set while running: stop the current check and start over
   let lastSig = "";
-  const notified = new Set();
   const sig = () => Array.from(document.querySelectorAll("a[href*='/Products/Singles/']")).map((a) => a.getAttribute("href")).join(",");
 
   async function run() {
@@ -293,16 +292,6 @@
 
       document.querySelectorAll(".cmc-overview").forEach((n) => n.remove());
       renderOverview(deals, null, stats);
-
-      const fresh = deals.filter((d) => !notified.has(d.offer.url + d.offer.price));
-      fresh.forEach((d) => notified.add(d.offer.url + d.offer.price));
-      if (settings.desktopNotify && fresh.length && typeof browser !== "undefined") {
-        browser.runtime.sendMessage({
-          type: "notify",
-          title: `${fresh.length} card(s) under trend`,
-          message: fresh.slice(0, 5).map((d) => `${d.offer.name}: ${fmt(d.offer.price)} (−${Math.round(d.j.discount)}%)`).join("\n"),
-        });
-      }
     } finally {
       running = false;
       if (again) { again = false; run(); }

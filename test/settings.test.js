@@ -16,7 +16,7 @@ const plain = (v) => JSON.parse(JSON.stringify(v));
 
 test("custom brackets: highest start <= price wins, list order doesn't matter", () => {
   const { requiredDiscount } = cmc();
-  const s = { brackets: [{ from: 10, pct: 5 }, { from: 2, pct: 30 }, { from: 4.5, pct: 20 }], englishOnly: true, desktopNotify: false };
+  const s = { brackets: [{ from: 10, pct: 5 }, { from: 2, pct: 30 }, { from: 4.5, pct: 20 }], englishOnly: true };
   assert.equal(requiredDiscount(1.99, s), null);
   assert.equal(requiredDiscount(2, s), 30);
   assert.equal(requiredDiscount(4.49, s), 30);
@@ -28,7 +28,7 @@ test("custom brackets: highest start <= price wins, list order doesn't matter", 
 
 test("a range starting at €0 means nothing is ignored by price", () => {
   const { requiredDiscount, ignoredBelow } = cmc();
-  const s = { brackets: [{ from: 0, pct: 40 }, { from: 1, pct: 25 }], englishOnly: true, desktopNotify: false };
+  const s = { brackets: [{ from: 0, pct: 40 }, { from: 1, pct: 25 }], englishOnly: true };
   assert.equal(ignoredBelow(s), 0);
   assert.equal(requiredDiscount(0, s), 40);
   assert.equal(requiredDiscount(0.05, s), 40);
@@ -86,7 +86,7 @@ test("rangeLabel shows where each range ends", () => {
 test("settings from older versions (three fixed percentages) become brackets", () => {
   const { migrate } = cmc();
   assert.deepEqual(plain(migrate({ pctLow: 30, pctMid: 20, pctHigh: 12, englishOnly: false, desktopNotify: true })), {
-    brackets: [{ from: 1, pct: 30 }, { from: 3, pct: 20 }, { from: 5, pct: 12 }], dealMode: "ranges", englishOnly: false, desktopNotify: true,
+    brackets: [{ from: 1, pct: 30 }, { from: 3, pct: 20 }, { from: 5, pct: 12 }], dealMode: "ranges", englishOnly: false,
   });
   assert.deepEqual(plain(migrate({ pctMid: 18 }).brackets), [{ from: 1, pct: 25 }, { from: 3, pct: 18 }, { from: 5, pct: 10 }]);
   // New-style settings are kept (old keys are ignored once brackets exist).
@@ -95,13 +95,13 @@ test("settings from older versions (three fixed percentages) become brackets", (
 });
 
 test("getSettings migrates what is in storage, saveSettings stores sorted brackets", async () => {
-  const browser = fakeBrowser({ settings: { pctLow: 30, pctMid: 20, pctHigh: 12, englishOnly: true, desktopNotify: false } });
+  const browser = fakeBrowser({ settings: { pctLow: 30, pctMid: 20, pctHigh: 12, englishOnly: true } });
   const { getSettings, saveSettings } = loadPage("<body></body>", ["settings.js"], null, { browser }).CMC;
   const s = await getSettings();
   assert.deepEqual(plain(s.brackets), [{ from: 1, pct: 30 }, { from: 3, pct: 20 }, { from: 5, pct: 12 }]);
   await saveSettings({ ...s, brackets: [{ from: 4, pct: 1 }, { from: 0.5, pct: 2 }] });
   assert.deepEqual(browser.storage.local.data.settings, {
-    brackets: [{ from: 0.5, pct: 2 }, { from: 4, pct: 1 }], dealMode: "ranges", englishOnly: true, desktopNotify: false,
+    brackets: [{ from: 0.5, pct: 2 }, { from: 4, pct: 1 }], dealMode: "ranges", englishOnly: true,
   });
 });
 
@@ -126,7 +126,7 @@ function listPageWith(brackets, extra = {}) {
     byName: Object.fromEntries(Object.keys(trends).map((n) => [n, n])),
     prints: Object.fromEntries(Object.entries(trends).map(([n, t]) => [n, [print(t, "S")]])),
   });
-  const browser = fakeBrowser({ settings: { brackets, englishOnly: true, desktopNotify: false, ...extra } });
+  const browser = fakeBrowser({ settings: { brackets, englishOnly: true, ...extra } });
   return { w: loadPage(fixture("offers-list.html"), OFFER_SCRIPTS, fetch, { browser }), fetch, browser };
 }
 
@@ -195,7 +195,7 @@ test("settings page: labels and ignored text update while typing", async () => {
 });
 
 test("settings page: add and remove ranges, last one can't be removed", async () => {
-  const { d, rows, click } = await optionsPage({ brackets: [{ from: 2, pct: 20 }], englishOnly: true, desktopNotify: true });
+  const { d, rows, click } = await optionsPage({ brackets: [{ from: 2, pct: 20 }], englishOnly: true });
   assert.equal(d.querySelector(".remove").disabled, true, "only one range left");
   await click("add");
   assert.deepEqual(rows().map((r) => [r.from, r.pct]), [["2", "20"], ["7", "20"]], "new range above the highest, same %");
@@ -207,7 +207,7 @@ test("settings page: add and remove ranges, last one can't be removed", async ()
 
 test("settings page: add is disabled at the maximum number of ranges", async () => {
   const brackets = Array.from({ length: 10 }, (_, i) => ({ from: i + 1, pct: 10 }));
-  const { d } = await optionsPage({ brackets, englishOnly: true, desktopNotify: true });
+  const { d } = await optionsPage({ brackets, englishOnly: true });
   assert.equal(d.getElementById("add").disabled, true);
 });
 
@@ -218,7 +218,7 @@ test("settings page: save stores the ranges sorted and shows them sorted", async
   d.getElementById("englishOnly").checked = false;
   await click("save");
   assert.deepEqual(stored(), {
-    brackets: [{ from: 3, pct: 15 }, { from: 5, pct: 10 }, { from: 8, pct: 7 }], dealMode: "ranges", englishOnly: false, desktopNotify: true,
+    brackets: [{ from: 3, pct: 15 }, { from: 5, pct: 10 }, { from: 8, pct: 7 }], dealMode: "ranges", englishOnly: false,
   });
   assert.deepEqual(rows().map((r) => r.from), ["3", "5", "8"]);
   assert.equal(text(d.getElementById("saved")), "Saved ✓");
@@ -241,7 +241,7 @@ test("settings page: invalid input shows an error on the page and saves nothing"
 });
 
 test("settings page: reset restores the three default ranges", async () => {
-  const { rows, click, stored } = await optionsPage({ brackets: [{ from: 0, pct: 50 }], englishOnly: false, desktopNotify: false });
+  const { rows, click, stored } = await optionsPage({ brackets: [{ from: 0, pct: 50 }], englishOnly: false });
   await click("reset");
   assert.deepEqual(rows().map((r) => [r.from, r.pct]), [["1", "25"], ["3", "15"], ["5", "10"]]);
   assert.deepEqual(stored().brackets, [{ from: 1, pct: 25 }, { from: 3, pct: 15 }, { from: 5, pct: 10 }]);
@@ -334,7 +334,7 @@ test("overview switch while a check is still running: the page ends up in the ne
 
 test("discounts under 1% show as <1%, not 0%", async () => {
   const fetch = fakeScryfall({ byName: { "Low Deal": "x" }, prints: { x: [print(1.505, "S")] } });
-  const browser = fakeBrowser({ settings: { brackets: DEFAULT_BRACKETS, dealMode: "anyUnder", englishOnly: true, desktopNotify: false } });
+  const browser = fakeBrowser({ settings: { brackets: DEFAULT_BRACKETS, dealMode: "anyUnder", englishOnly: true } });
   const w = loadPage(fixture("offers-list.html"), OFFER_SCRIPTS, fetch, { browser });
   await w.CMC.runOffers();
   const note = [...w.document.querySelectorAll(".cmc-deal-note")].map(text);
@@ -342,7 +342,7 @@ test("discounts under 1% show as <1%, not 0%", async () => {
 });
 
 test("settings page: mode radios load, save, and change the ignored text", async () => {
-  const { d, click, stored } = await optionsPage({ brackets: DEFAULT_BRACKETS, dealMode: "anyUnder", englishOnly: true, desktopNotify: true });
+  const { d, click, stored } = await optionsPage({ brackets: DEFAULT_BRACKETS, dealMode: "anyUnder", englishOnly: true });
   assert.equal(d.querySelector("input[name=dealMode]:checked").value, "anyUnder");
   assert.match(text(d.getElementById("ignored")), /every offer is checked and the ranges aren't used/);
   const ranges = d.querySelector("input[value=ranges]");
@@ -351,4 +351,29 @@ test("settings page: mode radios load, save, and change the ignored text", async
   assert.match(text(d.getElementById("ignored")), /Offers under € 1,00 are ignored/);
   await click("save");
   assert.equal(stored().dealMode, "ranges");
+});
+
+// ---------------------------------------------------------------------------
+// No desktop notifications (removed in 1.4 at the owner's request)
+// ---------------------------------------------------------------------------
+
+test("no desktop notification for deals, even if an old setting had it on", async () => {
+  const { w, browser } = listPageWith(DEFAULT_BRACKETS, { desktopNotify: true });
+  await w.CMC.runOffers();
+  assert.ok(w.document.querySelectorAll(".cmc-deal-row").length > 0, "the page has deals");
+  assert.deepEqual(browser.runtime.messages.filter((m) => m.type === "notify"), []);
+});
+
+test("the old desktopNotify setting is dropped", () => {
+  const { migrate, DEFAULTS } = cmc();
+  assert.ok(!("desktopNotify" in DEFAULTS));
+  assert.ok(!("desktopNotify" in migrate({ englishOnly: true, desktopNotify: true })));
+});
+
+test("no notification option on the settings page and no notifications permission", async () => {
+  const { d } = await optionsPage();
+  assert.equal(d.getElementById("desktopNotify"), null);
+  assert.doesNotMatch(d.body.textContent, /notification/i);
+  const manifest = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "extension", "manifest.json"), "utf8"));
+  assert.ok(!manifest.permissions.includes("notifications"));
 });
