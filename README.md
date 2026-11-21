@@ -52,6 +52,8 @@ npm run check      # type check + tests + Firefox add-on lint
 `npm start` uses a fresh Firefox profile, so you need to log in to Cardmarket there. To use your normal profile instead (Firefox must be closed):
 `npx web-ext run --source-dir extension --firefox-profile=default-release --keep-profile-changes`
 
+Work happens on a branch per feature and is merged through a pull request; GitHub Actions runs `npm run check` on every PR, and Dependabot opens PRs for dependency updates.
+
 Project notes for Claude Code are in `CLAUDE.md`. Release steps are in `.claude/skills/release/SKILL.md`. Changes are listed in `CHANGELOG.md`.
 
 ## How the price is determined

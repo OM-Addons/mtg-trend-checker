@@ -40,12 +40,15 @@ extension/            ← exactly what Firefox loads (no build step)
   options/            settings page
 types/globals.d.ts    shared types for the checker (not shipped)
 test/                 node:test + jsdom; fixtures/ = sample Cardmarket pages
+.github/workflows/ci.yml npm run check on every PR and push to main
 .claude/skills/release/  how to set up CI/signing and ship a version
 ```
 
 Scripts are **classic scripts, not modules**: they share code through the global `CMC` object (`root.CMC = Object.assign(root.CMC || {}, {...})`). Load order in `manifest.json` matters (parse → prices → settings → page script). `test/helpers.js` has `CART_SCRIPTS`/`OFFER_SCRIPTS`, which **must mirror the manifest**.
 
 ## Commands
+
+Node.js 22+ (`engines` in `package.json`; CI uses 22, so don't rely on newer Node features).
 
 ```bash
 npm install          # once
@@ -63,9 +66,12 @@ npm run build        # unsigned zip in dist/
 - Element IDs/classes added to Cardmarket pages are prefixed `cmc-`, and every injected node gets `data-cmc` so a re-run can remove it.
 - Money: always parse with `parseEuro`/`allEuros` (handles `1.234,56 €` and `€1,234.56`); display with `fmt` (nl-NL, EUR).
 - Keep user-facing text short and in English.
-- Keep `README.md` (user docs) in sync when behaviour or settings change, and add a line to `CHANGELOG.md` under "Unreleased".
+- **Update `README.md` with every change** (owner's wish): whenever a change affects anything the README describes (features, behaviour, settings, installation, development commands or setup), update it in the same commit. Also add a line to `CHANGELOG.md` under "Unreleased" for user-visible changes.
+- **Tests with every change**: a bug fix starts with a test that fails because of the bug; a new feature comes with tests for its rules. Business rules above (strictly-lower comparison, price brackets, no API calls < €1 / skipped languages) must each stay covered.
 - **Commit after each change** (owner's wish): once a change is done and `npm run check` passes, commit it on its own with a short message saying what changed and why. One logical change per commit; don't wait to be asked.
 - **One branch per feature** (owner's wish): start each new feature or fix on its own branch off an up-to-date `main` (e.g. `feature/scan-all-pages`, `fix/cart-parser`), never commit straight to `main`. Ask the owner before merging into `main` or pushing.
+- **Dependabot PRs** (`.github/dependabot.yml`): minor/patch updates are grouped; merge when CI is green. A major update (like web-ext 8 → 10) needs a look at its changelog and, if it touches `web-ext`, a check that `npm start` and the `web-ext sign` flags in the release skill still work.
+- **Merge through pull requests**: when the work is done, push the branch and open a PR with `gh pr create` (what changed, why, how it was tested, what the owner should check in the browser). CI (`.github/workflows/ci.yml`) runs `npm run check`; merge only when it's green and the owner agrees, then delete the branch and switch back to an updated `main`.
 
 ## Cardmarket pages (the fragile part)
 

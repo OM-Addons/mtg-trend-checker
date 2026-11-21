@@ -1,0 +1,17 @@
+# Weekly PRs for outdated/vulnerable dev dependencies and GitHub Actions.
+# The extension itself has no dependencies; these are tooling only.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      dev-tools:
+        patterns: ["*"]
+        update-types: [minor, patch]
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
