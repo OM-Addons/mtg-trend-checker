@@ -47,6 +47,8 @@ Scripts are **classic scripts, not modules**: they share code through the global
 
 ## Commands
 
+Node.js 22+ (`engines` in `package.json`; CI uses 22, so don't rely on newer Node features).
+
 ```bash
 npm install          # once
 npm run check        # typecheck + tests + web-ext lint: run before saying you're done
