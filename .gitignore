@@ -6,3 +6,8 @@ web-ext-artifacts/
 .DS_Store
 .env
 .amo-upload-uuid
+
+# Raw pages saved from Cardmarket (may contain personal data): never committed.
+# Cleaned copies go to test/fixtures/.
+incoming-pages/*
+!incoming-pages/README.md

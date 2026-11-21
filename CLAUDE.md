@@ -40,6 +40,7 @@ extension/            ← exactly what Firefox loads (no build step)
   options/            settings page
 types/globals.d.ts    shared types for the checker (not shipped)
 test/                 node:test + jsdom; fixtures/ = sample Cardmarket pages
+incoming-pages/       raw pages saved by the owner (git-ignored except README)
 .github/workflows/ci.yml npm run check on every PR and push to main
 .github/workflows/release.yml  tag v* → sign (unlisted) → GitHub release → updates.json
 updates.json          self-hosted update manifest (written by the release workflow)
@@ -80,7 +81,7 @@ npm run build        # unsigned zip in dist/
 ## Cardmarket pages (the fragile part)
 
 - Claude **cannot open Cardmarket** (it needs the owner's login) and can't see the real HTML. Cart selectors are in `parseCart` (`parse.js`); seller-page selectors in `parseOffers`, `priceOfRow` and `detectLanguage` (`offers.js`). The offer parser anchors on `a[href*='/Products/Singles/']` and walks up to the row, so it handles both the list layout and the table layout.
-- **The fixtures in `test/fixtures/` are hand-made imitations**, not real pages. When something breaks on the real site: ask the owner to save the page (Ctrl+S → "Web Page, HTML only"), check it for personal data (name, address, username, e-mail, order numbers) before committing, add it as a fixture, write a failing test, then fix the parser.
+- **The fixtures in `test/fixtures/` are hand-made imitations**, not real pages. When something breaks on the real site: ask the owner to save the page (Ctrl+S → "Web Page, HTML only") into `incoming-pages/` (git-ignored, raw pages never get committed), check it for personal data (name, address, username, e-mail, order numbers) before committing, add it as a fixture, write a failing test, then fix the parser.
 - After any parser change, ask the owner to test in the browser (`npm start`, or reload in `about:debugging`) and check the card-name tooltips.
 
 ## Scryfall API
