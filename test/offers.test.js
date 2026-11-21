@@ -58,11 +58,20 @@ test("list layout: deals are flagged, others show just the trend price", async (
   assert.deepEqual(flagged, ["Low Deal", "Mid Deal", "High Deal", "Boundary Five (V.2)"]);
 
   const notes = [...w.document.querySelectorAll(".cmc-note")].map(text);
-  assert.ok(notes.includes("🔥 25% under EN trend € 2,00 (S)"));
+  // Deal: savings in euros, then the percentage in brackets (Low Deal: €1,50 vs €2,00).
+  assert.ok(notes.includes("🔥 € 0,50 (25%) under trend € 2,00 (S)"));
   // Non-deals, including above trend: price only, no percentage
-  assert.ok(notes.includes("EN trend € 2,20 (S)"));
-  assert.ok(notes.includes("EN trend € 2,50 (S)"), "above-trend card still shows its trend");
+  assert.ok(notes.includes("Trend € 2,20 (S)"));
+  assert.ok(notes.includes("Trend € 2,50 (S)"), "above-trend card still shows its trend");
+  assert.ok(notes.every((n) => !n.includes("EN")), "no 'EN' in the notes");
   assert.ok(notes.filter((n) => !n.startsWith("🔥")).every((n) => !n.includes("%")));
+});
+
+test("overview lists each deal with its savings in euros and percent", async () => {
+  const { w } = listPage();
+  await w.CMC.runOffers();
+  const items = [...w.document.querySelectorAll(".cmc-overview .cmc-good-text")].map(text);
+  assert.ok(items.includes("Low Deal: € 1,50 vs € 2,00 (€ 0,50 - 25%)"), items.join(" | "));
 });
 
 test("no Scryfall calls for cards under €1 or non-English cards", async () => {
