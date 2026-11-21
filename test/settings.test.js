@@ -77,10 +77,14 @@ test("rangeLabel shows where each range ends", () => {
   const { rangeLabel } = cmc();
   const froms = [5, 1, 3];
   const norm = (s) => s.replace(/\s/g, " ");
-  assert.equal(norm(rangeLabel(1, froms)), "€ 1,00 to under € 3,00");
-  assert.equal(norm(rangeLabel(3, froms)), "€ 3,00 to under € 5,00");
+  assert.equal(norm(rangeLabel(1, froms)), "€ 1,00 to € 2,99");
+  assert.equal(norm(rangeLabel(3, froms)), "€ 3,00 to € 4,99");
   assert.equal(norm(rangeLabel(5, froms)), "€ 5,00 and up");
   assert.equal(norm(rangeLabel(3, [3, NaN])), "€ 3,00 and up", "ignores empty fields");
+  // The upper end is one cent below the next start, so ranges don't seem to overlap.
+  assert.equal(norm(rangeLabel(2.5, [2.5, 2.75])), "€ 2,50 to € 2,74");
+  assert.equal(norm(rangeLabel(0.1, [0.1, 0.3])), "€ 0,10 to € 0,29", "no float noise");
+  assert.equal(norm(rangeLabel(1, [1, 1.01])), "€ 1,00 only", "range of a single cent");
 });
 
 test("settings from older versions (three fixed percentages) become brackets", () => {
@@ -178,8 +182,8 @@ async function optionsPage(stored) {
 test("settings page shows the ranges with labels and explains what is ignored", async () => {
   const { d, rows } = await optionsPage();
   assert.deepEqual(rows(), [
-    { from: "1", pct: "25", range: "€ 1,00 to under € 3,00" },
-    { from: "3", pct: "15", range: "€ 3,00 to under € 5,00" },
+    { from: "1", pct: "25", range: "€ 1,00 to € 2,99" },
+    { from: "3", pct: "15", range: "€ 3,00 to € 4,99" },
     { from: "5", pct: "10", range: "€ 5,00 and up" },
   ]);
   assert.equal(text(d.getElementById("ignored")), "Offers under € 1,00 are ignored: they get no note and no price lookup.");
@@ -189,7 +193,7 @@ test("settings page: labels and ignored text update while typing", async () => {
   const { d, rows, type } = await optionsPage();
   type(d.querySelectorAll(".from")[0], "0");
   assert.equal(text(d.getElementById("ignored")), "No offers are ignored by price: every offer gets a price lookup.");
-  assert.equal(rows()[0].range, "€ 0,00 to under € 3,00");
+  assert.equal(rows()[0].range, "€ 0,00 to € 2,99");
   type(d.querySelectorAll(".from")[2], "3");
   assert.equal(rows()[1].range, "same start as another range");
 });

@@ -145,12 +145,16 @@
   /**
    * Human-readable range for a bracket starting at `from`, given all start prices.
    * @param {number} from @param {number[]} allFroms
-   * @returns {string} e.g. "€ 1,00 to under € 3,00" or "€ 5,00 and up"
+   * The upper end is shown one cent below the next start (owner's wish), so the ranges
+   * don't look like they overlap: with ranges from €1 and €3 the first is "€1,00 to €2,99".
+   * @returns {string} e.g. "€ 1,00 to € 2,99" or "€ 5,00 and up"
    */
   function rangeLabel(from, allFroms) {
     const higher = allFroms.filter((f) => Number.isFinite(f) && cents(f) > cents(from));
     if (!higher.length) return `${fmtEuro(from)} and up`;
-    return `${fmtEuro(from)} to under ${fmtEuro(Math.min(...higher))}`;
+    const lastCent = Math.min(...higher.map(cents)) - 1; // in whole cents: no float noise
+    if (lastCent === cents(from)) return `${fmtEuro(from)} only`;
+    return `${fmtEuro(from)} to ${fmtEuro(lastCent / 100)}`;
   }
 
   root.CMC = Object.assign(root.CMC || {}, {
