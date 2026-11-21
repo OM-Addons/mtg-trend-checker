@@ -6,15 +6,17 @@ const { fixture, loadPage, fakeScryfall, print, text, OFFER_SCRIPTS } = require(
 // Thresholds (pure logic)
 // ---------------------------------------------------------------------------
 
-test("price brackets map to the right required discount", () => {
+test("default price brackets map to the right required discount (each start is inclusive)", () => {
   const w = loadPage("<body></body>", OFFER_SCRIPTS, fakeScryfall({ prints: {} }));
   const { requiredDiscount, DEFAULTS: s } = w.CMC;
+  assert.equal(requiredDiscount(null, s), null);
   assert.equal(requiredDiscount(0.99, s), null);
   assert.equal(requiredDiscount(1, s), 25);
   assert.equal(requiredDiscount(2.99, s), 25);
   assert.equal(requiredDiscount(3, s), 15);
-  assert.equal(requiredDiscount(5, s), 15);
-  assert.equal(requiredDiscount(5.01, s), 10);
+  assert.equal(requiredDiscount(4.99, s), 15);
+  assert.equal(requiredDiscount(5, s), 10); // from €5 on: 10% (was 15% before ranges became editable)
+  assert.equal(requiredDiscount(500, s), 10);
 });
 
 test("judge: exact threshold counts as a deal (no float noise) and custom % apply", () => {
@@ -22,7 +24,7 @@ test("judge: exact threshold counts as a deal (no float noise) and custom % appl
   const { judge, DEFAULTS: s } = w.CMC;
   assert.equal(judge(9, 10, s).deal, true); // exactly 10%
   assert.equal(judge(1.8, 2.2, s).deal, false); // 18% < 25%
-  assert.equal(judge(1.8, 2.2, { ...s, pctLow: 15 }).deal, true);
+  assert.equal(judge(1.8, 2.2, { ...s, brackets: [{ from: 1, pct: 15 }] }).deal, true);
 });
 
 // ---------------------------------------------------------------------------
@@ -52,7 +54,8 @@ test("list layout: deals are flagged, others show just the trend price", async (
   const { w } = listPage();
   await w.CMC.runOffers();
   const flagged = [...w.document.querySelectorAll(".cmc-deal-row")].map((r) => r.querySelector("a").textContent);
-  assert.deepEqual(flagged, ["Low Deal", "Mid Deal", "High Deal"]);
+  // Boundary Five: €5.00 vs €5.80 trend = 13.8% under; €5 falls in the "from €5" range (10%), so a deal.
+  assert.deepEqual(flagged, ["Low Deal", "Mid Deal", "High Deal", "Boundary Five (V.2)"]);
 
   const notes = [...w.document.querySelectorAll(".cmc-note")].map(text);
   assert.ok(notes.includes("🔥 25% under EN trend € 2,00 (S)"));

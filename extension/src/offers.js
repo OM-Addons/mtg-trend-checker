@@ -3,7 +3,7 @@
  * flag offers that are sufficiently below the cheapest-English-printing trend. */
 (function (root) {
   "use strict";
-  const { parseEuro, allEuros, cleanName, lookup, clearCache, getSettings, requiredDiscount } = root.CMC;
+  const { parseEuro, allEuros, cleanName, lookup, clearCache, getSettings, requiredDiscount, ignoredBelow } = root.CMC;
 
   const MARK = "data-cmc";
   /** @param {number | null | undefined} n */
@@ -148,7 +148,7 @@
     target.appendChild(note);
   }
 
-  /** @param {{offer: Offer, p: TrendInfo, j: Judgement}[]} deals @param {string | null} [status] @param {{checked: number, cheap: number, lang: number, under: number, above: number, failed: {offer: Offer, reason: string}[]}} [stats] */
+  /** @param {{offer: Offer, p: TrendInfo, j: Judgement}[]} deals @param {string | null} [status] @param {{checked: number, cheap: number, cheapBelow: number, lang: number, under: number, above: number, failed: {offer: Offer, reason: string}[]}} [stats] */
   function renderOverview(deals, status, stats) {
     const box = el("div", "cmc-overview");
     const head = el("div", "cmc-overview-head", "Under-trend deals");
@@ -161,7 +161,9 @@
       box.appendChild(el("div", null, deals.length ? `${deals.length} deal(s) on this page` : "No deals on this page"));
       if (stats) {
         box.appendChild(el("div", "cmc-muted", `Checked ${stats.checked}: ${deals.length} deal · ${stats.under} under trend · ${stats.above} at/above trend`));
-        box.appendChild(el("div", "cmc-muted", `Skipped ${stats.cheap} under €1 · ${stats.lang} non-English`));
+        // cheapBelow is 0 when the first range starts at €0: then nothing is skipped by price.
+        const skipped = stats.cheapBelow > 0 ? `Skipped ${stats.cheap} under ${fmt(stats.cheapBelow)} · ` : "Skipped ";
+        box.appendChild(el("div", "cmc-muted", `${skipped}${stats.lang} non-English`));
         if (stats.checked) box.appendChild(el("div", "cmc-muted", "Hover a card name to see its price vs trend."));
       }
       if (stats && stats.failed.length) {
@@ -220,7 +222,7 @@
       }
       renderOverview([], "Looking up trend prices…");
 
-      const stats = { checked: 0, cheap: 0, lang: 0, under: 0, above: 0, failed: /** @type {{offer: Offer, reason: string}[]} */ ([]) };
+      const stats = { checked: 0, cheap: 0, cheapBelow: ignoredBelow(settings), lang: 0, under: 0, above: 0, failed: /** @type {{offer: Offer, reason: string}[]} */ ([]) };
       const deals = [];
       for (const offer of offers) {
         // Filter BEFORE any API call: cheap cards and non-English offers cost nothing.

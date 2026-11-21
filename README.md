@@ -23,15 +23,17 @@ On `cardmarket.com/<lang>/Magic/Users/<seller>/Offers/Singles` every offer is ch
 |---|---|
 | under €1 | ignored: no lookup at all |
 | €1 – under €3 | 25% |
-| €3 – €5 | 15% |
-| above €5 | 10% |
+| €3 – under €5 | 15% |
+| €5 and up | 10% |
+
+These price ranges can be changed in the settings (see below). Offers below the start of the first range are always ignored, without a lookup.
 
 - Deals are marked with a green row and a 🔥 note. Every other checked card shows the cheapest English trend price (no percentage).
 - An overview box (bottom-right) lists the deals on the page. A desktop notification pops up as well; click it to jump back to the tab.
 - Only the page you're viewing is checked, so with a 20-per-page shop you'll get notified page by page. Sort by price descending to see the expensive cards first.
 - By default only English offers are checked, and non-English offers aren't looked up at all. If an offer's language can't be read from the flag icon, it is checked anyway.
 
-**Settings:** `about:addons` → *Cardmarket MTG Trend Checker* → **Preferences**, or the **Settings** button in the overview box. You can change the three percentages, the English-only filter and desktop notifications. Changes apply immediately to open seller pages.
+**Settings:** `about:addons` → *Cardmarket MTG Trend Checker* → **Preferences**, or the **Settings** button in the overview box. You can change the English-only filter, desktop notifications and the price ranges. For the ranges you can edit, add (up to 10) and remove them. Each range has a start price and a percentage, and runs until the next range starts. The settings page shows each range and which offers are ignored. Set the first range to start at €0 to check every offer. Changes apply immediately to open seller pages.
 
 ## Install
 

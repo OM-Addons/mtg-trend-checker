@@ -77,13 +77,17 @@ interface Judgement {
   deal: boolean;
 }
 
+/** One price range on seller pages. Runs from `from` (inclusive) to the next bracket's `from`. */
+interface Bracket {
+  /** Start price in EUR (inclusive), 0 or more. */
+  from: number;
+  /** Required discount (%) for offers in this range, 0–100. */
+  pct: number;
+}
+
 interface Settings {
-  /** Required discount (%) for offers from €1 to under €3. */
-  pctLow: number;
-  /** Required discount (%) for offers from €3 to €5. */
-  pctMid: number;
-  /** Required discount (%) for offers above €5. */
-  pctHigh: number;
+  /** Sorted by `from`, unique, 1 to MAX_BRACKETS entries. Offers below the first `from` are ignored. */
+  brackets: Bracket[];
   englishOnly: boolean;
   desktopNotify: boolean;
 }
@@ -100,10 +104,17 @@ interface CMCNamespace {
   clearCache(): Promise<void>;
   // settings.js
   DEFAULTS: Settings;
-  MIN_PRICE: number;
+  MAX_BRACKETS: number;
+  defaults(): Settings;
   getSettings(): Promise<Settings>;
   saveSettings(s: Settings): Promise<void>;
+  migrate(stored: any): Settings;
+  normalizeBrackets(list: unknown): Bracket[];
+  validateBrackets(rows: { from: number; pct: number }[]): { message: string; index: number; field: "from" | "pct" | null } | null;
   requiredDiscount(price: number | null, s: Settings): number | null;
+  ignoredBelow(s: Settings): number;
+  rangeLabel(from: number, allFroms: number[]): string;
+  fmtEuro(n: number | null | undefined): string;
   // content.js (cart page)
   run(): Promise<void>;
   evaluate(shipment: Pick<Shipment, "total" | "articles">, prices: Map<string, Pick<TrendInfo, "trend">>): ShipmentResult;
