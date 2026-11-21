@@ -37,7 +37,7 @@ These price ranges can be changed in the settings (see below). Offers below the 
 
 **Turning it off:** the **⏻ Off** button at the top of the overview box (cart and seller pages) turns the add-on off on every Cardmarket page: no notes, no price lookups, just a small **⏻ On** button in the corner. Click it to turn the add-on back on. The × button only hides the box on the current page.
 
-**Settings:** `about:addons` → *Cardmarket MTG Trend Checker* → **Preferences**, or the **Settings** button in the overview box. You can change the English-only filter and the price ranges. For the ranges you can edit, add (up to 10) and remove them. Each range has a start price and a percentage, and runs until the next range starts. The settings page shows each range and which offers are ignored. Set the first range to start at €0 to check every offer. Changes apply immediately to open seller pages. The **What's new** link at the bottom of the settings page lists the changes in each version.
+**Settings:** `about:addons` → *Cardmarket MTG Trend Checker* → **Preferences**, or the **Settings** button in the overview box. You can change the English-only filter and the price ranges. For the ranges you can edit, add (up to 10) and remove them. Each range has a start price and a percentage, and runs until the next range starts. The settings page shows each range and which offers are ignored. Set the first range to start at €0 to check every offer. Changes apply immediately to open seller pages. The **What's new** link at the bottom of the settings page describes the features and lists the changes in each new version.
 
 ## Install
 

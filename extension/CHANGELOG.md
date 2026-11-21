@@ -2,38 +2,13 @@
 
 ## Unreleased
 
-## 1.4.0 - 2026-11-21
-- Seller pages: deals now show how much you save in euros as well as in percent, e.g. "🔥 14% (€ 1,02) under trend € 7,21". The overview box shows the euro savings too. The notes no longer say "EN" (the trend is still the cheapest English printing).
-- Settings page: each range now shows where it really ends, e.g. "€1,00 to €2,99" instead of "€1,00 to under €3,00", so ranges no longer seem to overlap.
-- New **⏻ Off** button in the overview box (cart and seller pages). When it's off, the add-on does nothing on Cardmarket pages and only shows a small **⏻ On** button to turn it back on. It stays off until you turn it on.
-- Desktop notifications for deals are gone. The overview box on the page shows the deals.
-
-## 1.3.0 - 2026-11-21
-- Settings: the price ranges for deals can be edited, added and removed (up to 10). The page shows each range and which offers are ignored. Your old percentages are kept.
-- Each range now starts at its price, so an offer of exactly €5.00 uses the "€5 and up" range (10% by default) instead of 15%.
-- Seller pages: the overview shows the real "skipped under €X" threshold.
-- Seller pages: new switch at the top of the overview box, **My ranges** / **Any under trend**. "Any under trend" flags every card that's cheaper than its trend, including cards under €1, and ignores your ranges. The choice is remembered.
-- Seller pages: the overview box no longer shows the "hover a card name" hint. The tooltips on card names still work.
-- New "What's new" page (link at the bottom of the settings page) that lists the changes in each version.
-- The set name next to a trend price now opens a Cardmarket search for the card, in your site language. The old direct link could get you blocked by Cardmarket ("Error 1015, you are being rate limited").
-
-## 1.2.1 - 2026-11-21
-- Signed by Mozilla and installable in regular Firefox from the GitHub releases page, with automatic updates.
-
-## 1.2.0 - 2026-11-21
-- Seller pages: offers whose price can't be read now show in the "couldn't be priced" list, instead of being counted as "under €1".
-- Settings page shows validation messages on the page instead of a popup.
-- Internal: type checking, a proper test suite, and project docs for development.
-
-## 1.1.x - 2026-11-20
-- Seller offer pages: flags cards that are 25% / 15% / 10% under the trend, for €1–3 / €3–5 / above €5. Ignores cards under €1, with no lookups.
-- Every other checked card shows the trend price, without a percentage. Hover a card name to see the price read and the trend.
-- Works with both the list and the table layout of seller pages.
-- Settings page for the percentages, an English-only filter and desktop notifications.
-- Overview box with deals, counts and a "couldn't be priced" list.
-- Fix: cards that loaded while a check was running were skipped.
-- Looser name matching when Cardmarket's card name differs slightly from Scryfall's.
-- Prices are cached for 24 hours.
-
-## 1.0.0 - 2026-11-20
-- Shopping cart: per seller, compares the total incl. shipping with the summed trend of the cheapest English printing of each card.
+## 2.0.0 - 2026-11-21
+- Compares Cardmarket prices with the trend price of the **cheapest English printing** of each card (Cardmarket's trend, via Scryfall). Prices are kept for 24 hours; **Refresh prices** in the overview box fetches them again.
+- **Shopping cart:** for each seller, a green ✅ / red ❌ / yellow ⚠️ panel shows whether the total incl. shipping and fees is lower than the summed trend of the cards. Each card shows its trend and set, and a green or red bar says whether that copy is at or below trend, or above it. The set name opens a Cardmarket search for the card.
+- **Seller pages:** cards that are far enough under trend get a green row and a 🔥 note, e.g. "🔥 14% (€ 1,02) under trend € 7,21". Other cards show their trend price. Hover a card name to see the price read and the trend.
+- **Price ranges:** by default a deal is 25% under trend for €1–3, 15% for €3–5 and 10% from €5. Offers under €1 are ignored. You can change, add and remove ranges in the settings.
+- **Any under trend:** the switch at the top of the overview box on seller pages flags every card that's cheaper than its trend, including cards under €1. The choice is remembered.
+- **English only:** by default only English offers are checked. You can turn this off in the settings.
+- **Overview box** (bottom-right): lists the sellers in your cart, or the deals on a seller page with price, trend and savings, plus cards that couldn't be priced.
+- **⏻ Off / On:** the button in the overview box turns the add-on off on every Cardmarket page until you turn it back on.
+- **Settings:** `about:addons` → Cardmarket MTG Trend Checker → Preferences, or the **Settings** button in the overview box.
