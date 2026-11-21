@@ -41,7 +41,7 @@ On `cardmarket.com/<lang>/Magic/Users/<seller>/Offers/Singles` every offer is ch
 
 ## Development
 
-Needs Node.js 22+.
+Needs Node.js 22.22.2+ or 24.15+ (required by the test library jsdom).
 
 ```bash
 npm install

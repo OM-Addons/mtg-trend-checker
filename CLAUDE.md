@@ -50,7 +50,7 @@ Scripts are **classic scripts, not modules**: they share code through the global
 
 ## Commands
 
-Node.js 22+ (`engines` in `package.json`; CI uses 22, so don't rely on newer Node features).
+Node.js 22.22.2+ or 24.15+ (`engines` in `package.json`, set by jsdom's requirement; CI uses the latest 22, so don't rely on newer Node features).
 
 ```bash
 npm install          # once
