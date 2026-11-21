@@ -60,9 +60,16 @@
     const blocks = Array.from(doc.querySelectorAll(".shipment-block"));
     return blocks.map((block, idx) => {
       let rows = Array.from(block.querySelectorAll("[data-product-id]"));
-      // Cardmarket renders some rows twice (desktop/mobile); prefer the visible ones when layout exists.
+      // Cardmarket renders every row twice: a desktop table and a mobile copy
+      // inside `.d-lg-none` (hidden on wide screens). Prefer the visible ones
+      // when layout exists; without layout (tests, hidden tab) skip the mobile
+      // copies so no card is counted twice.
       const visible = rows.filter(isVisible);
       if (visible.length) rows = visible;
+      else {
+        const desktop = rows.filter((r) => !r.closest(".d-lg-none"));
+        if (desktop.length) rows = desktop;
+      }
 
       /** @type {CartArticle[]} */
       const articles = [];

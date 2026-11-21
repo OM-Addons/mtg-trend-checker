@@ -39,7 +39,8 @@ extension/            ← exactly what Firefox loads (no build step)
   src/styles.css      all injected styles (classes prefixed `cmc-`)
   options/            settings page
 types/globals.d.ts    shared types for the checker (not shipped)
-test/                 node:test + jsdom; fixtures/ = sample Cardmarket pages
+test/                 node:test + jsdom; fixtures/ = Cardmarket pages (real-*.html are real, anonymised)
+scripts/clean-page.js turn a saved Cardmarket page into an anonymised fixture
 incoming-pages/       raw pages saved by the owner (git-ignored except README)
 .github/workflows/ci.yml npm run check on every PR and push to main
 .github/workflows/release.yml  tag v* → sign (unlisted) → GitHub release → updates.json
@@ -81,7 +82,8 @@ npm run build        # unsigned zip in dist/
 ## Cardmarket pages (the fragile part)
 
 - Claude **cannot open Cardmarket** (it needs the owner's login) and can't see the real HTML. Cart selectors are in `parseCart` (`parse.js`); seller-page selectors in `parseOffers`, `priceOfRow` and `detectLanguage` (`offers.js`). The offer parser anchors on `a[href*='/Products/Singles/']` and walks up to the row, so it handles both the list layout and the table layout.
-- **The fixtures in `test/fixtures/` are hand-made imitations**, not real pages. When something breaks on the real site: ask the owner to save the page (Ctrl+S → "Web Page, HTML only") into `incoming-pages/` (git-ignored, raw pages never get committed), check it for personal data (name, address, username, e-mail, order numbers) before committing, add it as a fixture, write a failing test, then fix the parser.
+- **Fixtures**: `test/fixtures/real-*.html` are real saved pages (cart; seller list layout), anonymised; the others are hand-made and cover edge cases. There is no real **table-layout** seller page yet. When something breaks on the real site: ask the owner to save the page (Ctrl+S → "Web Page, HTML only") into `incoming-pages/` (git-ignored, raw pages never get committed), turn it into a fixture with `scripts/clean-page.js` (see `test/fixtures/README.md`), check the result yourself for personal data (name, address, username, e-mail, order numbers), write a failing test, then fix the parser. Never print personal data from raw pages in the chat.
+- Cardmarket renders every cart row twice (desktop table + mobile copy in `.d-lg-none`); `parseCart` must count each card once. Rows without a card image have **no product ID** in the HTML (name lookup is the fallback).
 - After any parser change, ask the owner to test in the browser (`npm start`, or reload in `about:debugging`) and check the card-name tooltips.
 
 ## Scryfall API
@@ -100,4 +102,4 @@ Use the `release` skill (`.claude/skills/release/SKILL.md`). It covers the one-t
 - **Scan all pages of a seller**: a "Scan all pages" button; fetch the seller's other pages with the current filters/sort, ~1 page per 1.5–2 s, one sorted deal list with links and progress. Cardmarket may cap results (possibly 300); suggest the user set a min-price filter of €1. Not automatic, and no scanning many sellers in a row.
 - Chrome support (MV3 + browser polyfill) only if a friend asks.
 - Firefox for Android: left out for now (owner's decision). Self-hosted installs there need the hidden "Install extension from file" menu, auto-updates are unconfirmed, the notifications API doesn't exist, and the mobile Cardmarket layout is untested.
-- Replace the hand-made fixtures with real saved pages.
+- Real saved page for the seller **table layout** (cart and list layout are done).
