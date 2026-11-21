@@ -26,13 +26,13 @@
   "content_scripts": [
     {
       "matches": ["https://www.cardmarket.com/*/Magic/ShoppingCart*"],
-      "js": ["src/parse.js", "src/prices.js", "src/content.js"],
+      "js": ["src/parse.js", "src/prices.js", "src/settings.js", "src/onoff.js", "src/content.js"],
       "css": ["src/styles.css"],
       "run_at": "document_idle"
     },
     {
       "matches": ["https://www.cardmarket.com/*/Magic/Users/*/Offers/Singles*"],
-      "js": ["src/parse.js", "src/prices.js", "src/settings.js", "src/offers.js"],
+      "js": ["src/parse.js", "src/prices.js", "src/settings.js", "src/onoff.js", "src/offers.js"],
       "css": ["src/styles.css"],
       "run_at": "document_idle"
     }

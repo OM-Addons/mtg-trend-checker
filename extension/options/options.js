@@ -129,7 +129,8 @@
       return;
     }
     /** @type {Settings} */
-    const s = { brackets: normalizeBrackets(rows), dealMode: readMode(), englishOnly: $("englishOnly").checked };
+    // enabled is switched in the overview box on Cardmarket pages; keep what is stored.
+    const s = { brackets: normalizeBrackets(rows), dealMode: readMode(), englishOnly: $("englishOnly").checked, enabled: (await getSettings()).enabled };
     await saveSettings(s);
     fill(s); // shows the ranges sorted, as they are applied
     flash("Saved ✓");

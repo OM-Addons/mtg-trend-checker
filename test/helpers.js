@@ -7,8 +7,8 @@ const SRC = path.join(__dirname, "..", "extension", "src");
 const FIXTURES = path.join(__dirname, "fixtures");
 
 /** Same script lists as the content_scripts in manifest.json. */
-const CART_SCRIPTS = ["parse.js", "prices.js", "content.js"];
-const OFFER_SCRIPTS = ["parse.js", "prices.js", "settings.js", "offers.js"];
+const CART_SCRIPTS = ["parse.js", "prices.js", "settings.js", "onoff.js", "content.js"];
+const OFFER_SCRIPTS = ["parse.js", "prices.js", "settings.js", "onoff.js", "offers.js"];
 
 function fixture(name) {
   return fs.readFileSync(path.join(FIXTURES, name), "utf8");

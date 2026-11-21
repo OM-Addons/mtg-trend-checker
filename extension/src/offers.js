@@ -3,7 +3,7 @@
  * flag offers that are sufficiently below the cheapest-English-printing trend. */
 (function (root) {
   "use strict";
-  const { parseEuro, allEuros, cleanName, lookup, clearCache, getSettings, saveSettings, requiredDiscount, ignoredBelow } = root.CMC;
+  const { parseEuro, allEuros, cleanName, lookup, clearCache, getSettings, saveSettings, requiredDiscount, ignoredBelow, offButton, renderOffBox } = root.CMC;
 
   const MARK = "data-cmc";
   /** @param {number | null | undefined} n */
@@ -158,8 +158,11 @@
     const box = el("div", "cmc-overview");
     const head = el("div", "cmc-overview-head", "Under-trend deals");
     const close = el("button", "cmc-btn", "×");
+    close.title = "Hide (this page only)";
     close.onclick = () => box.remove();
-    head.appendChild(close);
+    const buttons = el("span", "cmc-head-buttons");
+    buttons.append(offButton(restart), close);
+    head.appendChild(buttons);
     box.appendChild(head);
     box.appendChild(modeSwitch());
     if (status) box.appendChild(el("div", null, status));
@@ -254,6 +257,8 @@
       const settings = await getSettings();
       currentMode = settings.dealMode;
       again = false;
+      // Turned off: nothing is parsed or looked up, only the "On" button is shown.
+      if (!settings.enabled) { renderOffBox(restart); return; }
       const offers = parseOffers(document);
       if (!offers.length) {
         renderOverview([], "No card offers recognised on this page. Cardmarket's layout may differ: send a copy of the page so the parser can be fixed.");

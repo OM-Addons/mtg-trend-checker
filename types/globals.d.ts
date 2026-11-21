@@ -94,6 +94,8 @@ interface Settings {
   brackets: Bracket[];
   dealMode: DealMode;
   englishOnly: boolean;
+  /** False after the Off button in the overview box: no checks on any page until turned on. */
+  enabled: boolean;
 }
 
 /** Everything the scripts put on the shared global object. */
@@ -119,6 +121,10 @@ interface CMCNamespace {
   ignoredBelow(s: Settings): number;
   rangeLabel(from: number, allFroms: number[]): string;
   fmtEuro(n: number | null | undefined): string;
+  // onoff.js (cart and seller pages)
+  setEnabled(enabled: boolean): Promise<void>;
+  offButton(after: () => unknown): HTMLButtonElement;
+  renderOffBox(after: () => unknown): void;
   // content.js (cart page)
   run(): Promise<void>;
   evaluate(shipment: Pick<Shipment, "total" | "articles">, prices: Map<string, Pick<TrendInfo, "trend">>): ShipmentResult;
