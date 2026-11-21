@@ -123,6 +123,10 @@
   /** @param {number} d */
   const pctText = (d) => (d > 0 && d < 1 ? "<1" : String(Math.round(d)));
 
+  /** Euros saved vs trend, rounded to the cent (Scryfall prices have 2 decimals). Only called once a trend is known. */
+  /** @param {number | null} price @param {number | null} trend */
+  const savings = (price, trend) => (price == null || trend == null ? 0 : Math.round((trend - price) * 100) / 100);
+
   function removeOld() {
     document.querySelectorAll(`[${MARK}]`).forEach((n) => n.remove());
     document.querySelectorAll(".cmc-deal-row").forEach((n) => n.classList.remove("cmc-deal-row"));
@@ -143,9 +147,9 @@
     if (j.deal) {
       offer.el.classList.add("cmc-deal-row");
       note.classList.add("cmc-deal-note");
-      note.append(`🔥 ${pctText(j.discount)}% under EN trend ${fmt(p.trend)} `);
+      note.append(`🔥 ${pctText(j.discount)}% (${fmt(savings(offer.price, p.trend))}) under trend ${fmt(p.trend)} `);
     } else {
-      note.append(`EN trend ${fmt(p.trend)} `);
+      note.append(`Trend ${fmt(p.trend)} `);
     }
     const a = /** @type {HTMLAnchorElement} */ (el("a", "cmc-link", `(${p.set}${p.foilOnly ? ", foil" : ""})`));
     a.href = p.url; a.target = "_blank"; a.rel = "noopener";
@@ -191,7 +195,7 @@
       }
       const list = el("ul", "cmc-list");
       for (const d of deals) {
-        const li = el("li", "cmc-good-text", `${d.offer.name}: ${fmt(d.offer.price)} vs ${fmt(d.p.trend)} (−${pctText(d.j.discount)}%)`);
+        const li = el("li", "cmc-good-text", `${d.offer.name}: ${fmt(d.offer.price)} vs ${fmt(d.p.trend)} (${fmt(savings(d.offer.price, d.p.trend))} - ${pctText(d.j.discount)}%)`);
         li.style.cursor = "pointer";
         li.onclick = () => d.offer.el.scrollIntoView({ behavior: "smooth", block: "center" });
         list.appendChild(li);

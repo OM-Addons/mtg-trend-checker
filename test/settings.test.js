@@ -337,12 +337,12 @@ test("overview switch while a check is still running: the page ends up in the ne
 });
 
 test("discounts under 1% show as <1%, not 0%", async () => {
-  const fetch = fakeScryfall({ byName: { "Low Deal": "x" }, prints: { x: [print(1.505, "S")] } });
+  const fetch = fakeScryfall({ byName: { "Low Deal": "x" }, prints: { x: [print(1.51, "S")] } });
   const browser = fakeBrowser({ settings: { brackets: DEFAULT_BRACKETS, dealMode: "anyUnder", englishOnly: true } });
   const w = loadPage(fixture("offers-list.html"), OFFER_SCRIPTS, fetch, { browser });
   await w.CMC.runOffers();
   const note = [...w.document.querySelectorAll(".cmc-deal-note")].map(text);
-  assert.deepEqual(note, ["🔥 <1% under EN trend € 1,51 (S)"]);
+  assert.deepEqual(note, ["🔥 <1% (€ 0,01) under trend € 1,51 (S)"]);
 });
 
 test("settings page: mode radios load, save, and change the ignored text", async () => {
