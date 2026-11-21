@@ -77,13 +77,21 @@ interface Judgement {
   deal: boolean;
 }
 
+/** One price range on seller pages. Runs from `from` (inclusive) to the next bracket's `from`. */
+interface Bracket {
+  /** Start price in EUR (inclusive), 0 or more. */
+  from: number;
+  /** Required discount (%) for offers in this range, 0–100. */
+  pct: number;
+}
+
+/** How seller-page deals are decided: by the user's price ranges, or any offer below trend. */
+type DealMode = "ranges" | "anyUnder";
+
 interface Settings {
-  /** Required discount (%) for offers from €1 to under €3. */
-  pctLow: number;
-  /** Required discount (%) for offers from €3 to €5. */
-  pctMid: number;
-  /** Required discount (%) for offers above €5. */
-  pctHigh: number;
+  /** Sorted by `from`, unique, 1 to MAX_BRACKETS entries. Offers below the first `from` are ignored. */
+  brackets: Bracket[];
+  dealMode: DealMode;
   englishOnly: boolean;
   desktopNotify: boolean;
 }
@@ -100,10 +108,17 @@ interface CMCNamespace {
   clearCache(): Promise<void>;
   // settings.js
   DEFAULTS: Settings;
-  MIN_PRICE: number;
+  MAX_BRACKETS: number;
+  defaults(): Settings;
   getSettings(): Promise<Settings>;
   saveSettings(s: Settings): Promise<void>;
+  migrate(stored: any): Settings;
+  normalizeBrackets(list: unknown): Bracket[];
+  validateBrackets(rows: { from: number; pct: number }[]): { message: string; index: number; field: "from" | "pct" | null } | null;
   requiredDiscount(price: number | null, s: Settings): number | null;
+  ignoredBelow(s: Settings): number;
+  rangeLabel(from: number, allFroms: number[]): string;
+  fmtEuro(n: number | null | undefined): string;
   // content.js (cart page)
   run(): Promise<void>;
   evaluate(shipment: Pick<Shipment, "total" | "articles">, prices: Map<string, Pick<TrendInfo, "trend">>): ShipmentResult;
@@ -117,3 +132,15 @@ interface CMCNamespace {
 declare var CMC: CMCNamespace;
 /** Set by tests to stop the content scripts from running on load. */
 declare var CMC_NO_AUTORUN: boolean | undefined;
+
+/** One version on the "What's new" page (a "## " section of extension/CHANGELOG.md). */
+interface ChangelogSection {
+  title: string;
+  items: string[];
+}
+
+/** changelog.js (the "What's new" page) exposes its helpers for tests. */
+declare var CMC_CHANGELOG: {
+  parseChangelog(md: string): ChangelogSection[];
+  render(doc: Document, sections: ChangelogSection[], installed: string | null): void;
+};

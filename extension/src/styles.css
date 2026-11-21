@@ -43,6 +43,9 @@
 .cmc-bad-text { color: #c5221f; }
 .cmc-btn { border: 1px solid #ccc; background: #fafafa; border-radius: 4px; cursor: pointer; padding: 0 6px; }
 .cmc-refresh { margin-top: 4px; padding: 2px 8px; }
+.cmc-mode { display: flex; gap: 4px; margin-bottom: 6px; }
+.cmc-mode-btn { padding: 2px 8px; }
+.cmc-mode-btn[aria-pressed="true"] { background: #1e8e3e; border-color: #1e8e3e; color: #fff; font-weight: 700; }
 
 /* Seller offer pages */
 .cmc-deal-row { background: #e9f6ec !important; box-shadow: inset 5px 0 0 #1e8e3e; }

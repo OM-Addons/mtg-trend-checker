@@ -1,0 +1,29 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>What's new: Cardmarket MTG Trend Checker</title>
+  <style>
+    body { font: 14px/1.5 system-ui, sans-serif; padding: 16px; max-width: 680px; margin: 0 auto; color: #222; background: #fff; }
+    h1 { font-size: 20px; margin: 0 0 4px; }
+    h2 { font-size: 16px; margin: 20px 0 4px; }
+    ul { margin: 0; padding-left: 20px; }
+    li { margin: 2px 0; }
+    code { font-size: 13px; background: #f1f1f1; padding: 0 3px; border-radius: 3px; }
+    .muted { color: #666; }
+    .installed { font-size: 12px; font-weight: normal; color: #fff; background: #1e8e3e; border-radius: 3px; padding: 1px 6px; margin-left: 6px; }
+    @media (prefers-color-scheme: dark) {
+      body { color: #eee; background: #1c1b22; }
+      code { background: #333; }
+      .muted { color: #aaa; }
+    }
+  </style>
+</head>
+<body>
+  <h1>What's new</h1>
+  <p class="muted" id="version"></p>
+  <main id="log"><p class="muted">Loading…</p></main>
+  <script src="changelog.js"></script>
+</body>
+</html>

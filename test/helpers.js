@@ -15,13 +15,45 @@ function fixture(name) {
 }
 
 /**
- * Load a page and inject extension scripts, like Firefox does.
- * `browser` is not defined, so storage falls back to in-memory (no cache between tests).
+ * Fake `browser` API with an in-memory storage.local, for tests that need stored settings.
+ * @param {Record<string, any>} [initial] starting contents of storage.local
  */
-function loadPage(html, scripts, fetchImpl) {
+function fakeBrowser(initial = {}) {
+  const data = { ...initial };
+  const local = {
+    data,
+    async get(key) {
+      if (key == null) return { ...data };
+      return key in data ? { [key]: data[key] } : {};
+    },
+    async set(obj) { Object.assign(data, JSON.parse(JSON.stringify(obj))); },
+    async remove(keys) { for (const k of [].concat(keys)) delete data[k]; },
+  };
+  const messages = [];
+  const opened = [];
+  const manifest = JSON.parse(fs.readFileSync(path.join(SRC, "..", "manifest.json"), "utf8"));
+  return {
+    storage: { local, onChanged: { addListener() {} } },
+    runtime: {
+      messages,
+      async sendMessage(m) { messages.push(m); },
+      getURL: (p) => `moz-extension://test/${p}`,
+      getManifest: () => manifest,
+    },
+    tabs: { opened, async create(o) { opened.push(o.url); } },
+  };
+}
+
+/**
+ * Load a page and inject extension scripts, like Firefox does.
+ * Without `opts.browser`, `browser` is not defined, so storage falls back to defaults /
+ * in-memory (no cache between tests).
+ */
+function loadPage(html, scripts, fetchImpl, opts = {}) {
   const dom = new JSDOM(html, { runScripts: "outside-only", url: "https://www.cardmarket.com/en/Magic/" });
   const w = dom.window;
   w.fetch = fetchImpl;
+  if (opts.browser) w.browser = opts.browser;
   w.CMC_NO_AUTORUN = true; // tests call run()/runOffers() themselves
   for (const f of scripts) w.eval(fs.readFileSync(path.join(SRC, f), "utf8"));
   return w;
@@ -67,4 +99,4 @@ const print = (eur, set = "Set") => ({ set_name: set, set: set.toLowerCase(), pr
 /** Normalise text for assertions (collapses whitespace incl. the non-breaking space in "€ 1,00"). */
 const text = (el) => el.textContent.replace(/\s+/g, " ").trim();
 
-module.exports = { fixture, loadPage, fakeScryfall, print, text, CART_SCRIPTS, OFFER_SCRIPTS };
+module.exports = { fixture, loadPage, fakeBrowser, fakeScryfall, print, text, CART_SCRIPTS, OFFER_SCRIPTS };

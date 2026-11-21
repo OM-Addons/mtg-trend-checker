@@ -49,11 +49,12 @@ jobs:
             echo "::error::Tag $TAG is not on main. Merge the release PR first, then tag main."
             exit 1
           fi
-          # Release notes = the "## <version> ..." section of CHANGELOG.md.
-          awk -v h="## $VERSION" 'index($0, h) == 1 {f=1; next} /^## / {if (f) exit} f' CHANGELOG.md \
+          # Release notes = the "## <version> ..." section of extension/CHANGELOG.md
+          # (it ships with the add-on, which shows it as its "What's new" page).
+          awk -v h="## $VERSION" 'index($0, h) == 1 {f=1; next} /^## / {if (f) exit} f' extension/CHANGELOG.md \
             | sed '/^[[:space:]]*$/d' > "$RUNNER_TEMP/notes.md"
           if [ ! -s "$RUNNER_TEMP/notes.md" ]; then
-            echo "::error::No entries under '## $VERSION' in CHANGELOG.md"
+            echo "::error::No entries under '## $VERSION' in extension/CHANGELOG.md"
             exit 1
           fi
           echo "VERSION=$VERSION" >> "$GITHUB_ENV"

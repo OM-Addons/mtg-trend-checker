@@ -12,12 +12,14 @@ Firefox extension that compares Magic: The Gathering prices on cardmarket.com wi
 - Per card: note with the trend and its set; thin green/red bar on the price cell.
 
 **Seller offer pages** (`/Magic/Users/<seller>/Offers/Singles`), per offer, by the **offer price**:
-| Offer price | Deal when at least this % under trend (default, user-configurable) |
+| Offer price | Deal when at least this % under trend (default brackets) |
 |---|---|
 | < €1 | ignored: **no API calls** |
-| €1 – < €3 | 25% (`pctLow`) |
-| €3 – €5 | 15% (`pctMid`) |
-| > €5 | 10% (`pctHigh`) |
+| €1 – < €3 | 25% |
+| €3 – < €5 | 15% |
+| ≥ €5 | 10% |
+- Brackets are user-editable (`settings.brackets`: `{from, pct}[]`, max 10). Each `from` is **inclusive** and the bracket runs to the next `from`. Offers below the lowest `from` are ignored with **no API calls**. The lowest `from` may be €0 (owner's decision: then nothing is ignored by price). Old `pctLow/Mid/High` settings are migrated in `migrate()`. The settings page must always say which offers are ignored.
+- `dealMode` (default `"ranges"`): `"anyUnder"` ignores the brackets entirely. **Every** priced offer is looked up, including < €1 (owner's decision), and a deal is strictly below trend (`discount > 0`; at trend is not a deal). `englishOnly` still skips without API calls. Toggled from the overview box on seller pages (saved, so it sticks) and on the settings page.
 - Discount is rounded to 0.01% before comparing, so €9 vs €10 is exactly 10% → deal.
 - Deals: green row + `🔥 N% under EN trend €x (Set)`. Every other checked card: `EN trend €x (Set)`, **no percentage** (owner's explicit wish).
 - Card name tooltip: price read + trend (for verifying).
@@ -37,7 +39,9 @@ extension/            ← exactly what Firefox loads (no build step)
   src/offers.js       seller pages: parse rows, judge, render, re-run on DOM changes
   src/background.js   desktop notifications, open settings page
   src/styles.css      all injected styles (classes prefixed `cmc-`)
-  options/            settings page
+  options/            settings page (links to "What's new")
+  changelog/          "What's new" page: renders ../CHANGELOG.md (tiny Markdown subset, no library)
+  CHANGELOG.md        the changelog: shipped, shown in the add-on, and the source of release notes
 types/globals.d.ts    shared types for the checker (not shipped)
 test/                 node:test + jsdom; fixtures/ = Cardmarket pages (real-*.html are real, anonymised)
 scripts/clean-page.js turn a saved Cardmarket page into an anonymised fixture
@@ -70,8 +74,8 @@ npm run build        # unsigned zip in dist/
 - Element IDs/classes added to Cardmarket pages are prefixed `cmc-`, and every injected node gets `data-cmc` so a re-run can remove it.
 - Money: always parse with `parseEuro`/`allEuros` (handles `1.234,56 €` and `€1,234.56`); display with `fmt` (nl-NL, EUR).
 - Keep user-facing text short and in English.
-- **Update `README.md` with every change** (owner's wish): whenever a change affects anything the README describes (features, behaviour, settings, installation, development commands or setup), update it in the same commit. Also add a line to `CHANGELOG.md` under "Unreleased" for user-visible changes.
-- **Tests with every change**: a bug fix starts with a test that fails because of the bug; a new feature comes with tests for its rules. Business rules above (strictly-lower comparison, price brackets, no API calls < €1 / skipped languages) must each stay covered.
+- **Update `README.md` with every change** (owner's wish): whenever a change affects anything the README describes (features, behaviour, settings, installation, development commands or setup), update it in the same commit. Also add a line to `extension/CHANGELOG.md` under "Unreleased" for user-visible changes. It ships with the add-on and is shown on its "What's new" page, so write for friends, not developers.
+- **Tests with every change**: a bug fix starts with a test that fails because of the bug; a new feature comes with tests for its rules. Business rules above (strictly-lower comparison, price brackets, no API calls below the first bracket / skipped languages) must each stay covered.
 - **Keep the owner's name out of the repo** (it will be public at `OM-Addons/mtg-trend-checker`): commits are authored as `mtg-tools <noreply@mtg-trend-checker.invalid>` (repo-local git config; set it again in a fresh clone), and no real names, e-mail addresses or usernames go into files, commit messages, fixtures or the add-on. The owner's GitHub username on PRs is accepted. Never rewrite history or force-push without asking.
 - **Commit after each change** (owner's wish): once a change is done and `npm run check` passes, commit it on its own with a short message saying what changed and why. One logical change per commit; don't wait to be asked.
 - **One branch per feature** (owner's wish): start each new feature or fix on its own branch off an up-to-date `main` (e.g. `feature/scan-all-pages`, `fix/cart-parser`), never commit straight to `main`. Ask the owner before merging into `main` or pushing.
@@ -91,7 +95,7 @@ npm run build        # unsigned zip in dist/
 - Free, **no API key**. Rules: max ~10 requests/s (the queue waits 110 ms between requests), cache ≥24 h (prices update daily). Don't make this faster or the cache shorter.
 - Flow: `/cards/cardmarket/{productId}` → fallback `/cards/named?exact=` → `?fuzzy=` → `/cards/search?q=oracleid:… lang:en game:paper&unique=prints`.
 - Cache keys in `browser.storage.local` start with `cmc:`; settings live under `settings`. "Refresh prices" clears only `cmc:` keys.
-- Every new feature must keep the "no API calls for offers < €1 / skipped languages" guarantee; there's a test for it.
+- Every new feature must keep the "no API calls for offers below the first bracket (€1 by default) / skipped languages" guarantee (except the price part in `dealMode: "anyUnder"`, by the owner's choice); there are tests for it.
 
 ## Releasing
 

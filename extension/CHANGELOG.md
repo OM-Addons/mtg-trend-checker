@@ -1,6 +1,12 @@
 # Changelog
 
 ## Unreleased
+- Settings: the price ranges for deals can be edited, added and removed (up to 10). The page shows each range and which offers are ignored. Your old percentages are kept.
+- Each range now starts at its price, so an offer of exactly €5.00 uses the "€5 and up" range (10% by default) instead of 15%.
+- Seller pages: the overview shows the real "skipped under €X" threshold.
+- Seller pages: new switch at the top of the overview box, **My ranges** / **Any under trend**. "Any under trend" flags every card that's cheaper than its trend, including cards under €1, and ignores your ranges. The choice is remembered.
+- Seller pages: the overview box no longer shows the "hover a card name" hint. The tooltips on card names still work.
+- New "What's new" page (link at the bottom of the settings page) that lists the changes in each version.
 
 ## 1.2.1 - 2026-11-21
 - Signed by Mozilla and installable in regular Firefox from the GitHub releases page, with automatic updates.

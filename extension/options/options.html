@@ -3,26 +3,37 @@
 <head>
   <meta charset="utf-8">
   <style>
-    body { font: 14px system-ui, sans-serif; padding: 12px 16px; max-width: 520px; }
+    body { font: 14px system-ui, sans-serif; padding: 12px 16px; max-width: 560px; }
     h2 { font-size: 16px; margin: 0 0 8px; }
     table { border-collapse: collapse; }
-    td { padding: 4px 10px 4px 0; }
-    input[type=number] { width: 64px; }
+    th { text-align: left; font-weight: 600; font-size: 12px; color: #555; }
+    th, td { padding: 4px 10px 4px 0; }
+    input[type=number] { width: 72px; }
+    input.invalid { outline: 2px solid #d93025; }
+    .range { color: #555; font-size: 12px; }
     .hint { color: #666; font-size: 12px; }
     #saved { color: #1e8e3e; margin-left: 8px; }
+    #error { color: #d93025; margin-left: 8px; }
   </style>
 </head>
 <body>
-  <h2>Seller offer pages: deal thresholds</h2>
-  <p class="hint">An offer is flagged when it is at least this much cheaper than the trend price of the cheapest English printing. Offers under €1 are always ignored (no lookups).</p>
+  <h2>Seller offer pages: deals</h2>
+  <p>
+    <label><input type="radio" name="dealMode" value="ranges"> Use my price ranges (below)</label><br>
+    <label><input type="radio" name="dealMode" value="anyUnder"> Any card under trend: checks every offer and ignores the ranges</label>
+  </p>
+  <p class="hint">You can also switch between these two at the top of the overview box on a seller page.</p>
+  <p class="hint">An offer is flagged when it is at least this much cheaper than the trend price of the cheapest English printing. Each range starts at its price and runs until the next range starts.</p>
   <table>
-    <tr><td>€1 – €3</td><td><input type="number" id="pctLow" min="0" max="100" step="1"> %</td></tr>
-    <tr><td>€3 – €5</td><td><input type="number" id="pctMid" min="0" max="100" step="1"> %</td></tr>
-    <tr><td>Above €5</td><td><input type="number" id="pctHigh" min="0" max="100" step="1"> %</td></tr>
+    <thead><tr><th>From</th><th>Deal at</th><th>Range</th><th></th></tr></thead>
+    <tbody id="brackets"></tbody>
   </table>
+  <p><button id="add">+ Add range</button></p>
+  <p class="hint" id="ignored"></p>
   <p><label><input type="checkbox" id="englishOnly"> Only check English offers</label></p>
   <p><label><input type="checkbox" id="desktopNotify"> Show a desktop notification when deals are found</label></p>
-  <p><button id="save">Save</button> <button id="reset">Reset to defaults</button><span id="saved"></span></p>
+  <p><button id="save">Save</button> <button id="reset">Reset to defaults</button><span id="saved"></span><span id="error"></span></p>
+  <p class="hint"><a href="../changelog/changelog.html" id="whatsnew" target="_blank">What's new</a></p>
   <script src="../src/settings.js"></script>
   <script src="options.js"></script>
 </body>
