@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+- Fixed: button labels in the overview box were invisible (white on white) when Firefox or Windows uses a dark theme.
 
 ## 2.0.0 - 2026-11-21
 - Compares Cardmarket prices with the trend price of the **cheapest English printing** of each card (Cardmarket's trend, via Scryfall). Prices are kept for 24 hours; **Refresh prices** in the overview box fetches them again.
