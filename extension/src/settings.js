@@ -16,6 +16,9 @@
       { from: 3, pct: 15 },
       { from: 5, pct: 10 },
     ],
+    // "ranges": deal = at least the range's % under trend. "anyUnder": every offer is checked
+    // (no price minimum) and anything strictly below trend is a deal. Toggled on seller pages.
+    dealMode: "ranges",
     englishOnly: true,     // only check offers whose card language is English
     desktopNotify: true,   // show a Firefox notification when deals are found
   };
@@ -97,7 +100,9 @@
       ];
     }
     s.brackets = normalizeBrackets(s.brackets);
-    return { brackets: s.brackets, englishOnly: !!s.englishOnly, desktopNotify: !!s.desktopNotify };
+    /** @type {DealMode} */
+    const dealMode = s.dealMode === "anyUnder" ? "anyUnder" : "ranges";
+    return { brackets: s.brackets, dealMode, englishOnly: !!s.englishOnly, desktopNotify: !!s.desktopNotify };
   }
 
   /** @returns {Promise<Settings>} */
@@ -115,13 +120,18 @@
   /** Offers below this price are ignored (no API calls). 0 means nothing is ignored by price. */
   /** @param {Settings} s @returns {number} */
   function ignoredBelow(s) {
+    if (s.dealMode === "anyUnder") return 0;
     return Math.min(...s.brackets.map((b) => b.from));
   }
 
-  /** Required discount (%) for a given offer price, or null if the offer is ignored. */
-  /** @param {number | null} price @param {Settings} s @returns {number | null} */
+  /**
+   * Required discount (%) for a given offer price, or null if the offer is ignored.
+   * In "anyUnder" mode every priced offer is checked: 0 (judge() then wants strictly > 0).
+   * @param {number | null} price @param {Settings} s @returns {number | null}
+   */
   function requiredDiscount(price, s) {
     if (price == null) return null;
+    if (s.dealMode === "anyUnder") return 0;
     // The bracket with the highest start that is <= price. Doesn't rely on the list being sorted.
     /** @type {Bracket | null} */
     let best = null;

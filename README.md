@@ -26,7 +26,9 @@ On `cardmarket.com/<lang>/Magic/Users/<seller>/Offers/Singles` every offer is ch
 | €3 – under €5 | 15% |
 | €5 and up | 10% |
 
-These price ranges can be changed in the settings (see below). Offers below the start of the first range are always ignored, without a lookup.
+These price ranges can be changed in the settings (see below). Offers below the start of the first range are ignored, without a lookup.
+
+**Any under trend:** sometimes you just want to see every card that's cheaper than its trend. The overview box on a seller page has a switch at the top: **My ranges** / **Any under trend**. In "Any under trend" mode every offer is checked, including cheap ones, and anything strictly below trend is flagged. The English-only filter still applies. The choice is remembered for other pages and sellers until you switch back.
 
 - Deals are marked with a green row and a 🔥 note. Every other checked card shows the cheapest English trend price (no percentage).
 - An overview box (bottom-right) lists the deals on the page. A desktop notification pops up as well; click it to jump back to the tab.

@@ -19,6 +19,7 @@ Firefox extension that compares Magic: The Gathering prices on cardmarket.com wi
 | €3 – < €5 | 15% |
 | ≥ €5 | 10% |
 - Brackets are user-editable (`settings.brackets`: `{from, pct}[]`, max 10). Each `from` is **inclusive** and the bracket runs to the next `from`. Offers below the lowest `from` are ignored with **no API calls**. The lowest `from` may be €0 (owner's decision: then nothing is ignored by price). Old `pctLow/Mid/High` settings are migrated in `migrate()`. The settings page must always say which offers are ignored.
+- `dealMode` (default `"ranges"`): `"anyUnder"` ignores the brackets entirely. **Every** priced offer is looked up, including < €1 (owner's decision), and a deal is strictly below trend (`discount > 0`; at trend is not a deal). `englishOnly` still skips without API calls. Toggled from the overview box on seller pages (saved, so it sticks) and on the settings page.
 - Discount is rounded to 0.01% before comparing, so €9 vs €10 is exactly 10% → deal.
 - Deals: green row + `🔥 N% under EN trend €x (Set)`. Every other checked card: `EN trend €x (Set)`, **no percentage** (owner's explicit wish).
 - Card name tooltip: price read + trend (for verifying).
@@ -94,7 +95,7 @@ npm run build        # unsigned zip in dist/
 - Free, **no API key**. Rules: max ~10 requests/s (the queue waits 110 ms between requests), cache ≥24 h (prices update daily). Don't make this faster or the cache shorter.
 - Flow: `/cards/cardmarket/{productId}` → fallback `/cards/named?exact=` → `?fuzzy=` → `/cards/search?q=oracleid:… lang:en game:paper&unique=prints`.
 - Cache keys in `browser.storage.local` start with `cmc:`; settings live under `settings`. "Refresh prices" clears only `cmc:` keys.
-- Every new feature must keep the "no API calls for offers below the first bracket (€1 by default) / skipped languages" guarantee; there are tests for it.
+- Every new feature must keep the "no API calls for offers below the first bracket (€1 by default) / skipped languages" guarantee (except the price part in `dealMode: "anyUnder"`, by the owner's choice); there are tests for it.
 
 ## Releasing
 

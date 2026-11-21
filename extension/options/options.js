@@ -51,6 +51,12 @@
     }));
   }
 
+  /** @returns {DealMode} */
+  function readMode() {
+    const r = /** @type {HTMLInputElement | null} */ (document.querySelector("input[name=dealMode]:checked"));
+    return r && r.value === "anyUnder" ? "anyUnder" : "ranges";
+  }
+
   /** Updates the range labels, the "ignored" text and the add/remove buttons as the user types. */
   function refresh() {
     const rows = readRows();
@@ -67,6 +73,7 @@
     const valid = froms.filter((f) => Number.isFinite(f) && f >= 0);
     const lowest = valid.length ? Math.min(...valid) : null;
     $("ignored").textContent =
+      readMode() === "anyUnder" ? "\"Any card under trend\" is on: every offer is checked and the ranges aren't used." :
       lowest == null ? "" :
       lowest > 0 ? `Offers under ${fmtEuro(lowest)} are ignored: they get no note and no price lookup.` :
       "No offers are ignored by price: every offer gets a price lookup.";
@@ -76,6 +83,9 @@
   function fill(s) {
     tbody.replaceChildren();
     s.brackets.forEach(addRow);
+    document.querySelectorAll("input[name=dealMode]").forEach((r) => {
+      /** @type {HTMLInputElement} */ (r).checked = /** @type {HTMLInputElement} */ (r).value === s.dealMode;
+    });
     boolKeys.forEach((k) => ($(k).checked = !!s[k]));
     refresh();
   }
@@ -94,6 +104,7 @@
   }
 
   tbody.addEventListener("input", refresh);
+  document.querySelectorAll("input[name=dealMode]").forEach((r) => r.addEventListener("change", refresh));
 
   addButton.onclick = () => {
     // New range above the current highest one, with the same percentage as that one.
@@ -118,7 +129,7 @@
       return;
     }
     /** @type {Settings} */
-    const s = { brackets: normalizeBrackets(rows), englishOnly: $("englishOnly").checked, desktopNotify: $("desktopNotify").checked };
+    const s = { brackets: normalizeBrackets(rows), dealMode: readMode(), englishOnly: $("englishOnly").checked, desktopNotify: $("desktopNotify").checked };
     await saveSettings(s);
     fill(s); // shows the ranges sorted, as they are applied
     flash("Saved ✓");

@@ -3,7 +3,7 @@
  * flag offers that are sufficiently below the cheapest-English-printing trend. */
 (function (root) {
   "use strict";
-  const { parseEuro, allEuros, cleanName, lookup, clearCache, getSettings, requiredDiscount, ignoredBelow } = root.CMC;
+  const { parseEuro, allEuros, cleanName, lookup, clearCache, getSettings, saveSettings, requiredDiscount, ignoredBelow } = root.CMC;
 
   const MARK = "data-cmc";
   /** @param {number | null | undefined} n */
@@ -115,8 +115,14 @@
     if (pct == null || trend == null || trend <= 0) return null;
     // Round to 0.01% so e.g. 9.00 vs 10.00 counts as exactly 10% (avoids float noise).
     const discount = Math.round((1 - price / trend) * 10000) / 100;
-    return { pct, discount, deal: discount >= pct };
+    // "Any under trend" mode: strictly below trend (at trend is not a deal). Ranges: at least pct.
+    const deal = settings.dealMode === "anyUnder" ? discount > 0 : discount >= pct;
+    return { pct, discount, deal };
   }
+
+  /** Discount for display: whole percent, but "<1" instead of a misleading "0". */
+  /** @param {number} d */
+  const pctText = (d) => (d > 0 && d < 1 ? "<1" : String(Math.round(d)));
 
   function removeOld() {
     document.querySelectorAll(`[${MARK}]`).forEach((n) => n.remove());
@@ -138,7 +144,7 @@
     if (j.deal) {
       offer.el.classList.add("cmc-deal-row");
       note.classList.add("cmc-deal-note");
-      note.append(`🔥 ${Math.round(j.discount)}% under EN trend ${fmt(p.trend)} `);
+      note.append(`🔥 ${pctText(j.discount)}% under EN trend ${fmt(p.trend)} `);
     } else {
       note.append(`EN trend ${fmt(p.trend)} `);
     }
@@ -156,11 +162,14 @@
     close.onclick = () => box.remove();
     head.appendChild(close);
     box.appendChild(head);
+    box.appendChild(modeSwitch());
     if (status) box.appendChild(el("div", null, status));
     else {
       box.appendChild(el("div", null, deals.length ? `${deals.length} deal(s) on this page` : "No deals on this page"));
       if (stats) {
-        box.appendChild(el("div", "cmc-muted", `Checked ${stats.checked}: ${deals.length} deal · ${stats.under} under trend · ${stats.above} at/above trend`));
+        // In "any under trend" mode every under-trend card is a deal, so "under trend" would always be 0.
+        const under = currentMode === "anyUnder" ? "" : ` · ${stats.under} under trend`;
+        box.appendChild(el("div", "cmc-muted", `Checked ${stats.checked}: ${deals.length} deal${under} · ${stats.above} at/above trend`));
         // cheapBelow is 0 when the first range starts at €0: then nothing is skipped by price.
         const skipped = stats.cheapBelow > 0 ? `Skipped ${stats.cheap} under ${fmt(stats.cheapBelow)} · ` : "Skipped ";
         box.appendChild(el("div", "cmc-muted", `${skipped}${stats.lang} non-English`));
@@ -181,7 +190,7 @@
       }
       const list = el("ul", "cmc-list");
       for (const d of deals) {
-        const li = el("li", "cmc-good-text", `${d.offer.name}: ${fmt(d.offer.price)} vs ${fmt(d.p.trend)} (−${Math.round(d.j.discount)}%)`);
+        const li = el("li", "cmc-good-text", `${d.offer.name}: ${fmt(d.offer.price)} vs ${fmt(d.p.trend)} (−${pctText(d.j.discount)}%)`);
         li.style.cursor = "pointer";
         li.onclick = () => d.offer.el.scrollIntoView({ behavior: "smooth", block: "center" });
         list.appendChild(li);
@@ -196,7 +205,43 @@
     document.body.appendChild(box);
   }
 
+  /**
+   * Switch between "My ranges" and "Any under trend" at the top of the overview box.
+   * The choice is saved (it sticks for other pages and sellers) and the page is re-checked.
+   */
+  function modeSwitch() {
+    const wrap = el("div", "cmc-mode");
+    /** @type {[DealMode, string, string][]} */
+    const modes = [
+      ["ranges", "My ranges", "Deal = at least the % you set for the offer's price range"],
+      ["anyUnder", "Any under trend", "Deal = any offer below trend, including cheap ones"],
+    ];
+    for (const [mode, label, tip] of modes) {
+      const b = el("button", "cmc-btn cmc-mode-btn", label);
+      b.title = tip;
+      b.setAttribute("aria-pressed", String(mode === currentMode));
+      b.onclick = async () => {
+        if (mode === currentMode) return;
+        currentMode = mode;
+        wrap.querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+        await saveSettings({ ...(await getSettings()), dealMode: mode });
+        restart();
+      };
+      wrap.appendChild(b);
+    }
+    return wrap;
+  }
+
+  /** Re-check now; if a check is running, it stops early and runs again with the new settings. */
+  function restart() {
+    if (running) again = true;
+    else run();
+  }
+
+  /** @type {DealMode} mode of the last check, shown in the switch */
+  let currentMode = "ranges";
   let running = false;
+  let again = false; // set while running: stop the current check and start over
   let lastSig = "";
   const notified = new Set();
   const sig = () => Array.from(document.querySelectorAll("a[href*='/Products/Singles/']")).map((a) => a.getAttribute("href")).join(",");
@@ -210,6 +255,8 @@
     try {
       removeOld();
       const settings = await getSettings();
+      currentMode = settings.dealMode;
+      again = false;
       const offers = parseOffers(document);
       if (!offers.length) {
         renderOverview([], "No card offers recognised on this page. Cardmarket's layout may differ: send a copy of the page so the parser can be fixed.");
@@ -225,6 +272,7 @@
       const stats = { checked: 0, cheap: 0, cheapBelow: ignoredBelow(settings), lang: 0, under: 0, above: 0, failed: /** @type {{offer: Offer, reason: string}[]} */ ([]) };
       const deals = [];
       for (const offer of offers) {
+        if (again) return; // settings changed mid-check: finally{} starts a fresh run
         // Filter BEFORE any API call: cheap cards and non-English offers cost nothing.
         const price = offer.price;
         if (price == null) { stats.failed.push({ offer, reason: "price not readable" }); continue; }
@@ -259,7 +307,8 @@
       }
     } finally {
       running = false;
-      if (sig() !== lastSig) setTimeout(run, 300); // page changed while we were busy
+      if (again) { again = false; run(); }
+      else if (sig() !== lastSig) setTimeout(run, 300); // page changed while we were busy
     }
   }
 
@@ -274,6 +323,6 @@
       clearTimeout(timer);
       timer = setTimeout(() => { if (sig() !== lastSig) run(); }, 800);
     }).observe(document.body, { childList: true, subtree: true });
-    if (typeof browser !== "undefined") browser.storage.onChanged.addListener((c) => { if (c.settings) run(); });
+    if (typeof browser !== "undefined") browser.storage.onChanged.addListener((c) => { if (c.settings) restart(); });
   }
 })(typeof globalThis !== "undefined" ? globalThis : window);

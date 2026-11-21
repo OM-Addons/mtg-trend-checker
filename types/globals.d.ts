@@ -85,9 +85,13 @@ interface Bracket {
   pct: number;
 }
 
+/** How seller-page deals are decided: by the user's price ranges, or any offer below trend. */
+type DealMode = "ranges" | "anyUnder";
+
 interface Settings {
   /** Sorted by `from`, unique, 1 to MAX_BRACKETS entries. Offers below the first `from` are ignored. */
   brackets: Bracket[];
+  dealMode: DealMode;
   englishOnly: boolean;
   desktopNotify: boolean;
 }

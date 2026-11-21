@@ -86,7 +86,7 @@ test("rangeLabel shows where each range ends", () => {
 test("settings from older versions (three fixed percentages) become brackets", () => {
   const { migrate } = cmc();
   assert.deepEqual(plain(migrate({ pctLow: 30, pctMid: 20, pctHigh: 12, englishOnly: false, desktopNotify: true })), {
-    brackets: [{ from: 1, pct: 30 }, { from: 3, pct: 20 }, { from: 5, pct: 12 }], englishOnly: false, desktopNotify: true,
+    brackets: [{ from: 1, pct: 30 }, { from: 3, pct: 20 }, { from: 5, pct: 12 }], dealMode: "ranges", englishOnly: false, desktopNotify: true,
   });
   assert.deepEqual(plain(migrate({ pctMid: 18 }).brackets), [{ from: 1, pct: 25 }, { from: 3, pct: 18 }, { from: 5, pct: 10 }]);
   // New-style settings are kept (old keys are ignored once brackets exist).
@@ -101,7 +101,7 @@ test("getSettings migrates what is in storage, saveSettings stores sorted bracke
   assert.deepEqual(plain(s.brackets), [{ from: 1, pct: 30 }, { from: 3, pct: 20 }, { from: 5, pct: 12 }]);
   await saveSettings({ ...s, brackets: [{ from: 4, pct: 1 }, { from: 0.5, pct: 2 }] });
   assert.deepEqual(browser.storage.local.data.settings, {
-    brackets: [{ from: 0.5, pct: 2 }, { from: 4, pct: 1 }], englishOnly: true, desktopNotify: false,
+    brackets: [{ from: 0.5, pct: 2 }, { from: 4, pct: 1 }], dealMode: "ranges", englishOnly: true, desktopNotify: false,
   });
 });
 
@@ -120,14 +120,14 @@ test("defaults() returns a copy that can be changed safely", () => {
 
 const trends = { "Low Deal": 2.0, "Low NoDeal": 2.2, "Mid Deal": 4.0, "High Deal": 10.0, "High NoDeal": 10.0, "Boundary Five": 5.8, "German Deal": 10, "Above Trend": 2.5, "Cheap Card": 2 };
 /** The list fixture, with these brackets in storage. */
-function listPageWith(brackets) {
+function listPageWith(brackets, extra = {}) {
   const fetch = fakeScryfall({
     byProductId: { 555: "High Deal" },
     byName: Object.fromEntries(Object.keys(trends).map((n) => [n, n])),
     prints: Object.fromEntries(Object.entries(trends).map(([n, t]) => [n, [print(t, "S")]])),
   });
-  const browser = fakeBrowser({ settings: { brackets, englishOnly: true, desktopNotify: false } });
-  return { w: loadPage(fixture("offers-list.html"), OFFER_SCRIPTS, fetch, { browser }), fetch };
+  const browser = fakeBrowser({ settings: { brackets, englishOnly: true, desktopNotify: false, ...extra } });
+  return { w: loadPage(fixture("offers-list.html"), OFFER_SCRIPTS, fetch, { browser }), fetch, browser };
 }
 
 test("custom first range: no Scryfall calls below it, and the overview names the threshold", async () => {
@@ -218,7 +218,7 @@ test("settings page: save stores the ranges sorted and shows them sorted", async
   d.getElementById("englishOnly").checked = false;
   await click("save");
   assert.deepEqual(stored(), {
-    brackets: [{ from: 3, pct: 15 }, { from: 5, pct: 10 }, { from: 8, pct: 7 }], englishOnly: false, desktopNotify: true,
+    brackets: [{ from: 3, pct: 15 }, { from: 5, pct: 10 }, { from: 8, pct: 7 }], dealMode: "ranges", englishOnly: false, desktopNotify: true,
   });
   assert.deepEqual(rows().map((r) => r.from), ["3", "5", "8"]);
   assert.equal(text(d.getElementById("saved")), "Saved ✓");
@@ -245,4 +245,110 @@ test("settings page: reset restores the three default ranges", async () => {
   await click("reset");
   assert.deepEqual(rows().map((r) => [r.from, r.pct]), [["1", "25"], ["3", "15"], ["5", "10"]]);
   assert.deepEqual(stored().brackets, [{ from: 1, pct: 25 }, { from: 3, pct: 15 }, { from: 5, pct: 10 }]);
+});
+
+// ---------------------------------------------------------------------------
+// "Any under trend" mode
+// ---------------------------------------------------------------------------
+
+const DEFAULT_BRACKETS = [{ from: 1, pct: 25 }, { from: 3, pct: 15 }, { from: 5, pct: 10 }];
+const flaggedNames = (w) => [...w.document.querySelectorAll(".cmc-deal-row")].map((r) => r.querySelector("a").textContent);
+/** Waits until the overview shows a finished check (not "Looking up…"). */
+async function done(w) {
+  for (let i = 0; i < 400; i++) {
+    const o = w.document.querySelector(".cmc-overview");
+    if (o && /Checked \d+/.test(o.textContent)) return;
+    await new Promise((r) => setTimeout(r, 25));
+  }
+  throw new Error("check didn't finish");
+}
+
+test("any-under mode: every priced offer is checked and strictly below trend is a deal", () => {
+  const { requiredDiscount, ignoredBelow, migrate } = cmc();
+  const s = migrate({ dealMode: "anyUnder" });
+  assert.equal(s.dealMode, "anyUnder");
+  assert.equal(requiredDiscount(0.01, s), 0, "no price minimum");
+  assert.equal(requiredDiscount(null, s), null);
+  assert.equal(ignoredBelow(s), 0);
+
+  const { judge } = loadPage("<body></body>", OFFER_SCRIPTS, fakeScryfall({ prints: {} })).CMC;
+  assert.equal(judge(10, 10, s).deal, false, "at trend is not under trend");
+  assert.equal(judge(10.5, 10, s).deal, false);
+  assert.equal(judge(9.99, 10, s).deal, true, "0.1% under counts");
+  assert.equal(judge(9.99, 10, { ...s, dealMode: "ranges" }).deal, false, "ranges mode still wants 10%");
+});
+
+test("dealMode: anything unknown falls back to ranges", () => {
+  const { migrate } = cmc();
+  assert.equal(migrate({}).dealMode, "ranges");
+  assert.equal(migrate({ dealMode: "everything" }).dealMode, "ranges");
+});
+
+test("seller page in any-under mode: cheap offers are looked up, every under-trend card is flagged", async () => {
+  const { w, fetch } = listPageWith(DEFAULT_BRACKETS, { dealMode: "anyUnder" });
+  await w.CMC.runOffers();
+  assert.ok(fetch.calls.some((c) => c.includes("Cheap Card")), "€0.50 offer is checked in this mode");
+  assert.ok(!fetch.calls.some((c) => c.includes("German Deal")), "English-only still skips without a call");
+  assert.deepEqual(flaggedNames(w), ["Cheap Card", "Low Deal", "Low NoDeal", "Mid Deal", "High Deal", "High NoDeal", "Boundary Five (V.2)"]);
+  const overview = text(w.document.querySelector(".cmc-overview"));
+  assert.match(overview, /7 deal\(s\) on this page/);
+  assert.match(overview, /Checked 8: 7 deal · 1 at\/above trend/, "no 'under trend' count: those are all deals here");
+  assert.match(overview, /Skipped 1 non-English/);
+  assert.equal(w.document.querySelector(".cmc-mode-btn[aria-pressed=true]").textContent, "Any under trend");
+});
+
+test("overview switch: changes mode, saves it and re-checks the page", async () => {
+  const { w, fetch, browser } = listPageWith(DEFAULT_BRACKETS);
+  await w.CMC.runOffers();
+  assert.deepEqual(flaggedNames(w), ["Low Deal", "Mid Deal", "High Deal", "Boundary Five (V.2)"]);
+  assert.equal(w.document.querySelector(".cmc-mode-btn[aria-pressed=true]").textContent, "My ranges");
+  assert.ok(!fetch.calls.some((c) => c.includes("Cheap Card")));
+
+  const [, any] = w.document.querySelectorAll(".cmc-mode-btn");
+  any.click();
+  await new Promise((r) => setTimeout(r, 20));
+  await done(w);
+  assert.equal(browser.storage.local.data.settings.dealMode, "anyUnder", "the choice is remembered");
+  assert.equal(flaggedNames(w).length, 7);
+  assert.ok(fetch.calls.some((c) => c.includes("Cheap Card")));
+  assert.equal(w.document.querySelectorAll(".cmc-note").length, 8, "old notes are replaced, not doubled");
+
+  w.document.querySelectorAll(".cmc-mode-btn")[0].click();
+  await new Promise((r) => setTimeout(r, 20));
+  await done(w);
+  assert.equal(browser.storage.local.data.settings.dealMode, "ranges");
+  assert.deepEqual(flaggedNames(w), ["Low Deal", "Mid Deal", "High Deal", "Boundary Five (V.2)"]);
+});
+
+test("overview switch while a check is still running: the page ends up in the new mode", async () => {
+  const { w } = listPageWith(DEFAULT_BRACKETS);
+  const first = w.CMC.runOffers(); // not awaited: the "Looking up…" box is showing
+  await new Promise((r) => setTimeout(r, 5));
+  w.document.querySelectorAll(".cmc-mode-btn")[1].click();
+  await first;
+  await new Promise((r) => setTimeout(r, 20));
+  await done(w);
+  assert.equal(flaggedNames(w).length, 7);
+  assert.equal(w.document.querySelectorAll(".cmc-overview").length, 1);
+});
+
+test("discounts under 1% show as <1%, not 0%", async () => {
+  const fetch = fakeScryfall({ byName: { "Low Deal": "x" }, prints: { x: [print(1.505, "S")] } });
+  const browser = fakeBrowser({ settings: { brackets: DEFAULT_BRACKETS, dealMode: "anyUnder", englishOnly: true, desktopNotify: false } });
+  const w = loadPage(fixture("offers-list.html"), OFFER_SCRIPTS, fetch, { browser });
+  await w.CMC.runOffers();
+  const note = [...w.document.querySelectorAll(".cmc-deal-note")].map(text);
+  assert.deepEqual(note, ["🔥 <1% under EN trend € 1,51 (S)"]);
+});
+
+test("settings page: mode radios load, save, and change the ignored text", async () => {
+  const { d, click, stored } = await optionsPage({ brackets: DEFAULT_BRACKETS, dealMode: "anyUnder", englishOnly: true, desktopNotify: true });
+  assert.equal(d.querySelector("input[name=dealMode]:checked").value, "anyUnder");
+  assert.match(text(d.getElementById("ignored")), /every offer is checked and the ranges aren't used/);
+  const ranges = d.querySelector("input[value=ranges]");
+  ranges.checked = true;
+  ranges.dispatchEvent(new d.defaultView.Event("change"));
+  assert.match(text(d.getElementById("ignored")), /Offers under € 1,00 are ignored/);
+  await click("save");
+  assert.equal(stored().dealMode, "ranges");
 });
