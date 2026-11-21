@@ -70,6 +70,7 @@ npm run build        # unsigned zip in dist/
 - **Tests with every change**: a bug fix starts with a test that fails because of the bug; a new feature comes with tests for its rules. Business rules above (strictly-lower comparison, price brackets, no API calls < €1 / skipped languages) must each stay covered.
 - **Commit after each change** (owner's wish): once a change is done and `npm run check` passes, commit it on its own with a short message saying what changed and why. One logical change per commit; don't wait to be asked.
 - **One branch per feature** (owner's wish): start each new feature or fix on its own branch off an up-to-date `main` (e.g. `feature/scan-all-pages`, `fix/cart-parser`), never commit straight to `main`. Ask the owner before merging into `main` or pushing.
+- **Dependabot PRs** (`.github/dependabot.yml`): minor/patch updates are grouped; merge when CI is green. A major update (like web-ext 8 → 10) needs a look at its changelog and, if it touches `web-ext`, a check that `npm start` and the `web-ext sign` flags in the release skill still work.
 - **Merge through pull requests**: when the work is done, push the branch and open a PR with `gh pr create` (what changed, why, how it was tested, what the owner should check in the browser). CI (`.github/workflows/ci.yml`) runs `npm run check`; merge only when it's green and the owner agrees, then delete the branch and switch back to an updated `main`.
 
 ## Cardmarket pages (the fragile part)
