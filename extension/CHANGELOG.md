@@ -1,6 +1,8 @@
 # Changelog
 
 ## Unreleased
+
+## 2.0.1 - 2026-11-21
 - Fixed: button labels in the overview box were invisible (white on white) when Firefox or Windows uses a dark theme.
 
 ## 2.0.0 - 2026-11-21
