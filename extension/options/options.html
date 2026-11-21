@@ -1,0 +1,29 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    body { font: 14px system-ui, sans-serif; padding: 12px 16px; max-width: 520px; }
+    h2 { font-size: 16px; margin: 0 0 8px; }
+    table { border-collapse: collapse; }
+    td { padding: 4px 10px 4px 0; }
+    input[type=number] { width: 64px; }
+    .hint { color: #666; font-size: 12px; }
+    #saved { color: #1e8e3e; margin-left: 8px; }
+  </style>
+</head>
+<body>
+  <h2>Seller offer pages: deal thresholds</h2>
+  <p class="hint">An offer is flagged when it is at least this much cheaper than the trend price of the cheapest English printing. Offers under €1 are always ignored (no lookups).</p>
+  <table>
+    <tr><td>€1 – €3</td><td><input type="number" id="pctLow" min="0" max="100" step="1"> %</td></tr>
+    <tr><td>€3 – €5</td><td><input type="number" id="pctMid" min="0" max="100" step="1"> %</td></tr>
+    <tr><td>Above €5</td><td><input type="number" id="pctHigh" min="0" max="100" step="1"> %</td></tr>
+  </table>
+  <p><label><input type="checkbox" id="englishOnly"> Only check English offers</label></p>
+  <p><label><input type="checkbox" id="desktopNotify"> Show a desktop notification when deals are found</label></p>
+  <p><button id="save">Save</button> <button id="reset">Reset to defaults</button><span id="saved"></span></p>
+  <script src="../src/settings.js"></script>
+  <script src="options.js"></script>
+</body>
+</html>

@@ -1,0 +1,40 @@
+{
+  "manifest_version": 2,
+  "name": "Cardmarket MTG Trend Checker",
+  "version": "1.2.0",
+  "description": "Compares Cardmarket MTG prices with the trend price of the cheapest English printing: checks your cart per seller and flags under-trend offers on seller pages.",
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "cm-cart-checker@local",
+      "strict_min_version": "109.0",
+      "data_collection_permissions": { "required": ["none"] }
+    }
+  },
+  "icons": { "48": "icons/icon-48.png", "96": "icons/icon-96.png" },
+  "permissions": [
+    "storage",
+    "notifications",
+    "https://api.scryfall.com/*"
+  ],
+  "background": {
+    "scripts": ["src/background.js"]
+  },
+  "options_ui": {
+    "page": "options/options.html",
+    "open_in_tab": false
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://www.cardmarket.com/*/Magic/ShoppingCart*"],
+      "js": ["src/parse.js", "src/prices.js", "src/content.js"],
+      "css": ["src/styles.css"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://www.cardmarket.com/*/Magic/Users/*/Offers/Singles*"],
+      "js": ["src/parse.js", "src/prices.js", "src/settings.js", "src/offers.js"],
+      "css": ["src/styles.css"],
+      "run_at": "document_idle"
+    }
+  ]
+}

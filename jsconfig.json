@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "checkJs": true,
+    "allowJs": true,
+    "noEmit": true,
+    "strict": true,
+    "noImplicitAny": false,
+    "types": ["firefox-webext-browser"],
+    "skipLibCheck": true
+  },
+  "include": ["extension/**/*.js", "types/**/*.d.ts"]
+}
