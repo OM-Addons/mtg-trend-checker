@@ -1,6 +1,8 @@
 # Changelog
 
 ## Unreleased
+
+## 1.4.0 - 2026-11-21
 - Seller pages: deals now show how much you save in euros as well as in percent, e.g. "🔥 14% (€ 1,02) under trend € 7,21". The overview box shows the euro savings too. The notes no longer say "EN" (the trend is still the cheapest English printing).
 - Settings page: each range now shows where it really ends, e.g. "€1,00 to €2,99" instead of "€1,00 to under €3,00", so ranges no longer seem to overlap.
 - New **⏻ Off** button in the overview box (cart and seller pages). When it's off, the add-on does nothing on Cardmarket pages and only shows a small **⏻ On** button to turn it back on. It stays off until you turn it on.
