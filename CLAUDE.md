@@ -64,6 +64,7 @@ npm run build        # unsigned zip in dist/
 - Money: always parse with `parseEuro`/`allEuros` (handles `1.234,56 €` and `€1,234.56`); display with `fmt` (nl-NL, EUR).
 - Keep user-facing text short and in English.
 - Keep `README.md` (user docs) in sync when behaviour or settings change, and add a line to `CHANGELOG.md` under "Unreleased".
+- **Commit after each change** (owner's wish): once a change is done and `npm run check` passes, commit it on its own with a short message saying what changed and why. One logical change per commit; don't wait to be asked.
 
 ## Cardmarket pages (the fragile part)
 
