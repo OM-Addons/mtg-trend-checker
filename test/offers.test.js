@@ -78,10 +78,10 @@ test("hovering a card name shows price read and trend", async () => {
 });
 
 // ---------------------------------------------------------------------------
-// Table layout
+// <table>-based rows (robustness; the real site uses .article-row divs)
 // ---------------------------------------------------------------------------
 
-test("table layout: parses rows, languages and puts notes in the name cell", async () => {
+test("table rows: parses rows, languages and puts notes in the name cell", async () => {
   const trend = { 100: 12, 200: 12.5, 300: 30, 400: 5, 500: 10 };
   const fetch = fakeScryfall({
     byProductId: Object.fromEntries(Object.keys(trend).map((id) => [id, id])),
