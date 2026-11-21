@@ -35,7 +35,7 @@ On `cardmarket.com/<lang>/Magic/Users/<seller>/Offers/Singles` every offer is ch
 
 ## Install
 
-**Friends:** download the latest `.xpi` from this repo's GitHub **Releases** page and open it in Firefox (or go to `about:addons` → gear icon → *Install Add-on From File*). It updates automatically. *(Available after the first signed release.)*
+**Friends (Firefox on desktop):** open the [latest release](https://github.com/OM-Addons/mtg-trend-checker/releases/latest) and click the `.xpi` file; Firefox asks whether to add it. (Or download it and use `about:addons` → gear icon → *Install Add-on From File*.) It updates automatically; to update right away: `about:addons` → gear icon → *Check for Updates*. *(Available after the first signed release.)* Firefox for Android isn't supported yet.
 
 **Try a local copy without signing:** open `about:debugging#/runtime/this-firefox` → **Load Temporary Add-on…** → select `extension/manifest.json`. Firefox removes it when it restarts.
 

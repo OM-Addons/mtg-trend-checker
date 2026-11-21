@@ -41,6 +41,8 @@ extension/            ← exactly what Firefox loads (no build step)
 types/globals.d.ts    shared types for the checker (not shipped)
 test/                 node:test + jsdom; fixtures/ = sample Cardmarket pages
 .github/workflows/ci.yml npm run check on every PR and push to main
+.github/workflows/release.yml  tag v* → sign (unlisted) → GitHub release → updates.json
+updates.json          self-hosted update manifest (written by the release workflow)
 .claude/skills/release/  how to set up CI/signing and ship a version
 ```
 

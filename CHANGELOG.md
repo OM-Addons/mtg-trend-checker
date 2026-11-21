@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+- Signed by Mozilla and installable in regular Firefox from the GitHub releases page, with automatic updates.
 
 ## 1.2.0 - 2026-11-21
 - Seller pages: offers whose price can't be read now show in the "couldn't be priced" list, instead of being counted as "under €1".
