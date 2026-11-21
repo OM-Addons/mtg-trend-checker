@@ -24,6 +24,7 @@ Firefox extension that compares Magic: The Gathering prices on cardmarket.com wi
 - Deals: green row + `🔥 N% under EN trend €x (Set)`. Every other checked card: `EN trend €x (Set)`, **no percentage** (owner's explicit wish).
 - Card name tooltip: price read + trend (for verifying).
 - `englishOnly` setting (default on): non-English offers are skipped **without API calls**. Unknown language → checked anyway.
+- **On/off** (`settings.enabled`, default on): the ⏻ Off button in the overview box (cart and seller pages) is saved, so it applies to every page. While off: **no parsing, no API calls, no notes**, only a minimized ⏻ On button (bottom-right). Turning off mid-check stops the remaining lookups. The settings page keeps the stored value when saving.
 - Overview box (bottom-right) always appears, including diagnostics ("No card offers recognised", "couldn't be priced" list).
 - No desktop notifications (removed in 1.4 at the owner's request; the add-on no longer has the permission).
 
@@ -35,6 +36,7 @@ extension/            ← exactly what Firefox loads (no build step)
   src/parse.js        money/name parsing + cart page parser
   src/prices.js       Scryfall lookups, request queue, 24h cache
   src/settings.js     defaults, storage, price brackets (requiredDiscount)
+  src/onoff.js        on/off switch for the overview box (cart and seller pages)
   src/content.js      cart page: evaluate + render
   src/offers.js       seller pages: parse rows, judge, render, re-run on DOM changes
   src/background.js   opens the settings page
@@ -52,7 +54,7 @@ updates.json          self-hosted update manifest (written by the release workfl
 .claude/skills/release/  how to set up CI/signing and ship a version
 ```
 
-Scripts are **classic scripts, not modules**: they share code through the global `CMC` object (`root.CMC = Object.assign(root.CMC || {}, {...})`). Load order in `manifest.json` matters (parse → prices → settings → page script). `test/helpers.js` has `CART_SCRIPTS`/`OFFER_SCRIPTS`, which **must mirror the manifest**.
+Scripts are **classic scripts, not modules**: they share code through the global `CMC` object (`root.CMC = Object.assign(root.CMC || {}, {...})`). Load order in `manifest.json` matters (parse → prices → settings → onoff → page script, on both pages). `test/helpers.js` has `CART_SCRIPTS`/`OFFER_SCRIPTS`, which **must mirror the manifest** (a test checks this).
 
 ## Commands
 

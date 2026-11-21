@@ -50,3 +50,15 @@
 /* Seller offer pages */
 .cmc-deal-row { background: #e9f6ec !important; box-shadow: inset 5px 0 0 #1e8e3e; }
 .cmc-deal-note { color: #1e7a36; font-weight: 700; }
+
+/* On/off switch */
+.cmc-head-buttons { display: flex; gap: 4px; }
+.cmc-off-box {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 99999;
+  padding: 4px 10px;
+  font-size: 13px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}

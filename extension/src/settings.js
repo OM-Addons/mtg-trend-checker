@@ -20,6 +20,7 @@
     // (no price minimum) and anything strictly below trend is a deal. Toggled on seller pages.
     dealMode: "ranges",
     englishOnly: true,     // only check offers whose card language is English
+    enabled: true,         // off (the switch in the overview box): no checks on any Cardmarket page
   };
   const MAX_BRACKETS = 10;
 
@@ -102,7 +103,7 @@
     /** @type {DealMode} */
     const dealMode = s.dealMode === "anyUnder" ? "anyUnder" : "ranges";
     // Only known keys are returned, so old ones (pctLow…, desktopNotify before 1.4) drop out on the next save.
-    return { brackets: s.brackets, dealMode, englishOnly: !!s.englishOnly };
+    return { brackets: s.brackets, dealMode, englishOnly: !!s.englishOnly, enabled: s.enabled !== false };
   }
 
   /** @returns {Promise<Settings>} */

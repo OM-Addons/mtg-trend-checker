@@ -2,7 +2,7 @@
 /* Orchestrates: parse cart -> look up prices -> annotate the page. */
 (function (root) {
   "use strict";
-  const { parseCart, lookup, clearCache } = root.CMC;
+  const { parseCart, lookup, clearCache, getSettings, migrate, offButton, renderOffBox } = root.CMC;
 
   /** @param {number | null | undefined} n */
   const fmt = (n) => (n == null ? "?" : n.toLocaleString("nl-NL", { style: "currency", currency: "EUR" }));
@@ -105,9 +105,11 @@
     const box = el("div", "cmc-overview");
     const head = el("div", "cmc-overview-head", "MTG cart check");
     const close = el("button", "cmc-btn", "×");
-    close.title = "Hide";
+    close.title = "Hide (this page only)";
     close.onclick = () => box.remove();
-    head.appendChild(close);
+    const buttons = el("span", "cmc-head-buttons");
+    buttons.append(offButton(restart), close);
+    head.appendChild(buttons);
     box.appendChild(head);
 
     if (status) {
@@ -134,12 +136,23 @@
   }
 
   let running = false;
+  let again = false; // set while running: stop the current check and start over
+
+  /** Re-check now; if a check is running, it stops early and runs again. */
+  function restart() {
+    if (running) again = true;
+    else run();
+  }
+
   async function run() {
     if (running) return;
     running = true;
     lastSignature = signature(); // snapshot before awaiting, so later changes trigger a re-run
     try {
       removeOld();
+      again = false;
+      // Turned off: nothing is parsed or looked up, only the "On" button is shown.
+      if (!(await getSettings()).enabled) { renderOffBox(restart); return; }
       const shipments = parseCart(document);
       if (!shipments.length) return;
       renderOverview([], "Looking up trend prices…");
@@ -148,6 +161,7 @@
       const unique = new Map();
       shipments.forEach((s) => s.articles.forEach((a) => unique.set(a.productId, a.name)));
       for (const [pid, name] of unique) {
+        if (again) return; // turned off (or on) mid-check: finally{} starts a fresh run
         try {
           const p = await lookup(pid, name);
           if (p) prices.set(pid, p);
@@ -161,7 +175,8 @@
       renderOverview(results);
     } finally {
       running = false;
-      if (signature() !== lastSignature) setTimeout(run, 300);
+      if (again) { again = false; run(); }
+      else if (signature() !== lastSignature) setTimeout(run, 300);
     }
   }
 
@@ -183,5 +198,9 @@
   if (!root.CMC_NO_AUTORUN) {
     run();
     observer.observe(document.body, { childList: true, subtree: true });
+    // Switched on/off in another tab: follow along. Other settings don't affect the cart.
+    if (typeof browser !== "undefined") browser.storage.onChanged.addListener((c) => {
+      if (c.settings && migrate(c.settings.oldValue).enabled !== migrate(c.settings.newValue).enabled) restart();
+    });
   }
 })(typeof globalThis !== "undefined" ? globalThis : window);

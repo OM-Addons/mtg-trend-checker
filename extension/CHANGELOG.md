@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+- New **⏻ Off** button in the overview box (cart and seller pages). When it's off, the add-on does nothing on Cardmarket pages and only shows a small **⏻ On** button to turn it back on. It stays off until you turn it on.
 - Desktop notifications for deals are gone. The overview box on the page shows the deals.
 
 ## 1.3.0 - 2026-11-21
