@@ -1,6 +1,8 @@
 # Changelog
 
 ## Unreleased
+
+## 1.2.1 - 2026-11-21
 - Signed by Mozilla and installable in regular Firefox from the GitHub releases page, with automatic updates.
 
 ## 1.2.0 - 2026-11-21
