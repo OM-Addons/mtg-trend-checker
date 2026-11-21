@@ -229,6 +229,7 @@
         if (requiredDiscount(price, settings) == null) { stats.cheap++; continue; }
         if (settings.englishOnly && offer.language && offer.language !== "English") { stats.lang++; continue; }
         stats.checked++;
+        /** @type {TrendInfo | null} */
         let p = null;
         try { p = await lookup(offer.productId, offer.name); } catch (e) {
           console.warn("[CMC] lookup failed", offer.name, e);
@@ -264,7 +265,8 @@
   if (!root.CMC_NO_AUTORUN) {
     run();
     // Cardmarket loads filter/sort results and pages without a full reload at times.
-    let timer = null;
+    /** @type {ReturnType<typeof setTimeout> | undefined} */
+    let timer;
     new MutationObserver(() => {
       if (running) return;
       clearTimeout(timer);
