@@ -144,3 +144,30 @@ test("overview has no 'hover a card name' hint (owner's wish), but the tooltips 
   assert.doesNotMatch(text(w.document.querySelector(".cmc-overview")), /hover/i);
   assert.ok(w.document.querySelector("#articleRow3 a").title.startsWith("Price read:"));
 });
+
+// ---------------------------------------------------------------------------
+// Trend link
+// ---------------------------------------------------------------------------
+
+// Scryfall's Cardmarket link (Products?idProduct=…&referrer=scryfall) got the owner's IP
+// rate-limited by Cardmarket's Cloudflare after one click, so we link to a normal search.
+const SCRYFALL_LINK = "https://www.cardmarket.com/en/Magic/Products?idProduct=16708&referrer=scryfall&utm_source=scryfall";
+
+test("trend link is a Cardmarket search for the card, not Scryfall's idProduct link", async () => {
+  const fetch = fakeScryfall({
+    byName: { "Low Deal": "x" },
+    prints: { x: [{ ...print(2, "S"), purchase_uris: { cardmarket: SCRYFALL_LINK } }] },
+  });
+  const w = loadPage(fixture("offers-list.html"), OFFER_SCRIPTS, fetch);
+  await w.CMC.runOffers();
+  const hrefs = [...w.document.querySelectorAll(".cmc-link")].map((a) => a.getAttribute("href"));
+  assert.deepEqual(hrefs, ["https://www.cardmarket.com/en/Magic/Products/Search?searchString=Low%20Deal"]);
+});
+
+test("trend link: front face only for double-faced cards, and the page's site language", async () => {
+  const name = "Delver of Secrets // Insectile Aberration";
+  const fetch = fakeScryfall({ byName: { [name]: "d" }, prints: { d: [print(2, "S")] } });
+  const w = loadPage("<body></body>", OFFER_SCRIPTS, fetch, { url: "https://www.cardmarket.com/de/Magic/Users/x/Offers/Singles" });
+  const p = await w.CMC.lookup(null, name);
+  assert.equal(p.url, "https://www.cardmarket.com/de/Magic/Products/Search?searchString=Delver%20of%20Secrets");
+});
