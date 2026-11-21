@@ -53,3 +53,20 @@ test("running twice doesn't duplicate annotations", async () => {
   assert.equal(w.document.querySelectorAll(".cmc-panel").length, 3);
   assert.equal(w.document.querySelectorAll(".cmc-overview").length, 1);
 });
+
+test("cart: trend link is a Cardmarket search, not Scryfall's idProduct link", async () => {
+  const fetch = fakeScryfall({
+    byProductId: { 100: "Lightning Bolt", 200: "Counterspell", 300: "Sol Ring" },
+    prints: {
+      "Lightning Bolt": [{ ...print(1.8, "M10"), purchase_uris: { cardmarket: "https://www.cardmarket.com/en/Magic/Products?idProduct=1&referrer=scryfall" } }],
+      Counterspell: [print(0.9, "Masters 25")],
+      "Sol Ring": [print(2.1, "Commander")],
+    },
+  });
+  const w = loadPage(fixture("cart.html"), CART_SCRIPTS, fetch);
+  await w.CMC.run();
+  const hrefs = [...w.document.querySelectorAll(".cmc-link")].map((a) => a.getAttribute("href"));
+  assert.ok(hrefs.length > 0);
+  assert.ok(hrefs.every((h) => h.startsWith("https://www.cardmarket.com/en/Magic/Products/Search?searchString=")), hrefs.join("\n"));
+  assert.ok(hrefs.includes("https://www.cardmarket.com/en/Magic/Products/Search?searchString=Lightning%20Bolt"));
+});

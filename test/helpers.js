@@ -47,10 +47,10 @@ function fakeBrowser(initial = {}) {
 /**
  * Load a page and inject extension scripts, like Firefox does.
  * Without `opts.browser`, `browser` is not defined, so storage falls back to defaults /
- * in-memory (no cache between tests).
+ * in-memory (no cache between tests). `opts.url` sets the page address (default: an /en/ page).
  */
 function loadPage(html, scripts, fetchImpl, opts = {}) {
-  const dom = new JSDOM(html, { runScripts: "outside-only", url: "https://www.cardmarket.com/en/Magic/" });
+  const dom = new JSDOM(html, { runScripts: "outside-only", url: opts.url || "https://www.cardmarket.com/en/Magic/" });
   const w = dom.window;
   w.fetch = fetchImpl;
   if (opts.browser) w.browser = opts.browser;

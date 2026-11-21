@@ -10,7 +10,7 @@ Checks your cart one seller at a time:
 
 What you'll see on `cardmarket.com/<lang>/Magic/ShoppingCart`:
 - A green ✅ / red ❌ / yellow ⚠️ panel above each seller's summary, showing cards, shipping, total, summed trend and how much you save or overpay.
-- Under each card: the cheapest English trend price and which set it is from (links to that printing on Cardmarket). The price cell gets a green bar if that copy is at or below the trend, red if above.
+- Under each card: the cheapest English trend price and which set it is from. The set name links to a Cardmarket search for the card, where you can pick that printing. It isn't a direct link to the printing: Scryfall's direct link got an IP address rate-limited by Cardmarket (Cloudflare "Error 1015"). The price cell gets a green bar if that copy is at or below the trend, red if above.
 - A small overview box in the bottom-right corner listing all sellers, with a **Refresh prices** button.
 
 It re-checks automatically when you remove items or sellers.
@@ -72,5 +72,6 @@ Cardmarket doesn't publish a trend price per language. The trend for a printing 
 
 ## Troubleshooting
 - **Nothing appears:** Cardmarket may have changed its page structure. The selectors are in `extension/src/parse.js` (cart) and `extension/src/offers.js` (seller pages). Open the browser console (F12) and look for `[CMC]` messages.
+- **Cardmarket shows "Error 1015 / You are being rate limited":** Cardmarket's Cloudflare protection has blocked your IP address for sending too many requests. The add-on itself never sends requests to Cardmarket (only to Scryfall). Wait, or restart your router to get a new IP address, and click through pages less quickly.
 - **⚠️ Couldn't read seller total:** the `.summary` box has a different layout. Save the page (Ctrl+S, "Web Page, HTML only") so the parser can be fixed against it; see `test/fixtures/README.md`.
 - Only cards are priced. Sealed products in the cart show "No English trend price found" and make that seller "incomplete".

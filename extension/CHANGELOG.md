@@ -7,6 +7,7 @@
 - Seller pages: new switch at the top of the overview box, **My ranges** / **Any under trend**. "Any under trend" flags every card that's cheaper than its trend, including cards under €1, and ignores your ranges. The choice is remembered.
 - Seller pages: the overview box no longer shows the "hover a card name" hint. The tooltips on card names still work.
 - New "What's new" page (link at the bottom of the settings page) that lists the changes in each version.
+- The set name next to a trend price now opens a Cardmarket search for the card, in your site language. The old direct link could get you blocked by Cardmarket ("Error 1015, you are being rate limited").
 
 ## 1.2.1 - 2026-11-21
 - Signed by Mozilla and installable in regular Firefox from the GitHub releases page, with automatic updates.

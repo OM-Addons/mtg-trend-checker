@@ -64,6 +64,7 @@ interface TrendInfo {
   foilOnly: boolean;
   set: string;
   setCode: string;
+  /** Cardmarket search for the card (built by `lookup`, not cached). */
   url: string;
   printings: number;
 }

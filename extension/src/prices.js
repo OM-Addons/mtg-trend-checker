@@ -86,7 +86,7 @@
     return v;
   }
 
-  /** @param {string} oracleId @returns {Promise<TrendInfo | null>} */
+  /** @param {string} oracleId @returns {Promise<Omit<TrendInfo, "url"> | null>} */
   async function cheapestEnglishTrend(oracleId) {
     const key = `cmc:oracle:${oracleId}`;
     const cached = await cacheGet(key);
@@ -102,7 +102,7 @@
       url = data.has_more ? data.next_page : null;
     }
 
-    /** @type {Omit<TrendInfo, "printings"> | null} */
+    /** @type {Omit<TrendInfo, "printings" | "url"> | null} */
     let best = null;
     for (const p of prints) {
       const prices = p.prices || {};
@@ -117,7 +117,6 @@
           foilOnly: !Number.isFinite(eur),
           set: p.set_name,
           setCode: (p.set || "").toUpperCase(),
-          url: (p.purchase_uris && p.purchase_uris.cardmarket) || p.scryfall_uri,
         };
       }
     }
@@ -126,13 +125,29 @@
     return v;
   }
 
+  /**
+   * Link for the set name next to the trend: a normal Cardmarket search for the card.
+   * Not Scryfall's purchase link (Products?idProduct=…&referrer=scryfall): one click on
+   * that got the owner's IP rate-limited by Cardmarket's Cloudflare (error 1015).
+   * Uses the site language of the current page (/en/, /de/, …) and only the front face
+   * of double-faced cards ("A // B"), which finds the card under either naming.
+   * @param {string} name Scryfall card name
+   */
+  function cardmarketSearchUrl(name) {
+    const m = ((root.location && root.location.pathname) || "").match(/^\/([a-z]{2})\//);
+    const lang = m ? m[1] : "en";
+    const front = String(name).split(" // ")[0];
+    return `https://www.cardmarket.com/${lang}/Magic/Products/Search?searchString=${encodeURIComponent(front)}`;
+  }
+
   /** Main entry: Cardmarket product id -> cheapest English printing trend. */
   /** @param {string | null} productId @param {string} fallbackName @returns {Promise<TrendInfo | null>} */
   async function lookup(productId, fallbackName) {
     const card = await cardForProduct(productId, fallbackName);
     if (!card || !card.oracleId) return null;
     const best = await cheapestEnglishTrend(card.oracleId);
-    return best ? Object.assign({ name: card.name }, best) : null;
+    // The link is built here, not cached, so prices cached before this change get the new link too.
+    return best ? Object.assign({ name: card.name }, best, { url: cardmarketSearchUrl(card.name) }) : null;
   }
 
   root.CMC = Object.assign(root.CMC || {}, { lookup, clearCache });
