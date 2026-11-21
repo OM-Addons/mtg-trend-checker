@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "Cardmarket MTG Trend Checker",
-  "version": "1.2.1",
+  "version": "1.3.0",
   "description": "Compares Cardmarket MTG prices with the trend price of the cheapest English printing: checks your cart per seller and flags under-trend offers on seller pages.",
   "browser_specific_settings": {
     "gecko": {
