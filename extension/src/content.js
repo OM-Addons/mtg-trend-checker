@@ -171,7 +171,8 @@
     return Array.from(document.querySelectorAll(".shipment-block [data-product-id]"))
       .map((r) => r.getAttribute("data-product-id")).join(",");
   }
-  let timer = null;
+  /** @type {ReturnType<typeof setTimeout> | undefined} */
+  let timer;
   const observer = new MutationObserver(() => {
     if (running) return;
     clearTimeout(timer);

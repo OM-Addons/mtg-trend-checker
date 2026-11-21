@@ -102,6 +102,7 @@
       url = data.has_more ? data.next_page : null;
     }
 
+    /** @type {Omit<TrendInfo, "printings"> | null} */
     let best = null;
     for (const p of prints) {
       const prices = p.prices || {};

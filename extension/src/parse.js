@@ -83,6 +83,7 @@
       }
 
       const summary = block.querySelector(".summary");
+      /** @type {number | null} */
       let total = null;
       if (summary) {
         const totalEl = summary.querySelector(".total.strong") || summary.querySelector(".total");
