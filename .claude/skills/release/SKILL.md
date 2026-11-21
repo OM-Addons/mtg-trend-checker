@@ -45,7 +45,7 @@ Create `updates.json` in the repo root:
 ```
 
 ### A5. CI workflow: `.github/workflows/ci.yml`
-On every push and pull request: checkout, `actions/setup-node` (Node 22, npm cache), `npm ci`, `npm run check`. Commit `package-lock.json` (it's required for `npm ci`).
+Already added (runs on pull requests and pushes to `main`); just check it's still there and green. It does: checkout, `actions/setup-node` (Node 22, npm cache), `npm ci`, `npm run check`. Commit `package-lock.json` (it's required for `npm ci`).
 
 ### A6. Release workflow: `.github/workflows/release.yml`
 Trigger: push of a tag matching `v*`. Permissions: `contents: write`. Steps:
