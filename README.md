@@ -30,7 +30,7 @@ These price ranges can be changed in the settings (see below). Offers below the 
 
 **Any under trend:** sometimes you just want to see every card that's cheaper than its trend. The overview box on a seller page has a switch at the top: **My ranges** / **Any under trend**. In "Any under trend" mode every offer is checked, including cheap ones, and anything strictly below trend is flagged. The English-only filter still applies. The choice is remembered for other pages and sellers until you switch back.
 
-- Deals are marked with a green row and a 🔥 note. The note shows how much cheaper it is, in euros and percent, e.g. "🔥 € 1,02 (14%) under trend € 7,21". Every other checked card shows the cheapest English trend price (no percentage).
+- Deals are marked with a green row and a 🔥 note. The note shows how much cheaper it is, in euros and percent, e.g. "🔥 14% (€ 1,02) under trend € 7,21". Every other checked card shows the cheapest English trend price (no percentage).
 - An overview box (bottom-right) lists the deals on the page with the price, the trend and the savings, e.g. "Adrix and Nev, Twincasters: € 4,49 vs € 5,71 (€ 1,22 - 21%)".
 - Only the page you're viewing is checked, so with a 20-per-page shop you check page by page. Sort by price descending to see the expensive cards first.
 - By default only English offers are checked, and non-English offers aren't looked up at all. If an offer's language can't be read from the flag icon, it is checked anyway.

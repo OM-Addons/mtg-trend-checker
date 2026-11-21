@@ -342,7 +342,7 @@ test("discounts under 1% show as <1%, not 0%", async () => {
   const w = loadPage(fixture("offers-list.html"), OFFER_SCRIPTS, fetch, { browser });
   await w.CMC.runOffers();
   const note = [...w.document.querySelectorAll(".cmc-deal-note")].map(text);
-  assert.deepEqual(note, ["🔥 € 0,01 (<1%) under trend € 1,51 (S)"]);
+  assert.deepEqual(note, ["🔥 <1% (€ 0,01) under trend € 1,51 (S)"]);
 });
 
 test("settings page: mode radios load, save, and change the ignored text", async () => {

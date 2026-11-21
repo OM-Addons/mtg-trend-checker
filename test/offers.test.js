@@ -58,8 +58,8 @@ test("list layout: deals are flagged, others show just the trend price", async (
   assert.deepEqual(flagged, ["Low Deal", "Mid Deal", "High Deal", "Boundary Five (V.2)"]);
 
   const notes = [...w.document.querySelectorAll(".cmc-note")].map(text);
-  // Deal: savings in euros, then the percentage in brackets (Low Deal: €1,50 vs €2,00).
-  assert.ok(notes.includes("🔥 € 0,50 (25%) under trend € 2,00 (S)"));
+  // Deal: percentage, then the savings in euros in brackets (Low Deal: €1,50 vs €2,00).
+  assert.ok(notes.includes("🔥 25% (€ 0,50) under trend € 2,00 (S)"));
   // Non-deals, including above trend: price only, no percentage
   assert.ok(notes.includes("Trend € 2,20 (S)"));
   assert.ok(notes.includes("Trend € 2,50 (S)"), "above-trend card still shows its trend");

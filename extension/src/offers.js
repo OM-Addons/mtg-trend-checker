@@ -147,7 +147,7 @@
     if (j.deal) {
       offer.el.classList.add("cmc-deal-row");
       note.classList.add("cmc-deal-note");
-      note.append(`🔥 ${fmt(savings(offer.price, p.trend))} (${pctText(j.discount)}%) under trend ${fmt(p.trend)} `);
+      note.append(`🔥 ${pctText(j.discount)}% (${fmt(savings(offer.price, p.trend))}) under trend ${fmt(p.trend)} `);
     } else {
       note.append(`Trend ${fmt(p.trend)} `);
     }
