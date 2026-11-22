@@ -127,6 +127,30 @@
     return `Overall: ${verdictText(r)}, ${diffWords(r.diff)} ${fmt(Math.abs(r.diff))}`;
   }
 
+  /**
+   * Cardmarket stacks the seller blocks with Masonry: it measures them once and gives each
+   * column a fixed absolute position. Our rows and notes make blocks taller afterwards, so
+   * without a new layout they slide under the block below. After every change (added or
+   * removed) we ask the page's own Masonry to lay out again; Firefox lets content scripts
+   * reach page objects through `wrappedJSObject`. If that isn't possible, the fallback class
+   * turns the absolute positioning off (plain rows: some white space, but no overlap), and
+   * only while our additions are on the page.
+   */
+  function relayout() {
+    const first = document.querySelector(".detailed-result-card");
+    const grid = first && first.closest("[data-masonry]");
+    if (!grid) return;
+    grid.classList.remove("cmc-unmasonry");
+    try {
+      const page = /** @type {any} */ (window).wrappedJSObject;
+      const instance = page && page.Masonry && typeof page.Masonry.data === "function" ? page.Masonry.data(grid) : null;
+      if (instance && typeof instance.layout === "function") { instance.layout(); return; }
+    } catch (e) {
+      console.warn("[CMC] Masonry layout failed", e);
+    }
+    if (grid.querySelector(`[data-cmc]`)) grid.classList.add("cmc-unmasonry");
+  }
+
   let running = false;
   let again = false; // set while running: stop the current check and start over
 
@@ -172,6 +196,7 @@
     } finally {
       running = false;
       if (again) { again = false; run(); }
+      else relayout(); // blocks changed height (rows added, or removed when turned off)
     }
   }
 

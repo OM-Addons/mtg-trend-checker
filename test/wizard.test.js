@@ -154,6 +154,36 @@ test("wizard page: the checkboxes don't change the verdict (whole result, like C
   assert.deepEqual(addedRows(blocks(w)[2].querySelector("dl")), ["Σ trend (cheapest EN) € 15,00", "✅ Worth it: you save € 0,40"]);
 });
 
+// Cardmarket positions the seller blocks with Masonry (absolute positions, measured once), so
+// after our rows are added or removed the page's Masonry must lay them out again.
+function fakeMasonry(w) {
+  const grid = w.document.querySelector("[data-masonry]");
+  const calls = [];
+  w.wrappedJSObject = { Masonry: { data: (el) => (el === grid ? { layout: () => calls.push("layout") } : undefined) } };
+  return { grid, calls };
+}
+
+test("wizard page: Cardmarket's Masonry lays the blocks out again after rows are added and removed", async () => {
+  const { w, browser } = wizardPage(TRENDS);
+  const { grid, calls } = fakeMasonry(w);
+  await w.CMC.runWizard();
+  assert.equal(calls.length, 1, "after the rows were added");
+  assert.ok(!grid.classList.contains("cmc-unmasonry"), "no fallback needed");
+  browser.storage.local.data.settings = { enabled: false };
+  await w.CMC.runWizard();
+  assert.equal(calls.length, 2, "after they were removed (turned off)");
+});
+
+test("wizard page: without reachable Masonry, absolute positioning is switched off while rows are shown", async () => {
+  const { w, browser } = wizardPage(TRENDS);
+  const grid = w.document.querySelector("[data-masonry]");
+  await w.CMC.runWizard();
+  assert.ok(grid.classList.contains("cmc-unmasonry"));
+  browser.storage.local.data.settings = { enabled: false };
+  await w.CMC.runWizard();
+  assert.ok(!grid.classList.contains("cmc-unmasonry"), "off: Cardmarket's layout is left alone");
+});
+
 test("wizard page while off: nothing is parsed or looked up", async () => {
   const { w, fetch } = wizardPage(TRENDS, { enabled: false });
   await w.CMC.runWizard();
