@@ -4,7 +4,7 @@
  * the printing on offer: settings.trendSource). */
 (function (root) {
   "use strict";
-  const { parseEuro, allEuros, cleanName, isFoil, lookup, clearCache, trendSetText, exclusionOf, getSettings, saveSettings, requiredDiscount, ignoredBelow, offButton, renderOffBox, toggleRow, trendSourceSwitch } = root.CMC;
+  const { parseEuro, allEuros, cleanName, isFoil, lookup, clearCache, trendSetText, exclusionOf, getSettings, saveSettings, requiredDiscount, ignoredBelow, offButton, renderOffBox, settingsButton, toggleRow, trendSourceSwitch } = root.CMC;
 
   const MARK = "data-cmc";
   /** @param {number | null | undefined} n */
@@ -208,9 +208,7 @@
     }
     const refresh = el("button", "cmc-btn cmc-refresh", "Refresh prices");
     refresh.onclick = async () => { await clearCache(); run(); };
-    const opts = el("button", "cmc-btn cmc-refresh", "Settings");
-    opts.onclick = () => browser.runtime.sendMessage({ type: "openOptions" });
-    box.append(refresh, " ", opts);
+    box.append(refresh, " ", settingsButton());
     document.body.appendChild(box);
   }
 

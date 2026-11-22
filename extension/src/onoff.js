@@ -1,5 +1,6 @@
 // @ts-check
-/* Switches in the overview box, shared by the cart and seller pages.
+/* Switches in the overview box, shared by every page that has one (cart, wizard, seller pages).
+ * Every overview box has a "Settings" button (settingsButton), also on future pages (owner's wish).
  * On/off: "Off" is saved in the settings (enabled: false), so it sticks on every Cardmarket
  * page: the page then shows only a small "On" button and makes no price lookups.
  * Trend source: "Cheapest EN | This printing", also saved (settings.trendSource). */
@@ -30,6 +31,20 @@
   /** While off: the minimized box, which is only an "On" button. @param {() => unknown} after */
   function renderOffBox(after) {
     document.body.appendChild(powerButton("cmc-off-box", "⏻ On", "MTG Trend Checker is off. Click to turn it on.", true, after));
+  }
+
+  /**
+   * "Settings" button for the bottom of every overview box. Content scripts can't open the
+   * settings page themselves, so it asks background.js to.
+   */
+  function settingsButton() {
+    const b = document.createElement("button");
+    b.setAttribute("data-cmc", "1");
+    b.className = "cmc-btn cmc-refresh cmc-settings";
+    b.textContent = "Settings";
+    b.title = "Open the MTG Trend Checker settings";
+    b.onclick = () => browser.runtime.sendMessage({ type: "openOptions" });
+    return b;
   }
 
   /**
@@ -80,5 +95,5 @@
     return row;
   }
 
-  root.CMC = Object.assign(root.CMC, { setEnabled, offButton, renderOffBox, toggleRow, trendSourceSwitch });
+  root.CMC = Object.assign(root.CMC, { setEnabled, offButton, renderOffBox, settingsButton, toggleRow, trendSourceSwitch });
 })(typeof globalThis !== "undefined" ? globalThis : window);

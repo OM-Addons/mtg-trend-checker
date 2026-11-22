@@ -27,7 +27,7 @@ Checks your cart one seller at a time:
 What you'll see on `cardmarket.com/<lang>/Magic/ShoppingCart`:
 - A green ✅ / red ❌ / yellow ⚠️ panel above each seller's summary, showing cards, shipping, total, summed trend and how much you save or overpay.
 - Under each card: the trend price and which set it is from (", foil" when it is a foil trend). The set name links to a Cardmarket search for the card, where you can pick that printing. It isn't a direct link to the printing: Scryfall's direct link got an IP address rate-limited by Cardmarket (Cloudflare "Error 1015").
-- A small overview box in the bottom-right corner listing all sellers, each marked ✅ / ❌ / ⚠️ (not only by colour), with a **Refresh prices** button.
+- A small overview box in the bottom-right corner listing all sellers, each marked ✅ / ❌ / ⚠️ (not only by colour), with **Refresh prices** and **Settings** buttons.
 
 It re-checks automatically when you remove items or sellers.
 
@@ -62,7 +62,7 @@ These price ranges can be changed in the settings (see below). Offers below the 
 
 **Turning it off:** the **⏻ Off** button at the top of the overview box (cart, wizard and seller pages) turns the add-on off on every Cardmarket page: no notes, no price lookups, just a small **⏻ On** button in the corner. Click it to turn the add-on back on. The × button only hides the box on the current page.
 
-**Settings:** `about:addons` → *Cardmarket MTG Trend Checker* → **Preferences**, or the **Settings** button in the overview box. You can change what to compare with, which printings "Cheapest EN" skips, the English-only filter and the price ranges. For the ranges you can edit, add (up to 10) and remove them. Each range has a start price and a percentage, and runs until the next range starts. The settings page shows each range and which offers are ignored. Set the first range to start at €0 to check every offer. Changes apply immediately to open seller pages. The **What's new** link at the bottom of the settings page describes the features and lists the changes in each new version.
+**Settings:** `about:addons` → *Cardmarket MTG Trend Checker* → **Preferences**, or the **Settings** button in the overview box (cart, shopping wizard and seller pages). You can change what to compare with, which printings "Cheapest EN" skips, the English-only filter and the price ranges. For the ranges you can edit, add (up to 10) and remove them. Each range has a start price and a percentage, and runs until the next range starts. The settings page shows each range and which offers are ignored. Set the first range to start at €0 to check every offer. Changes apply immediately to open seller pages. The **What's new** link at the bottom of the settings page describes the features and lists the changes in each new version.
 
 ## Install
 
