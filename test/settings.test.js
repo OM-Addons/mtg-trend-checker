@@ -228,6 +228,11 @@ test("settings page: has no Save button, shows the version and says changes save
   assert.match(text(d.body), /Changes are saved automatically/);
 });
 
+test("settings page: Seller pages comes first, Trend price below it (owner's wish)", async () => {
+  const { d } = await optionsPage();
+  assert.deepEqual([...d.querySelectorAll("section.card h2")].map(text), ["Seller pages", "Trend price"]);
+});
+
 test("settings page: every change saves itself, ranges are sorted when you leave the field", async () => {
   const { d, rows, commit, settle, stored } = await optionsPage();
   await commit(d.querySelectorAll(".from")[0], "8");

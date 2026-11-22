@@ -67,6 +67,30 @@
   </header>
 
   <section class="card">
+    <h2>Seller pages</h2>
+    <h3>Deals</h3>
+    <div class="choices">
+      <label><input type="radio" name="dealMode" value="ranges"> <span>My price ranges <span class="hint">below</span></span></label>
+      <label><input type="radio" name="dealMode" value="anyUnder"> <span>Any card under trend <span class="hint">checks every offer, ignores the ranges</span></span></label>
+    </div>
+    <p class="hint">Also switchable in the overview box on a seller page.</p>
+
+    <h3>Price ranges</h3>
+    <p class="hint">A deal is an offer at least this much under trend.
+      <span class="info" tabindex="0" title="Each range starts at its price and runs until the next range starts. The trend is the one chosen under &quot;Compare with&quot; below.">i</span></p>
+    <table>
+      <thead><tr><th>From</th><th>Deal at</th><th>Range</th><th></th></tr></thead>
+      <tbody id="brackets"></tbody>
+    </table>
+    <p id="error" role="alert"></p>
+    <p><button id="add" type="button">+ Add range</button></p>
+    <p class="hint" id="ignored"></p>
+
+    <h3>Languages</h3>
+    <label><input type="checkbox" id="englishOnly"> Only check English offers</label>
+  </section>
+
+  <section class="card">
     <h2>Trend price</h2>
     <h3>Compare with</h3>
     <div class="choices">
@@ -85,30 +109,6 @@
     <div id="chips"></div>
     <p class="hint" id="setStatus"></p>
     <div id="setList"></div>
-  </section>
-
-  <section class="card">
-    <h2>Seller pages</h2>
-    <h3>Deals</h3>
-    <div class="choices">
-      <label><input type="radio" name="dealMode" value="ranges"> <span>My price ranges <span class="hint">below</span></span></label>
-      <label><input type="radio" name="dealMode" value="anyUnder"> <span>Any card under trend <span class="hint">checks every offer, ignores the ranges</span></span></label>
-    </div>
-    <p class="hint">Also switchable in the overview box on a seller page.</p>
-
-    <h3>Price ranges</h3>
-    <p class="hint">A deal is an offer at least this much under trend.
-      <span class="info" tabindex="0" title="Each range starts at its price and runs until the next range starts. The trend is the one chosen under &quot;Compare with&quot;.">i</span></p>
-    <table>
-      <thead><tr><th>From</th><th>Deal at</th><th>Range</th><th></th></tr></thead>
-      <tbody id="brackets"></tbody>
-    </table>
-    <p id="error" role="alert"></p>
-    <p><button id="add" type="button">+ Add range</button></p>
-    <p class="hint" id="ignored"></p>
-
-    <h3>Languages</h3>
-    <label><input type="checkbox" id="englishOnly"> Only check English offers</label>
   </section>
 
   <footer>
