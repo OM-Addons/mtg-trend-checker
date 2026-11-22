@@ -31,6 +31,7 @@ Firefox extension that compares Magic: The Gathering prices on cardmarket.com wi
 - `englishOnly` setting (default on): non-English offers are skipped **without API calls**. Unknown language → checked anyway.
 - **On/off** (`settings.enabled`, default on): the ⏻ Off button in the overview box (cart and seller pages) is saved, so it applies to every page. While off: **no parsing, no API calls, no notes**, only a minimized ⏻ On button (bottom-right). Turning off mid-check stops the remaining lookups. The settings page keeps the stored value when saving.
 - Overview box (bottom-right) always appears, including diagnostics ("No card offers recognised", "couldn't be priced" list).
+- **Minimize** (`settings.minimized`, default off): the **–** button in every overview box header (`minimizeButton()`/`addMiniBar()` in `onoff.js`; it replaced the old × "hide on this page") shrinks the box to one line "Title · summary" (seller: `🔥 N deals` / `No deals`; cart and wizard: `✅ n · ❌ n · ⚠️ n`; `Checking…` while looking up). A click (or Enter) on the line restores it. Saved for every page and followed live in other tabs without a re-check; only the look changes (checks, notes and lookups go on). The settings page keeps the stored value.
 - **Every overview box has a Settings button** (owner's wish), on the cart, wizard and seller pages and on any page that gets a box later: use `settingsButton()` from `onoff.js` (next to "Refresh prices") and add the page to the Settings-button test in `test/onoff.test.js`.
 - No desktop notifications (removed in 1.4 at the owner's request; the add-on no longer has the permission).
 
@@ -49,7 +50,7 @@ extension/            ← exactly what Firefox loads (no build step)
   src/offers.js       seller pages: parse rows, judge, render, re-run on DOM changes
   src/background.js   opens the settings page
   src/styles.css      all injected styles (classes prefixed `cmc-`)
-  options/            settings page (links to "What's new")
+  options/            settings page: auto-saves every change (invalid ranges are not saved), links to "What's new"
   changelog/          "What's new" page: renders ../CHANGELOG.md (tiny Markdown subset, no library)
   CHANGELOG.md        the changelog: shipped, shown in the add-on, and the source of release notes
 types/globals.d.ts    shared types for the checker (not shipped)
@@ -116,7 +117,5 @@ Use the `release` skill (`.claude/skills/release/SKILL.md`). It covers the one-t
 ## Ideas discussed, not built yet
 
 - **Scan all pages of a seller**: a "Scan all pages" button; fetch the seller's other pages with the current filters/sort, ~1 page per 1.5–2 s, one sorted deal list with links and progress. Cardmarket may cap results (possibly 300); suggest the user set a min-price filter of €1. Not automatic, and no scanning many sellers in a row.
-- **Minimize the overview box**: a button that shrinks the box to something small, and a way to restore it to full size. Details (what the small state shows, whether it's remembered, which pages) still to be worked out with the owner.
-- **Settings page look and feel**: make the settings page look and feel better. Scope still to be worked out with the owner.
 - Chrome support (MV3 + browser polyfill) only if a friend asks.
 - Firefox for Android: left out for now (owner's decision). Self-hosted installs there need the hidden "Install extension from file" menu, auto-updates are unconfirmed, and the mobile Cardmarket layout is untested.

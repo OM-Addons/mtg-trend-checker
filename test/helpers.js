@@ -21,20 +21,27 @@ function fixture(name) {
  */
 function fakeBrowser(initial = {}) {
   const data = { ...initial };
+  const listeners = [];
   const local = {
     data,
     async get(key) {
       if (key == null) return { ...data };
       return key in data ? { [key]: data[key] } : {};
     },
-    async set(obj) { Object.assign(data, JSON.parse(JSON.stringify(obj))); },
+    async set(obj) {
+      const copy = JSON.parse(JSON.stringify(obj));
+      const changes = Object.fromEntries(Object.entries(copy).map(([k, v]) => [k, { oldValue: data[k], newValue: v }]));
+      Object.assign(data, copy);
+      for (const l of listeners) l(changes, "local");
+    },
     async remove(keys) { for (const k of [].concat(keys)) delete data[k]; },
   };
   const messages = [];
   const opened = [];
   const manifest = JSON.parse(fs.readFileSync(path.join(SRC, "..", "manifest.json"), "utf8"));
   return {
-    storage: { local, onChanged: { addListener() {} } },
+    // onChanged: like Firefox, every set() tells the listeners (old and new value per key).
+    storage: { local, onChanged: { listeners, addListener(l) { listeners.push(l); } } },
     runtime: {
       messages,
       async sendMessage(m) { messages.push(m); },

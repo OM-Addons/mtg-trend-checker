@@ -7,7 +7,7 @@
 (function (root) {
   "use strict";
   const {
-    parseEuro, allEuros, cleanName, isFoil, getSettings, migrate, exclusionOf, renderOffBox, fmtEuro: fmt,
+    parseEuro, allEuros, cleanName, isFoil, getSettings, migrate, exclusionOf, renderOffBox, trackMinimized, fmtEuro: fmt,
     cmcEl: el, removeMarks, priceKey, evaluate, lookupArticles, annotateArticle, verdictKind, verdictText, renderOverviewBox,
   } = root.CMC;
 
@@ -168,6 +168,7 @@
       again = false;
       // Turned off: nothing is parsed or looked up, only the "On" button is shown.
       const settings = await getSettings();
+      trackMinimized(settings);
       if (!settings.enabled) { renderOffBox(restart); return; }
       const source = settings.trendSource;
       const wizard = parseWizard(document);

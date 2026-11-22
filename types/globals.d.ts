@@ -159,6 +159,8 @@ interface Settings {
   englishOnly: boolean;
   /** False after the Off button in the overview box: no checks on any page until turned on. */
   enabled: boolean;
+  /** True after the "–" button in the overview box: every page shows the box as one line until restored. */
+  minimized: boolean;
   /** SET_CATEGORIES ids whose printings "Cheapest English printing" skips. */
   excludedCategories: string[];
   /** Lowercase Scryfall set codes whose printings "Cheapest English printing" skips. */
@@ -201,6 +203,9 @@ interface CMCNamespace {
   renderOffBox(after: () => unknown): void;
   toggleRow<T extends string>(choices: [T, string, string][], current: T, pick: (value: T) => unknown): HTMLElement;
   trendSourceSwitch(current: TrendSource, after: () => unknown): HTMLElement;
+  trackMinimized(settings: Pick<Settings, "minimized">): void;
+  minimizeButton(): HTMLButtonElement;
+  addMiniBar(box: HTMLElement, title: string, summary: string, cls?: string | null): void;
   // verdict.js (cart and wizard pages)
   cmcEl(tag: string, cls?: string | null, text?: string | null): HTMLElement;
   removeMarks(): void;

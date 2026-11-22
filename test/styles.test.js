@@ -25,3 +25,8 @@ test(".cmc-unmasonry fallback turns Masonry's absolute positions off", () => {
 test(".cmc-btn sets its own text colour (readable with a dark Firefox theme)", () => {
   assert.match(rule(".cmc-btn"), /(^|;|\s)color\s*:/);
 });
+
+test("minimized overview box: only the one-line bar shows, and the bar only while minimized", () => {
+  assert.match(rule(".cmc-overview.cmc-minimized > :not(.cmc-mini)"), /display\s*:\s*none/);
+  assert.match(rule(".cmc-overview:not(.cmc-minimized) > .cmc-mini"), /display\s*:\s*none/);
+});

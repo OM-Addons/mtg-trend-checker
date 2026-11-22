@@ -45,6 +45,15 @@
 .cmc-mode-btn { padding: 2px 8px; }
 .cmc-mode-btn[aria-pressed="true"] { background: #1e8e3e; border-color: #1e8e3e; color: #fff; font-weight: 700; }
 
+/* Minimized overview box: only the one-line bar is visible (and the bar only then). */
+.cmc-overview.cmc-minimized { width: auto; max-width: 300px; padding: 4px 6px 4px 10px; overflow: hidden; }
+.cmc-overview.cmc-minimized > :not(.cmc-mini) { display: none !important; }
+.cmc-overview:not(.cmc-minimized) > .cmc-mini { display: none; }
+.cmc-mini { display: flex; align-items: center; gap: 4px; cursor: pointer; white-space: nowrap; }
+.cmc-mini-title { font-weight: 700; overflow: hidden; text-overflow: ellipsis; }
+.cmc-restore { margin-left: 6px; }
+.cmc-minimize { min-width: 22px; }
+
 /* Seller offer pages */
 .cmc-deal-row { background: #e9f6ec !important; box-shadow: inset 5px 0 0 #1e8e3e; }
 .cmc-deal-note { color: #1e7a36; font-weight: 700; }

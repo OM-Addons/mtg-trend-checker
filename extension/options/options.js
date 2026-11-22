@@ -1,5 +1,7 @@
 // @ts-check
-/* Settings page: reads/writes the Settings object via settings.js. */
+/* Settings page: reads/writes the Settings object via settings.js.
+ * Every change is saved right away (no Save button). Price ranges are checked first: while
+ * they're invalid they are marked red and the stored ranges stay, but other changes still save. */
 (async function () {
   "use strict";
   const {
@@ -35,7 +37,7 @@
     pct.value = String(b.pct);
     const remove = el("button", { class: "remove", title: "Remove this range" });
     remove.textContent = "✕";
-    remove.onclick = () => { tr.remove(); refresh(); };
+    remove.onclick = () => { tr.remove(); refresh(); autoSave(); };
 
     const tdFrom = el("td"); tdFrom.append("€ ", from);
     const tdPct = el("td"); tdPct.append(pct, " %");
@@ -97,7 +99,7 @@
   const setList = /** @type {HTMLElement} */ (document.getElementById("setList"));
   /** @type {{code: string, name: string}[]} all paper sets, newest first (empty until loaded) */
   let allSets = [];
-  /** @type {Set<string>} ticked set codes (saved on Save) */
+  /** @type {Set<string>} ticked set codes */
   const picked = new Set();
   /** @type {string} shown under the search box while the list is loading or failed */
   let setsProblem = "Loading the set list…";
@@ -148,7 +150,7 @@
     for (const code of picked) {
       const b = el("button", { type: "button", "aria-label": `Stop skipping ${setLabel(code)}` });
       b.textContent = `${setLabel(code)} ✕`;
-      b.onclick = () => { picked.delete(code); renderChips(); renderList(); };
+      b.onclick = () => { picked.delete(code); renderChips(); renderList(); autoSave(); };
       chips.append(b);
     }
   }
@@ -194,21 +196,68 @@
     refresh();
   }
 
-  /** @param {string} text */
+  /** Short "Saved ✓" toast in the corner. @param {string} text */
+  let flashTimer = 0;
   function flash(text) {
-    $("error").textContent = "";
     $("saved").textContent = text;
-    setTimeout(() => ($("saved").textContent = ""), 2500);
+    clearTimeout(flashTimer);
+    flashTimer = /** @type {any} */ (setTimeout(() => ($("saved").textContent = ""), 2500));
   }
 
   /** @param {string} text */
-  function showError(text) {
-    $("saved").textContent = "";
-    $("error").textContent = text;
+  function showError(text) { $("error").textContent = text; }
+
+  /** Puts the table rows in price order (as they're applied), keeping focus where it was. */
+  function sortRows() {
+    const trs = [...tbody.rows];
+    const from = (/** @type {HTMLTableRowElement} */ tr) => parseFloat(/** @type {HTMLInputElement} */ (tr.querySelector(".from")).value);
+    const sorted = [...trs].sort((a, b) => from(a) - from(b));
+    if (sorted.every((tr, i) => tr === trs[i])) return;
+    const focused = document.activeElement;
+    sorted.forEach((tr) => tbody.append(tr));
+    if (focused instanceof HTMLElement && tbody.contains(focused)) focused.focus();
+    refresh();
+  }
+
+  /**
+   * Reads the page and saves it. Invalid ranges: marked red, the stored ranges are kept.
+   * `enabled` and `minimized` are switched in the overview box: the stored values are kept.
+   */
+  async function save() {
+    tbody.querySelectorAll(".invalid").forEach((e) => e.classList.remove("invalid"));
+    const rows = readRows();
+    const err = validateBrackets(rows);
+    if (err) {
+      showError(`${err.message} Your ranges aren't saved until this is fixed.`);
+      if (err.field) /** @type {HTMLInputElement} */ (tbody.rows[err.index].querySelector(`.${err.field}`)).classList.add("invalid");
+    } else showError("");
+    const before = await getSettings();
+    /** @type {Settings} */
+    const s = {
+      brackets: err ? before.brackets : normalizeBrackets(rows), dealMode: readMode(), trendSource: readSource(),
+      englishOnly: $("englishOnly").checked, enabled: before.enabled, minimized: before.minimized,
+      excludedCategories: categoryBoxes().filter((b) => b.checked).map((b) => b.dataset.category || ""),
+      excludedSets: normalizeSetCodes([...picked]),
+    };
+    if (JSON.stringify(s) === JSON.stringify(before)) return;
+    await saveSettings(s);
+    if (!err) sortRows();
+    // Other skipped printings = other trends: open pages fetch their cards again.
+    const changed = JSON.stringify(exclusionOf(before)) !== JSON.stringify(exclusionOf(s));
+    flash(changed ? "Saved ✓ Prices will be fetched again." : "Saved ✓");
+  }
+
+  /** Saves one change after the other (so two quick clicks can't overwrite each other). */
+  let queue = Promise.resolve();
+  function autoSave() {
+    queue = queue.then(save).catch((e) => { console.warn("[CMC] save failed", e); showError("Couldn't save. Please try again."); });
+    return queue;
   }
 
   tbody.addEventListener("input", refresh);
   document.querySelectorAll("input[name=dealMode]").forEach((r) => r.addEventListener("change", refresh));
+  // Radios, checkboxes, ticked sets and finished range fields (change fires when you leave the field).
+  document.addEventListener("change", (e) => { if (e.target !== $("setSearch")) autoSave(); });
 
   addButton.onclick = () => {
     // New range above the current highest one, with the same percentage as that one.
@@ -217,40 +266,16 @@
     addRow({ from: Math.round((last.from + Math.max(5, last.from)) * 100) / 100, pct: last.pct });
     refresh();
     /** @type {HTMLInputElement} */ (tbody.rows[tbody.rows.length - 1].querySelector(".from")).focus();
-  };
-
-  $("save").onclick = async () => {
-    tbody.querySelectorAll(".invalid").forEach((e) => e.classList.remove("invalid"));
-    const rows = readRows();
-    const err = validateBrackets(rows);
-    if (err) {
-      showError(err.message);
-      if (err.field) {
-        const input = /** @type {HTMLInputElement} */ (tbody.rows[err.index].querySelector(`.${err.field}`));
-        input.classList.add("invalid");
-        input.focus();
-      }
-      return;
-    }
-    const before = await getSettings();
-    /** @type {Settings} */
-    const s = {
-      brackets: normalizeBrackets(rows), dealMode: readMode(), trendSource: readSource(), englishOnly: $("englishOnly").checked,
-      // enabled is switched in the overview box on Cardmarket pages; keep what is stored.
-      enabled: before.enabled,
-      excludedCategories: categoryBoxes().filter((b) => b.checked).map((b) => b.dataset.category || ""),
-      excludedSets: normalizeSetCodes([...picked]),
-    };
-    await saveSettings(s);
-    fill(s); // shows the ranges sorted, as they are applied
-    // Other skipped printings = other trends: open pages fetch their cards again.
-    const changed = JSON.stringify(exclusionOf(before)) !== JSON.stringify(exclusionOf(s));
-    flash(changed ? "Saved ✓ Prices will be fetched again." : "Saved ✓");
+    autoSave();
   };
 
   $("reset").onclick = async () => {
-    await saveSettings(defaults());
-    fill(defaults());
+    if (!window.confirm("Reset all settings to their defaults?")) return;
+    const before = await getSettings();
+    const s = { ...defaults(), enabled: before.enabled, minimized: before.minimized };
+    await saveSettings(s);
+    fill(s);
+    showError("");
     flash("Defaults restored ✓");
   };
 
@@ -261,6 +286,11 @@
     e.preventDefault();
     browser.tabs.create({ url: browser.runtime.getURL("changelog/changelog.html") });
   };
+
+  // Version in the header (from the manifest, so it never gets out of date).
+  if (typeof browser !== "undefined" && browser.runtime && browser.runtime.getManifest) {
+    $("version").textContent = browser.runtime.getManifest().version;
+  }
 
   fill(await getSettings());
   loadSets()
