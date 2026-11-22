@@ -20,7 +20,7 @@
   }
 
   /** Classes this script (and the wizard page) put on Cardmarket's own elements. */
-  const ADDED_CLASSES = ["cmc-row-good", "cmc-row-bad", "cmc-block-good", "cmc-block-bad", "cmc-block-unknown", "cmc-unmasonry"];
+  const ADDED_CLASSES = ["cmc-block-good", "cmc-block-bad", "cmc-block-unknown", "cmc-unmasonry"];
 
   /** Removes everything a previous run added. */
   function removeMarks() {
@@ -87,8 +87,8 @@
   }
 
   /**
-   * Note under a card (its trend and set, linking to a Cardmarket search) and the green/red
-   * bar on its price: green when that copy is at or below trend.
+   * Note under a card: its trend and set, linking to a Cardmarket search. (There used to be a
+   * green/red bar on the price as well; removed at the owner's request, as it was colour only.)
    * @param {CartArticle} a @param {TrendInfo | undefined} p @param {TrendSource} source @param {Element} cell where the note goes
    */
   function annotateArticle(a, p, source, cell) {
@@ -104,7 +104,6 @@
       link.target = "_blank";
       link.rel = "noopener";
       note.append(link);
-      if (a.unitPrice != null) a.el.classList.add(a.unitPrice <= p.trend ? "cmc-row-good" : "cmc-row-bad");
     }
     cell.appendChild(note);
   }

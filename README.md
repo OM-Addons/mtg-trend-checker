@@ -18,7 +18,7 @@ Checks your cart one seller at a time:
 
 What you'll see on `cardmarket.com/<lang>/Magic/ShoppingCart`:
 - A green ✅ / red ❌ / yellow ⚠️ panel above each seller's summary, showing cards, shipping, total, summed trend and how much you save or overpay.
-- Under each card: the trend price and which set it is from (", foil" when it is a foil trend). The set name links to a Cardmarket search for the card, where you can pick that printing. It isn't a direct link to the printing: Scryfall's direct link got an IP address rate-limited by Cardmarket (Cloudflare "Error 1015"). The price cell gets a green bar if that copy is at or below the trend, red if above.
+- Under each card: the trend price and which set it is from (", foil" when it is a foil trend). The set name links to a Cardmarket search for the card, where you can pick that printing. It isn't a direct link to the printing: Scryfall's direct link got an IP address rate-limited by Cardmarket (Cloudflare "Error 1015").
 - A small overview box in the bottom-right corner listing all sellers, each marked ✅ / ❌ / ⚠️ (not only by colour), with a **Refresh prices** button.
 
 It re-checks automatically when you remove items or sellers.
@@ -28,7 +28,7 @@ It re-checks automatically when you remove items or sellers.
 The same check on the results of Cardmarket's shopping wizard (`cardmarket.com/<lang>/Magic/Wants/ShoppingWizard/Results/…`):
 - **Each seller block** gets two extra rows in its list under Total: the summed trend, and ✅ *Worth it: you save €x* / ❌ *Not worth it: over by €x* / ⚠️ *Incomplete*. The block also gets a green, red or yellow edge. The rule is the cart's: the seller's Total (incl. shipping) must be lower than the summed trend.
 - **Results Summary** gets the same two rows for the whole result: Cardmarket's grand Total against the summed trend of all cards.
-- Each card shows its trend and set, with a green or red bar on its price, as in the cart.
+- Each card shows its trend and set, as in the cart.
 - The overview box shows the overall verdict, how many sellers are worth it, and the list of sellers (click one to jump to it).
 - The verdicts always cover the whole result, like Cardmarket's own Total. Unticking cards doesn't change them. Once you add cards to your cart, the cart check covers what you actually picked.
 

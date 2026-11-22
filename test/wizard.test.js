@@ -86,12 +86,12 @@ test("wizard page: per seller verdict in Cardmarket's list, strictly lower, inco
   assert.ok(dl.lastElementChild.classList.contains("selected-articles-value"));
 });
 
-test("wizard page: each card gets the cart's note and price bar", async () => {
+test("wizard page: each card gets the cart's note, and no coloured price bar (removed: colour only)", async () => {
   const { w } = wizardPage(TRENDS);
   await w.CMC.runWizard();
   const rows = [...blocks(w)[2].querySelectorAll("table tbody tr")];
   assert.deepEqual(rows.map((r) => text(r.querySelector(".cmc-note"))), ["Cheapest EN trend: € 5,00 (Set 786368)", "Cheapest EN trend: € 10,00 (Set 759962)"]);
-  assert.ok(rows.every((r) => r.classList.contains("cmc-row-good")));
+  assert.equal(w.document.querySelectorAll("[class*='cmc-row-']").length, 0);
   assert.match(text(blocks(w)[4]), /No English trend price found/);
 });
 

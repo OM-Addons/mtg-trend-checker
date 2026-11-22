@@ -11,7 +11,7 @@ Firefox extension that compares Magic: The Gathering prices on cardmarket.com wi
 **Cart page** (`/Magic/ShoppingCart`), per seller:
 - Worth it ⇔ seller total incl. shipping and fees **<** Σ (quantity × trend). Strictly lower: equal is *not* worth it.
 - If a card has no trend, the seller is "incomplete" (yellow), never green.
-- Per card: note with the trend and its set; thin green/red bar on the price cell.
+- Per card: note with the trend and its set. No coloured bar on the price (removed at the owner's request: colour-only signals are unreadable for colour-blind users; don't add colour-only cues, pair colour with ✅/❌/⚠️ or text).
 
 **Shopping wizard results** (`/Magic/Wants/ShoppingWizard/Results/…`): the cart's rule per seller block (Cardmarket's block Total incl. shipping **<** Σ quantity × trend; missing trend → incomplete) **and overall** (Results Summary grand Total vs Σ of all cards). Shown as two extra rows in Cardmarket's own `<dl>` lists (Σ trend + verdict), a coloured edge on each block, the cart's per-card notes, and the overview box (overall line, counts, seller list, switches). The card checkboxes are **ignored** (owner's decision: whole result, like Cardmarket's Total). Price column is read as per copy unless "Articles Value" says it's per line (only quantity 1 seen so far). Cardmarket stacks the blocks with **Masonry** (absolute positions measured once at load), so after adding or removing rows `relayout()` calls the page's `Masonry.data(grid).layout()` via `wrappedJSObject` (Firefox); if that fails, `cmc-unmasonry` turns the absolute positioning off. Without this the blocks overlap.
 

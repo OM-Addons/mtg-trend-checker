@@ -43,6 +43,13 @@ test("real cart: verdict per seller", async () => {
   assert.ok(panels[1].classList.contains("cmc-bad"), text(panels[1]));
 });
 
+test("real cart: no coloured price bars on the cards (removed at the owner's request: colour only)", async () => {
+  const { w } = realCart();
+  await w.CMC.run();
+  assert.equal(w.document.querySelectorAll(".cmc-note").length, 2, "the notes are still there");
+  assert.equal(w.document.querySelectorAll("[class*='cmc-row-']").length, 0);
+});
+
 test("real cart: the overview doesn't rely on colour alone (symbols for colour-blind users)", async () => {
   const { w } = realCart();
   await w.CMC.run();
