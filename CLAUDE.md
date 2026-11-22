@@ -4,7 +4,9 @@ Firefox extension that compares Magic: The Gathering prices on cardmarket.com wi
 
 ## What it does (business rules: don't change without asking)
 
-**Trend price used everywhere:** for a card, take all **English, paper** printings on Scryfall and use the **lowest** `prices.eur` (Scryfall's copy of Cardmarket's price trend). If a printing only has `eur_foil`, that counts for that printing. Cardmarket has no per-language trend: "English" means *only printings that exist in English*, not an English-only trend.
+**Trend price used everywhere** (`settings.trendSource`, cart and seller pages, toggled with the `Cheapest EN | This printing` row in the overview box, saved; also on the settings page):
+- `"cheapestEnglish"` (default): for a card, take all **English, paper** printings on Scryfall and use the **lowest** `prices.eur` (Scryfall's copy of Cardmarket's price trend). If a printing only has `eur_foil`, that counts for that printing. Cardmarket has no per-language trend: "English" means *only printings that exist in English*, not an English-only trend.
+- `"printing"`: the trend of the exact printing (`/cards/cardmarket/{productId}`): `eur`, or `eur_foil` for **foil offers** (Cardmarket's icon with tooltip "Foil", `isFoil` in `parse.js`) and foil-only printings. **No fallback** (owner's decision): no product ID, or no trend for that finish → no trend ("couldn't be priced" / cart seller incomplete). Without a product ID no API call is made. In the cart, foil and non-foil copies of one product are priced separately (`priceKey`).
 
 **Cart page** (`/Magic/ShoppingCart`), per seller:
 - Worth it ⇔ seller total incl. shipping and fees **<** Σ (quantity × trend). Strictly lower: equal is *not* worth it.
@@ -36,7 +38,7 @@ extension/            ← exactly what Firefox loads (no build step)
   src/parse.js        money/name parsing + cart page parser
   src/prices.js       Scryfall lookups, request queue, 24h cache
   src/settings.js     defaults, storage, price brackets (requiredDiscount)
-  src/onoff.js        on/off switch for the overview box (cart and seller pages)
+  src/onoff.js        overview-box switches shared by cart and seller pages: on/off, trend source (toggleRow)
   src/content.js      cart page: evaluate + render
   src/offers.js       seller pages: parse rows, judge, render, re-run on DOM changes
   src/background.js   opens the settings page

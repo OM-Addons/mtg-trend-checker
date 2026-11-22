@@ -62,7 +62,8 @@ function loadPage(html, scripts, fetchImpl, opts = {}) {
 /**
  * Fake Scryfall API.
  * @param {object} data
- * @param {Record<string, string>} [data.byProductId] Cardmarket product id -> oracle id
+ * @param {Record<string, string | object>} [data.byProductId] Cardmarket product id -> oracle id, or a
+ *   whole printing ({oracle_id, name?, set_name, set, prices, finishes}, see `printing()`)
  * @param {Record<string, string>} [data.byName]      card name -> oracle id (for /cards/named)
  * @param {Record<string, object[]>} data.prints      oracle id -> list of printings ({set_name, set, prices})
  * Returns a fetch function; every requested URL is recorded in `fetch.calls`.
@@ -76,7 +77,7 @@ function fakeScryfall({ byProductId = {}, byName = {}, prints }) {
     let m;
     if ((m = u.pathname.match(/^\/cards\/cardmarket\/(\d+)$/))) {
       const o = byProductId[m[1]];
-      body = o ? { name: o, oracle_id: o } : null;
+      body = !o ? null : typeof o === "string" ? { name: o, oracle_id: o } : { name: o.oracle_id, ...o };
     } else if (u.pathname === "/cards/named") {
       const n = u.searchParams.get("exact") || u.searchParams.get("fuzzy");
       const o = byName[n];
@@ -96,7 +97,17 @@ function fakeScryfall({ byProductId = {}, byName = {}, prints }) {
 /** A printing with a non-foil trend price. */
 const print = (eur, set = "Set") => ({ set_name: set, set: set.toLowerCase(), prices: { eur: eur == null ? null : String(eur) } });
 
+/**
+ * A printing as /cards/cardmarket/{id} returns it, for "this printing" mode.
+ * @param {string} oracle @param {number | null} eur @param {number | null} eurFoil @param {string} [set]
+ * @param {string[]} [finishes] Scryfall finishes (default both)
+ */
+const printing = (oracle, eur, eurFoil, set = "Set", finishes = ["nonfoil", "foil"]) => ({
+  oracle_id: oracle, set_name: set, set: set.toLowerCase(), finishes,
+  prices: { eur: eur == null ? null : String(eur), eur_foil: eurFoil == null ? null : String(eurFoil) },
+});
+
 /** Normalise text for assertions (collapses whitespace incl. the non-breaking space in "€ 1,00"). */
 const text = (el) => el.textContent.replace(/\s+/g, " ").trim();
 
-module.exports = { fixture, loadPage, fakeBrowser, fakeScryfall, print, text, CART_SCRIPTS, OFFER_SCRIPTS };
+module.exports = { fixture, loadPage, fakeBrowser, fakeScryfall, print, printing, text, CART_SCRIPTS, OFFER_SCRIPTS };

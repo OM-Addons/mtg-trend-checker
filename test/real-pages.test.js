@@ -27,8 +27,8 @@ test("real cart: each card counted once (desktop and mobile copies)", () => {
   assert.deepEqual(
     plain(shipments.map((s) => ({ seller: s.seller, total: s.total, articles: s.articles.map(({ el, ...a }) => a) }))),
     [
-      { seller: "Seller1", total: 6.24, articles: [{ productId: "891958", name: "Daughter of the Deep", unitPrice: 2.5, qty: 1 }] },
-      { seller: "Seller2", total: 8.55, articles: [{ productId: "753334", name: "Bennie Bracks, Zoologist", unitPrice: 6, qty: 1 }] },
+      { seller: "Seller1", total: 6.24, articles: [{ productId: "891958", name: "Daughter of the Deep", unitPrice: 2.5, qty: 1, foil: false }] },
+      { seller: "Seller2", total: 8.55, articles: [{ productId: "753334", name: "Bennie Bracks, Zoologist", unitPrice: 6, qty: 1, foil: false }] },
     ]
   );
 });

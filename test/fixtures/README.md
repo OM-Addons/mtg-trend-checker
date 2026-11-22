@@ -6,6 +6,8 @@ These HTML files stand in for Cardmarket pages in the tests.
 |---|---|---|---|
 | `real-cart.html` | `/Magic/ShoppingCart`, 2 sellers | **real** (saved 2026-11-21, anonymised) | `real-pages.test.js` |
 | `real-offers-list.html` | Seller offers (`.article-row` divs, the only layout), 20 offers | **real** (saved 2026-11-21, anonymised) | `real-pages.test.js` |
+| `real-cart-foil.html` | `/Magic/ShoppingCart`, 2 sellers, foil and non-foil copies of one card | **real** (saved 2026-11-22, anonymised) | `trend-source.test.js` |
+| `real-offers-foil.html` | Seller offers, 20 offers, 8 foil | **real** (saved 2026-11-22, anonymised) | `trend-source.test.js` |
 | `cart.html` | `/Magic/ShoppingCart` with 3 sellers | hand-made | `cart.test.js` |
 | `offers-list.html` | Seller offers, edge cases | hand-made | `offers.test.js` |
 | `offers-table.html` | Seller offers as `<tr>` rows: robustness test, not a real Cardmarket layout | hand-made | `offers.test.js` |

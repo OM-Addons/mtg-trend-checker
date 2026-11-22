@@ -45,6 +45,20 @@
       .trim();
   }
 
+  /**
+   * Is this cart row / offer row a foil? Cardmarket marks foils with a star icon whose
+   * tooltip is "Foil" (title="Foil"; Bootstrap moves that to data-bs-original-title once
+   * the tooltip is set up, so both are checked).
+   * @param {Element} row @returns {boolean}
+   */
+  function isFoil(row) {
+    const attrs = ["title", "data-bs-original-title", "data-original-title", "aria-label"];
+    for (const node of row.querySelectorAll(attrs.map((a) => `[${a}]`).join(", "))) {
+      if (attrs.some((a) => String(node.getAttribute(a) || "").trim().toLowerCase() === "foil")) return true;
+    }
+    return false;
+  }
+
   /** @param {Element} el */
   function isVisible(el) {
     // offsetParent is null for display:none elements (and always null in jsdom).
@@ -53,7 +67,7 @@
 
   /**
    * Parse the cart into shipments:
-   * [{ el, seller, total, articles: [{ el, productId, name, unitPrice, qty }] }]
+   * [{ el, seller, total, articles: [{ el, productId, name, unitPrice, qty, foil }] }]
    */
   /** @param {Document} doc @returns {Shipment[]} */
   function parseCart(doc) {
@@ -86,6 +100,7 @@
           name: cleanName(nameCell ? nameCell.textContent : ""),
           unitPrice: priceCell ? parseEuro(priceCell.textContent) : null,
           qty: qtyMatch ? parseInt(qtyMatch[0], 10) : 1,
+          foil: isFoil(row),
         });
       }
 
@@ -112,5 +127,5 @@
     });
   }
 
-  root.CMC = Object.assign(root.CMC || {}, { parseEuro, allEuros, cleanName, parseCart });
+  root.CMC = Object.assign(root.CMC || {}, { parseEuro, allEuros, cleanName, isFoil, parseCart });
 })(typeof globalThis !== "undefined" ? globalThis : window);
