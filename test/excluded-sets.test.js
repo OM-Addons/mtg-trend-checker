@@ -69,11 +69,11 @@ function boltPage(opts = {}) {
 }
 const ex = (types, sets = []) => ({ types, sets });
 
-test("lookup: skipped printings don't count for the cheapest, only cheaper skipped ones are counted", async () => {
+test("lookup: skipped printings don't count for the cheapest, only cheaper filtered ones are counted", async () => {
   const { w } = boltPage();
   const p = await w.CMC.lookup("1", "Lightning Bolt", { exclude: ex(["memorabilia", "promo"], ["sld"]) });
   assert.deepEqual([p.trend, p.set, p.skipped, !!p.excludedFallback], [2, "Magic 2010", 2, false]);
-  assert.equal(w.CMC.trendSetText(p), "Magic 2010, 2 cheaper skipped");
+  assert.equal(w.CMC.trendSetText(p), "Magic 2010, 2 cheaper filtered");
 });
 
 test("lookup: without anything skipped the result is as before (no skipped note)", async () => {
@@ -138,7 +138,7 @@ test("cart: the note says how many cheaper printings were skipped", async () => 
   const w = loadPage(fixture("cart.html"), CART_SCRIPTS, fetch, { browser });
   await w.CMC.run();
   const notes = [...w.document.querySelectorAll(".cmc-note")].map(text);
-  assert.match(notes[0], /Cheapest EN trend: € 1,80 \(M10, 1 cheaper skipped\)/);
+  assert.match(notes[0], /Cheapest EN trend: € 1,80 \(M10, 1 cheaper filtered\)/);
   assert.match(notes[1], /€ 0,90 \(Masters 25\)$/, "nothing skipped: plain note");
 });
 
@@ -152,10 +152,10 @@ test("seller page: default settings skip Memorabilia, in the note and the name t
   const w = loadPage(fixture("offers-list.html"), OFFER_SCRIPTS, fetch, { browser });
   await w.CMC.runOffers();
   const notes = [...w.document.querySelectorAll(".cmc-note")].map(text).join(" | ");
-  assert.match(notes, /€ 4,00 \(M10, 1 cheaper skipped\)/);
+  assert.match(notes, /€ 4,00 \(M10, 1 cheaper filtered\)/);
   assert.match(notes, /€ 10,00 \(Collectors' Edition, excluded set\)/);
   const mid = [...w.document.querySelectorAll("a")].find((a) => a.textContent.trim() === "Mid Deal");
-  assert.match(mid.title, /cheapest EN trend: €\s4,00 \(M10, 1 cheaper skipped\)/);
+  assert.match(mid.title, /cheapest EN trend: €\s4,00 \(M10, 1 cheaper filtered\)/);
 });
 
 test("seller page: skipping sets keeps 'no API calls under €1 and for other languages'", async () => {

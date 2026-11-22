@@ -191,14 +191,14 @@
   }
 
   /**
-   * The set part of a note, e.g. "M10", "M10, foil", "M10, 2 cheaper skipped" or
+   * The set part of a note, e.g. "M10", "M10, foil", "M10, 2 cheaper filtered" or
    * "WC97, excluded set" (every printing was in a skipped set).
    * @param {Pick<TrendInfo, "set" | "foilOnly" | "skipped" | "excludedFallback">} p
    */
   function trendSetText(p) {
     let t = p.set + (p.foilOnly ? ", foil" : "");
     if (p.excludedFallback) t += ", excluded set";
-    else if (p.skipped) t += `, ${p.skipped} cheaper skipped`;
+    else if (p.skipped) t += `, ${p.skipped} cheaper filtered`;
     return t;
   }
 

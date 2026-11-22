@@ -16,7 +16,7 @@ Some printings have a trend that says little about what a normal copy costs. The
 - **Categories:** Memorabilia (gold-bordered World Championship decks, Collectors' Edition, 30th Anniversary Edition, art series), Un-sets and playtest cards, Promos, Secret Lair, The List. **Memorabilia is skipped by default.**
 - **Single sets:** type part of a set's name or code, then tick it. Ticked sets appear as tags, and clicking a tag (✕) stops skipping that set. The set list comes from Scryfall and is loaded once a day, only on the settings page.
 
-If a skipped printing was cheaper than the one used, the note says so, e.g. "Trend € 2,00 (M10, 1 cheaper skipped)". If *every* printing of a card is skipped, its cheapest one is used anyway and the note says "(…, excluded set)". **This printing** isn't affected. After you change the selection, open pages look their cards up again.
+If a skipped printing was cheaper than the one used, the note says so, e.g. "Trend € 2,00 (M10, 1 cheaper filtered)". If *every* printing of a card is skipped, its cheapest one is used anyway and the note says "(…, excluded set)". **This printing** isn't affected. After you change the selection, open pages look their cards up again.
 
 ## Shopping cart
 
