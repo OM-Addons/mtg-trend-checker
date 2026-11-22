@@ -109,6 +109,12 @@
     cell.appendChild(note);
   }
 
+  /**
+   * Symbol per verdict, shown next to the colour: green/red alone is unreadable for
+   * colour-blind users (owner's request). Same symbols as in verdictText().
+   */
+  const SYMBOL = { good: "✅", bad: "❌", unknown: "⚠️" };
+
   /** "good" | "bad" | "unknown" for CSS classes. @param {ShipmentResult} r */
   const verdictKind = (r) => (r.worth === true ? "good" : r.worth === false ? "bad" : "unknown");
 
@@ -151,10 +157,11 @@
       const good = results.filter((x) => x.r.worth === true);
       const bad = results.filter((x) => x.r.worth === false);
       const unk = results.length - good.length - bad.length;
-      box.appendChild(cmcEl("div", null, `${good.length} worth it · ${bad.length} not · ${unk} unknown`));
+      box.appendChild(cmcEl("div", null, `${SYMBOL.good} ${good.length} worth it · ${SYMBOL.bad} ${bad.length} not · ${SYMBOL.unknown} ${unk} unknown`));
       const list = cmcEl("ul", "cmc-list");
       for (const { s, r } of results) {
-        const li = cmcEl("li", textClass(verdictKind(r)), `${s.seller}: ${fmt(r.total)} vs ${fmt(r.trendSum)}`);
+        const kind = verdictKind(r);
+        const li = cmcEl("li", textClass(kind), `${SYMBOL[kind]} ${s.seller}: ${fmt(r.total)} vs ${fmt(r.trendSum)}`);
         li.style.cursor = "pointer";
         li.onclick = () => s.el.scrollIntoView({ behavior: "smooth", block: "start" });
         list.appendChild(li);

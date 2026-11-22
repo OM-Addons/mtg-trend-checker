@@ -104,8 +104,8 @@ test("wizard page: overall verdict in the Results Summary and the overview box",
   const box = text(w.document.querySelector(".cmc-overview"));
   assert.match(box, /MTG wizard check/);
   assert.match(box, /Overall: ✅ Worth it, you save € 7,58/);
-  assert.match(box, /\d+ worth it · \d+ not · 0 unknown/);
-  assert.match(box, /Seller3: € 14,60 vs € 14,40/);
+  assert.match(box, /✅ \d+ worth it · ❌ \d+ not · ⚠️ 0 unknown/);
+  assert.match(box, /❌ Seller3: € 14,60 vs € 14,40/);
 });
 
 test("wizard page: one card without a trend makes the whole result incomplete", async () => {
@@ -113,7 +113,7 @@ test("wizard page: one card without a trend makes the whole result incomplete", 
   await w.CMC.runWizard();
   assert.deepEqual(addedRows(w.document.querySelector("#ShoppingWizardResult dl")).slice(1), ["⚠️ Incomplete: no price for 1 card(s)"]);
   assert.match(text(w.document.querySelector(".cmc-overview")), /Overall: ⚠️ Incomplete: no price for 1 card\(s\)/);
-  assert.match(text(w.document.querySelector(".cmc-overview")), /1 worth it · 13 not · 1 unknown/);
+  assert.match(text(w.document.querySelector(".cmc-overview")), /✅ 1 worth it · ❌ 13 not · ⚠️ 1 unknown/);
 });
 
 test("wizard page, this printing: a foil is compared with its foil trend", async () => {
