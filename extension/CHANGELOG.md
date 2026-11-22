@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+- **Settings button on the cart and shopping wizard pages:** the overview box there now has a **Settings** button too, like on seller pages.
 - **Skip printings for "Cheapest EN":** in the settings you can now leave out printings whose trend says little about a normal copy: categories (Memorabilia, Un-sets, Promos, Secret Lair, The List) and single sets you search for and tick. **Memorabilia (gold-bordered World Championship decks, Collectors' Edition, 30th Anniversary…) is skipped by default, so some trends may go up a little after this update.** If a cheaper printing was skipped, the note says e.g. "(M10, 1 cheaper filtered)".
 - Old saved prices are now cleaned up once a day, so the add-on's storage doesn't keep growing.
 - **Easier to read for colour-blind users:** the seller list in the overview box (cart and shopping wizard) now shows ✅ / ❌ / ⚠️ in front of each seller, not just green and red.

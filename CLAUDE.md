@@ -31,6 +31,7 @@ Firefox extension that compares Magic: The Gathering prices on cardmarket.com wi
 - `englishOnly` setting (default on): non-English offers are skipped **without API calls**. Unknown language → checked anyway.
 - **On/off** (`settings.enabled`, default on): the ⏻ Off button in the overview box (cart and seller pages) is saved, so it applies to every page. While off: **no parsing, no API calls, no notes**, only a minimized ⏻ On button (bottom-right). Turning off mid-check stops the remaining lookups. The settings page keeps the stored value when saving.
 - Overview box (bottom-right) always appears, including diagnostics ("No card offers recognised", "couldn't be priced" list).
+- **Every overview box has a Settings button** (owner's wish), on the cart, wizard and seller pages and on any page that gets a box later: use `settingsButton()` from `onoff.js` (next to "Refresh prices") and add the page to the Settings-button test in `test/onoff.test.js`.
 - No desktop notifications (removed in 1.4 at the owner's request; the add-on no longer has the permission).
 
 ## Layout
@@ -41,7 +42,7 @@ extension/            ← exactly what Firefox loads (no build step)
   src/parse.js        money/name parsing + cart page parser
   src/prices.js       Scryfall lookups, request queue, 24h cache
   src/settings.js     defaults, storage, price brackets (requiredDiscount)
-  src/onoff.js        overview-box switches shared by cart and seller pages: on/off, trend source (toggleRow)
+  src/onoff.js        overview-box controls shared by every page with a box: on/off, Settings button, trend source (toggleRow)
   src/verdict.js      "worth it" shared by cart and wizard: evaluate, lookups, card notes, overview box
   src/content.js      cart page: verdict panels
   src/wizard.js       shopping wizard results: parse blocks + summary, add verdict rows

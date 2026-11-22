@@ -194,9 +194,10 @@ interface CMCNamespace {
   ignoredBelow(s: Settings): number;
   rangeLabel(from: number, allFroms: number[]): string;
   fmtEuro(n: number | null | undefined): string;
-  // onoff.js (cart and seller pages)
+  // onoff.js (every page with an overview box)
   setEnabled(enabled: boolean): Promise<void>;
   offButton(after: () => unknown): HTMLButtonElement;
+  settingsButton(): HTMLButtonElement;
   renderOffBox(after: () => unknown): void;
   toggleRow<T extends string>(choices: [T, string, string][], current: T, pick: (value: T) => unknown): HTMLElement;
   trendSourceSwitch(current: TrendSource, after: () => unknown): HTMLElement;

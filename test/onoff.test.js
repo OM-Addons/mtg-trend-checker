@@ -120,3 +120,28 @@ test("test script lists mirror the manifest's content scripts", () => {
   const lists = manifest.content_scripts.map((c) => c.js.map((f) => f.replace(/^src\//, "")));
   assert.deepEqual(lists, [CART_SCRIPTS, OFFER_SCRIPTS, WIZARD_SCRIPTS]);
 });
+
+// Every overview box has a Settings button (owner's wish, also for pages added later).
+for (const [page, open] of [
+  ["seller page", async () => { const p = sellerPage(); await p.w.CMC.runOffers(); return p; }],
+  ["cart", async () => { const p = cartPage(); await p.w.CMC.run(); return p; }],
+  ["wizard", async () => {
+    // Every card priced (one shared printing), so the check doesn't walk all the fallbacks.
+    const parsed = loadPage(fixture("real-wizard.html"), WIZARD_SCRIPTS, null);
+    const ids = parsed.CMC.parseWizard(parsed.document).shipments
+      .flatMap((s) => s.articles.map((a) => a.productId));
+    const fetch = fakeScryfall({ byProductId: Object.fromEntries(ids.map((id) => [id, "x"])), prints: { x: [print(1, "S")] } });
+    const browser = fakeBrowser();
+    const w = loadPage(fixture("real-wizard.html"), WIZARD_SCRIPTS, fetch, { browser });
+    await w.CMC.runWizard();
+    return { w, browser };
+  }],
+]) {
+  test(`${page}: the overview box has a Settings button that opens the settings page`, async () => {
+    const { w, browser } = await open();
+    const settings = [...w.document.querySelectorAll(".cmc-overview button")].filter((b) => text(b) === "Settings");
+    assert.equal(settings.length, 1);
+    settings[0].click();
+    assert.deepEqual(JSON.parse(JSON.stringify(browser.runtime.messages)), [{ type: "openOptions" }]);
+  });
+}

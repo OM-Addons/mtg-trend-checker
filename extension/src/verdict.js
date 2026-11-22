@@ -4,7 +4,7 @@
  * the verdict texts and the overview box (bottom-right). */
 (function (root) {
   "use strict";
-  const { lookup, clearCache, trendSetText, fmtEuro: fmt, offButton, trendSourceSwitch } = root.CMC;
+  const { lookup, clearCache, trendSetText, fmtEuro: fmt, offButton, settingsButton, trendSourceSwitch } = root.CMC;
   const MARK = "data-cmc";
 
   /**
@@ -170,7 +170,7 @@
     }
     const refresh = cmcEl("button", "cmc-btn cmc-refresh", "Refresh prices");
     refresh.onclick = async () => { await clearCache(); o.run(); };
-    box.appendChild(refresh);
+    box.append(refresh, " ", settingsButton());
     document.body.appendChild(box);
   }
 
