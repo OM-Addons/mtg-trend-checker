@@ -116,5 +116,7 @@ Use the `release` skill (`.claude/skills/release/SKILL.md`). It covers the one-t
 ## Ideas discussed, not built yet
 
 - **Scan all pages of a seller**: a "Scan all pages" button; fetch the seller's other pages with the current filters/sort, ~1 page per 1.5–2 s, one sorted deal list with links and progress. Cardmarket may cap results (possibly 300); suggest the user set a min-price filter of €1. Not automatic, and no scanning many sellers in a row.
+- **Minimize the overview box**: a button that shrinks the box to something small, and a way to restore it to full size. Details (what the small state shows, whether it's remembered, which pages) still to be worked out with the owner.
+- **Settings page look and feel**: make the settings page look and feel better. Scope still to be worked out with the owner.
 - Chrome support (MV3 + browser polyfill) only if a friend asks.
 - Firefox for Android: left out for now (owner's decision). Self-hosted installs there need the hidden "Install extension from file" menu, auto-updates are unconfirmed, and the mobile Cardmarket layout is untested.
