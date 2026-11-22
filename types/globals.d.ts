@@ -83,6 +83,28 @@ interface TrendInfo {
   printings: number;
   /** Which trend this is (set by `lookup`). */
   source?: TrendSource;
+  /** Cheapest EN: printings in skipped sets that were cheaper than `trend` (0 or missing: none). */
+  skipped?: number;
+  /** Cheapest EN: every priced printing was in a skipped set, so the cheapest of them is used anyway. */
+  excludedFallback?: boolean;
+}
+
+/** Printings "Cheapest English printing" skips: Scryfall set types and lowercase set codes. */
+interface Exclusion {
+  types: string[];
+  sets: string[];
+}
+
+/** A group of printings on the settings page (Memorabilia, Promos, …). */
+interface SetCategory {
+  id: string;
+  label: string;
+  /** Short explanation shown after the label ("" for none). */
+  hint: string;
+  /** Scryfall set_type values in this group. */
+  types: string[];
+  /** Lowercase Scryfall set codes in this group. */
+  sets: string[];
 }
 
 /** What `lookup` needs to know about the offer or cart row. */
@@ -90,6 +112,8 @@ interface LookupOptions {
   source?: TrendSource;
   /** The row is a foil (only used for source "printing"). */
   foil?: boolean;
+  /** Printings to skip (only used for source "cheapestEnglish"). */
+  exclude?: Exclusion;
 }
 
 /** One printing as cached from Scryfall's /cards/cardmarket/{id}. */
@@ -135,6 +159,10 @@ interface Settings {
   englishOnly: boolean;
   /** False after the Off button in the overview box: no checks on any page until turned on. */
   enabled: boolean;
+  /** SET_CATEGORIES ids whose printings "Cheapest English printing" skips. */
+  excludedCategories: string[];
+  /** Lowercase Scryfall set codes whose printings "Cheapest English printing" skips. */
+  excludedSets: string[];
 }
 
 /** Everything the scripts put on the shared global object. */
@@ -148,10 +176,15 @@ interface CMCNamespace {
   // prices.js
   lookup(productId: string | null, fallbackName: string, opts?: LookupOptions): Promise<TrendInfo | null>;
   clearCache(): Promise<void>;
+  cleanupCache(now?: number): Promise<number>;
+  trendSetText(p: Pick<TrendInfo, "set" | "foilOnly" | "skipped" | "excludedFallback">): string;
   // settings.js
   DEFAULTS: Settings;
   MAX_BRACKETS: number;
+  SET_CATEGORIES: SetCategory[];
   defaults(): Settings;
+  exclusionOf(s: Pick<Settings, "excludedCategories" | "excludedSets">): Exclusion;
+  normalizeSetCodes(list: unknown): string[];
   getSettings(): Promise<Settings>;
   saveSettings(s: Settings): Promise<void>;
   migrate(stored: any): Settings;
@@ -172,7 +205,7 @@ interface CMCNamespace {
   removeMarks(): void;
   priceKey(article: Pick<CartArticle, "productId" | "foil"> & { name?: string }, source: TrendSource): string;
   evaluate(shipment: Pick<Shipment, "total" | "articles">, prices: Map<string, Pick<TrendInfo, "trend">>, source?: TrendSource): ShipmentResult;
-  lookupArticles(articles: CartArticle[], source: TrendSource, shouldStop: () => boolean): Promise<Map<string, TrendInfo> | null>;
+  lookupArticles(articles: CartArticle[], source: TrendSource, shouldStop: () => boolean, exclude?: Exclusion): Promise<Map<string, TrendInfo> | null>;
   annotateArticle(a: CartArticle, p: TrendInfo | undefined, source: TrendSource, cell: Element): void;
   verdictKind(r: ShipmentResult): "good" | "bad" | "unknown";
   verdictText(r: ShipmentResult, whatTotal?: string): string;

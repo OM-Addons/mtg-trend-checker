@@ -4,7 +4,7 @@
 (function (root) {
   "use strict";
   const {
-    parseCart, getSettings, migrate, renderOffBox, fmtEuro: fmt,
+    parseCart, getSettings, migrate, exclusionOf, renderOffBox, fmtEuro: fmt,
     cmcEl: el, removeMarks, priceKey, evaluate, lookupArticles, annotateArticle, verdictKind, verdictText, renderOverviewBox,
   } = root.CMC;
 
@@ -70,7 +70,7 @@
       renderOverview(source, [], "Looking up trend prices…");
 
       // Turned off (or on, or switched) mid-check: stop, finally{} starts a fresh run.
-      const prices = await lookupArticles(shipments.flatMap((s) => s.articles), source, () => again);
+      const prices = await lookupArticles(shipments.flatMap((s) => s.articles), source, () => again, exclusionOf(settings));
       if (!prices) return;
 
       removeMarks();

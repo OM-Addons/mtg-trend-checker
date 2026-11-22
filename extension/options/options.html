@@ -14,6 +14,11 @@
     .hint { color: #666; font-size: 12px; }
     #saved { color: #1e8e3e; margin-left: 8px; }
     #error { color: #d93025; margin-left: 8px; }
+    #categories label, #setList label { display: block; margin: 2px 0; }
+    #chips { display: flex; flex-wrap: wrap; gap: 4px; margin: 6px 0; }
+    #chips button { font-size: 12px; border: 1px solid #999; border-radius: 12px; padding: 1px 8px; background: none; color: inherit; cursor: pointer; }
+    #setSearch { width: 260px; }
+    #setList { max-height: 220px; overflow-y: auto; margin-top: 4px; }
   </style>
 </head>
 <body>
@@ -23,6 +28,13 @@
     <label><input type="radio" name="trendSource" value="printing"> This printing: the trend of the exact printing on offer (foil trend for foils)</label>
   </p>
   <p class="hint">Used on the cart and on seller pages. You can also switch at the top of the overview box. With "This printing", cards without a trend for that printing (or offers without a product ID) count as having no trend.</p>
+  <h2>Cheapest English printing: skip these printings</h2>
+  <p class="hint">Only used with "Cheapest English printing". If a skipped printing was cheaper, the note says so, e.g. "(M10, 1 cheaper filtered)". If every printing of a card is skipped, its cheapest one is used anyway and the note says "excluded set".</p>
+  <div id="categories"></div>
+  <p><label for="setSearch">Sets:</label> <input type="search" id="setSearch" placeholder="Search by name or code" autocomplete="off"></p>
+  <div id="chips"></div>
+  <p class="hint" id="setStatus"></p>
+  <div id="setList"></div>
   <h2>Seller offer pages: deals</h2>
   <p>
     <label><input type="radio" name="dealMode" value="ranges"> Use my price ranges (below)</label><br>

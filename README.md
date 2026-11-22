@@ -10,6 +10,14 @@ The overview box (bottom-right, on the cart, the shopping wizard results and sel
 
 Everything else (price ranges, "Any under trend", English only, no lookups for cheap or non-English offers) works the same in both modes. Below, "trend" means whichever one you picked.
 
+### Skipping printings for "Cheapest EN"
+
+Some printings have a trend that says little about what a normal copy costs. The settings page lets you leave them out of **Cheapest EN**:
+- **Categories:** Memorabilia (gold-bordered World Championship decks, Collectors' Edition, 30th Anniversary Edition, art series), Un-sets and playtest cards, Promos, Secret Lair, The List. **Memorabilia is skipped by default.**
+- **Single sets:** type part of a set's name or code, then tick it. Ticked sets appear as tags, and clicking a tag (✕) stops skipping that set. The set list comes from Scryfall and is loaded once a day, only on the settings page.
+
+If a skipped printing was cheaper than the one used, the note says so, e.g. "Trend € 2,00 (M10, 1 cheaper filtered)". If *every* printing of a card is skipped, its cheapest one is used anyway and the note says "(…, excluded set)". **This printing** isn't affected. After you change the selection, open pages look their cards up again.
+
 ## Shopping cart
 
 Checks your cart one seller at a time:
@@ -54,7 +62,7 @@ These price ranges can be changed in the settings (see below). Offers below the 
 
 **Turning it off:** the **⏻ Off** button at the top of the overview box (cart, wizard and seller pages) turns the add-on off on every Cardmarket page: no notes, no price lookups, just a small **⏻ On** button in the corner. Click it to turn the add-on back on. The × button only hides the box on the current page.
 
-**Settings:** `about:addons` → *Cardmarket MTG Trend Checker* → **Preferences**, or the **Settings** button in the overview box. You can change what to compare with, the English-only filter and the price ranges. For the ranges you can edit, add (up to 10) and remove them. Each range has a start price and a percentage, and runs until the next range starts. The settings page shows each range and which offers are ignored. Set the first range to start at €0 to check every offer. Changes apply immediately to open seller pages. The **What's new** link at the bottom of the settings page describes the features and lists the changes in each new version.
+**Settings:** `about:addons` → *Cardmarket MTG Trend Checker* → **Preferences**, or the **Settings** button in the overview box. You can change what to compare with, which printings "Cheapest EN" skips, the English-only filter and the price ranges. For the ranges you can edit, add (up to 10) and remove them. Each range has a start price and a percentage, and runs until the next range starts. The settings page shows each range and which offers are ignored. Set the first range to start at €0 to check every offer. Changes apply immediately to open seller pages. The **What's new** link at the bottom of the settings page describes the features and lists the changes in each new version.
 
 ## Install
 
@@ -82,11 +90,11 @@ Project notes for Claude Code are in `CLAUDE.md`. Release steps are in `.claude/
 ## How the price is determined
 1. Each cart row carries Cardmarket's product ID (`data-product-id`).
 2. Scryfall maps that ID to the card (`/cards/cardmarket/:id`), then lists all **English, paper** printings (`oracleid:… lang:en game:paper`).
-3. The lowest Scryfall `prices.eur` value is used. That is Cardmarket's price trend for that printing. If a printing only exists as a foil, its foil trend counts.
+3. The lowest Scryfall `prices.eur` value is used. That is Cardmarket's price trend for that printing. If a printing only exists as a foil, its foil trend counts. Printings in skipped categories (Scryfall's `set_type`, or a few set codes for Secret Lair and The List) or skipped sets are left out, unless that would leave none.
 
 With **This printing**, step 2 stops at the card Scryfall returns for the product ID: its `prices.eur` is used, or `prices.eur_foil` for foil offers and foil-only printings. The same request serves both modes, so switching doesn't cost extra lookups.
 
-Results are cached for 24 hours (Scryfall updates prices once a day). Requests are throttled to about 9 per second, as Scryfall asks. Scryfall needs no API key.
+Results are cached for 24 hours (Scryfall updates prices once a day). Once a day, before the first lookup, expired entries are deleted, so the cache doesn't keep growing. A cached cheapest printing remembers which sets were skipped, and is looked up again when that selection changes. Requests are throttled to about 9 per second, as Scryfall asks. Scryfall needs no API key.
 
 ### Caveat about "English"
 Cardmarket doesn't publish a trend price per language. The trend for a printing is calculated from sales in all languages. So "English" here means *only printings that exist in English are considered*, e.g. Japanese-only or Foreign Black Border printings are excluded. The trend value itself is still Cardmarket's all-language trend.

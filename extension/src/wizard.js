@@ -7,7 +7,7 @@
 (function (root) {
   "use strict";
   const {
-    parseEuro, allEuros, cleanName, isFoil, getSettings, migrate, renderOffBox, fmtEuro: fmt,
+    parseEuro, allEuros, cleanName, isFoil, getSettings, migrate, exclusionOf, renderOffBox, fmtEuro: fmt,
     cmcEl: el, removeMarks, priceKey, evaluate, lookupArticles, annotateArticle, verdictKind, verdictText, renderOverviewBox,
   } = root.CMC;
 
@@ -175,7 +175,7 @@
       renderOverviewBox({ title: "MTG wizard check", source, status: "Looking up trend prices…", restart, run });
 
       const all = wizard.shipments.flatMap((s) => s.articles);
-      const prices = await lookupArticles(all, source, () => again);
+      const prices = await lookupArticles(all, source, () => again, exclusionOf(settings));
       if (!prices) return;
 
       removeMarks();
