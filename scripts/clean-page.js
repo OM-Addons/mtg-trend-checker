@@ -5,11 +5,13 @@
  *
  *   node scripts/clean-page.js cart   incoming-pages/<saved>.htm test/fixtures/<name>.html
  *   node scripts/clean-page.js offers incoming-pages/<saved>.htm test/fixtures/<name>.html
+ *   node scripts/clean-page.js wizard incoming-pages/<saved>.htm test/fixtures/<name>.html
  *   options: --forbid "text1,text2"   extra strings that must not appear in the output
  *            --debug                  on failure, show where leaks are (leaked text masked)
  *
  * Allowlist approach: only the parts the parsers read are kept (the cart's
- * .shipment-block sections, or the seller page's offer table). Scripts, forms,
+ * .shipment-block sections, the seller page's offer table, or the shopping wizard's
+ * Results Summary and seller blocks). Scripts, forms,
  * inputs and tokens are removed, usernames become Seller1, Seller2, …, and
  * numeric IDs that identify the account (wants lists, shipments, sellers) are
  * dropped. Finally the output is checked against strings taken from the
@@ -35,8 +37,8 @@ if (debug) args.splice(debugIdx, 1);
 const forbidIdx = args.indexOf("--forbid");
 const extraForbidden = forbidIdx >= 0 ? (args.splice(forbidIdx, 2)[1] || "").split(",").map((s) => s.trim()).filter(Boolean) : [];
 const [kind, input, output] = args;
-if (!["cart", "offers"].includes(kind) || !input || !output) {
-  fail("usage: node scripts/clean-page.js <cart|offers> <saved page> <fixture> [--forbid \"a,b\"]");
+if (!["cart", "offers", "wizard"].includes(kind) || !input || !output) {
+  fail("usage: node scripts/clean-page.js <cart|offers|wizard> <saved page> <fixture> [--forbid \"a,b\"]");
 }
 
 const original = fs.readFileSync(input, "utf8");
@@ -54,6 +56,14 @@ const addressLines = [...doc.querySelectorAll("#ShippingAddress *")]
   .filter((t) => t.length >= 3);
 for (const t of addressLines) forbidden.add(t);
 for (const m of original.matchAll(/[0-9a-f]{40,}/g)) forbidden.add(m[0]); // __cmtkn / csrf tokens
+// Shopping wizard: the calculation id (also in the page URL) identifies the user's wants list run.
+for (const m of original.matchAll(/name="idCalculation" value="([^"]+)"|ShoppingWizard\/Results\/([\w-]+)/g)) forbidden.add(m[1] || m[2]);
+// The user's own country, from tooltips like "delivery time from Spain to <country>" and
+// "tracked shipping to <country>". Replaced by "[country]" everywhere (also where it is a seller's).
+/** @type {Set<string>} */
+const ownCountries = new Set();
+for (const m of original.matchAll(/(?:delivery time from [A-Za-z ]+? to |shipping(?:<\/strong>|&lt;\/strong&gt;)? to )([A-Z][A-Za-z ]*?[a-z])\s*[.:]/g)) ownCountries.add(m[1]);
+for (const c of ownCountries) forbidden.add(c);
 
 // Usernames from links (/Users/<name>, ?username=<name>, /Messages/<name>).
 /** @type {Map<string, string>} */
@@ -82,6 +92,12 @@ let keep;
 if (kind === "cart") {
   keep = [...doc.querySelectorAll(".shipment-block")];
   if (!keep.length) fail("no .shipment-block found: is this a cart page?");
+} else if (kind === "wizard") {
+  const summary = doc.getElementById("ShoppingWizardResult")?.closest("section");
+  const firstBlock = doc.querySelector(".detailed-result-card");
+  if (!summary || !firstBlock) fail("no #ShoppingWizardResult / .detailed-result-card found: is this a shopping wizard results page?");
+  // The seller blocks sit in one .row of columns; keep that row so the layout stays as on the site.
+  keep = [summary, /** @type {Element} */ (firstBlock.closest(".row") || firstBlock.parentElement)];
 } else {
   const table = doc.querySelector(".article-row")?.closest(".table, table, section");
   if (!table) fail("no offer rows (.article-row) found: is this a seller offers page?");
@@ -111,6 +127,7 @@ function scrub(s) {
     .replace(/[?&]idWantslist=\d+/g, "");
   for (const [name, alias] of usersLongestFirst) s = s.split(name).join(alias);
   for (const line of addressLongestFirst) s = s.split(line).join("[removed]");
+  for (const c of ownCountries) s = s.split(c).join("[country]");
   if (ID_SWEEP) s = s.replace(ID_SWEEP, "0");
   return s;
 }
