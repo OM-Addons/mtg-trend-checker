@@ -20,7 +20,7 @@
   }
 
   /** Classes this script (and the wizard page) put on Cardmarket's own elements. */
-  const ADDED_CLASSES = ["cmc-row-good", "cmc-row-bad", "cmc-block-good", "cmc-block-bad", "cmc-block-unknown"];
+  const ADDED_CLASSES = ["cmc-row-good", "cmc-row-bad", "cmc-block-good", "cmc-block-bad", "cmc-block-unknown", "cmc-grow"];
 
   /** Removes everything a previous run added. */
   function removeMarks() {

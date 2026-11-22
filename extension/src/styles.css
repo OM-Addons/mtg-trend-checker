@@ -72,5 +72,6 @@
 .cmc-overall { font-weight: 700; margin-bottom: 4px; }
 .detailed-result-card tr.cmc-row-good > td:last-child { box-shadow: inset 4px 0 0 #1e8e3e; }
 .detailed-result-card tr.cmc-row-bad > td:last-child { box-shadow: inset 4px 0 0 #c5221f; }
+.cmc-grow { height: auto !important; max-height: none !important; } /* Cardmarket sizes the blocks for its own content; with our rows and notes they must grow. */
 /* Card names there are truncated to one line; the note under them may wrap. */
 .detailed-result-card .cmc-note { white-space: normal; }

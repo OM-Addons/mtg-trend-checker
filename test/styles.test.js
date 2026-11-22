@@ -17,6 +17,11 @@ function rule(selector) {
 // Buttons get the system colour ButtonText, which is near-white with a dark
 // Firefox/OS theme. Our buttons have a light background, so they must set
 // their own text colour or the labels become invisible.
+test(".cmc-grow lifts Cardmarket's fixed block height (wizard blocks must fit the added rows)", () => {
+  assert.match(rule(".cmc-grow"), /(^|;|\s)height\s*:\s*auto\s*!important/);
+  assert.match(rule(".cmc-grow"), /max-height\s*:\s*none\s*!important/);
+});
+
 test(".cmc-btn sets its own text colour (readable with a dark Firefox theme)", () => {
   assert.match(rule(".cmc-btn"), /(^|;|\s)color\s*:/);
 });

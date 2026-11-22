@@ -121,6 +121,20 @@
   /** "you save" / "over by" / "equal to trend" (equal is not worth it). @param {number} diff Σ trend - total */
   const diffWords = (diff) => (Math.round(diff * 100) > 0 ? "you save" : Math.round(diff * 100) < 0 ? "over by" : "equal to trend");
 
+  /**
+   * Cardmarket gives the seller blocks a fixed height that fits only its own content, so our
+   * rows and notes spilled under the next block. Lift that limit on the block, its body and
+   * its column (where exactly the height is set isn't visible in the saved page). Only while
+   * the add-on has checked the page: removeMarks() takes the class off again.
+   * @param {Element} block
+   */
+  function allowGrowth(block) {
+    block.classList.add("cmc-grow");
+    const body = block.querySelector(":scope > .card-body");
+    if (body) body.classList.add("cmc-grow");
+    if (block.parentElement && block.parentElement.matches("[class*='col']")) block.parentElement.classList.add("cmc-grow");
+  }
+
   /** @param {ShipmentResult} r */
   function overallText(r) {
     if (r.diff == null) return `Overall: ${verdictText(r, "total")}`;
@@ -159,6 +173,7 @@
         const r = evaluate(s, prices, source);
         for (const a of s.articles) annotateArticle(a, prices.get(priceKey(a, source)), source, a.el.querySelector("td.card-name, .text-truncate") || a.el);
         s.el.classList.add(`cmc-block-${verdictKind(r)}`);
+        allowGrowth(s.el);
         if (s.summaryEl) addRows(s.summaryEl, r, source, "seller total");
         return { s, r };
       });
