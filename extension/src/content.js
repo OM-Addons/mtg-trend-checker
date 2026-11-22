@@ -2,7 +2,7 @@
 /* Orchestrates: parse cart -> look up prices -> annotate the page. */
 (function (root) {
   "use strict";
-  const { parseCart, lookup, clearCache, getSettings, migrate, offButton, renderOffBox } = root.CMC;
+  const { parseCart, lookup, clearCache, getSettings, migrate, offButton, renderOffBox, trendSourceSwitch } = root.CMC;
 
   /** @param {number | null | undefined} n */
   const fmt = (n) => (n == null ? "?" : n.toLocaleString("nl-NL", { style: "currency", currency: "EUR" }));
@@ -22,14 +22,21 @@
     document.querySelectorAll(".cmc-row-good, .cmc-row-bad").forEach((n) => n.classList.remove("cmc-row-good", "cmc-row-bad"));
   }
 
-  /** Pure evaluation of one shipment, given a map productId -> lookup result. */
-  /** @param {Pick<Shipment, "total" | "articles">} shipment @param {Map<string, Pick<TrendInfo, "trend">>} prices @returns {ShipmentResult} */
-  function evaluate(shipment, prices) {
+  /**
+   * Key of an article in the price map. With "this printing" the same product can be in the
+   * cart as foil and non-foil, with different trends, so foils get their own key.
+   * @param {Pick<CartArticle, "productId" | "foil">} a @param {TrendSource} source
+   */
+  const priceKey = (a, source) => (source === "printing" && a.foil ? `${a.productId}:foil` : a.productId);
+
+  /** Pure evaluation of one shipment, given a map priceKey -> lookup result. */
+  /** @param {Pick<Shipment, "total" | "articles">} shipment @param {Map<string, Pick<TrendInfo, "trend">>} prices @param {TrendSource} [source] @returns {ShipmentResult} */
+  function evaluate(shipment, prices, source = "cheapestEnglish") {
     let trendSum = 0;
     let articleSum = 0;
     let missing = 0;
     for (const a of shipment.articles) {
-      const p = prices.get(a.productId);
+      const p = prices.get(priceKey(a, source));
       if (a.unitPrice != null) articleSum += a.unitPrice * a.qty;
       if (p) trendSum += p.trend * a.qty;
       else missing += a.qty;
@@ -40,20 +47,21 @@
     return { total, articleSum, shipping, trendSum, missing, worth, diff: total != null && missing === 0 ? trendSum - total : null };
   }
 
-  /** @param {Shipment} shipment @param {Map<string, TrendInfo>} prices @returns {ShipmentResult} */
-  function renderShipment(shipment, prices) {
-    const r = evaluate(shipment, prices);
+  /** @param {Shipment} shipment @param {Map<string, TrendInfo>} prices @param {TrendSource} source @returns {ShipmentResult} */
+  function renderShipment(shipment, prices, source) {
+    const r = evaluate(shipment, prices, source);
+    const byPrinting = source === "printing";
 
     // Per-article annotations
     for (const a of shipment.articles) {
-      const p = prices.get(a.productId);
+      const p = prices.get(priceKey(a, source));
       const nameCell = a.el.querySelector("td.name, .name") || a.el;
       const note = el("div", "cmc-note");
       if (!p) {
-        note.textContent = "No English trend price found";
+        note.textContent = !byPrinting ? "No English trend price found" : a.foil ? "No foil trend for this printing" : "No trend for this printing";
         note.classList.add("cmc-muted");
       } else {
-        note.append(`Cheapest EN trend: ${fmt(p.trend)} `);
+        note.append(`${byPrinting ? "Trend of this printing" : "Cheapest EN trend"}: ${fmt(p.trend)} `);
         const link = /** @type {HTMLAnchorElement} */ (el("a", "cmc-link", `(${p.set}${p.foilOnly ? ", foil" : ""})`));
         link.href = p.url;
         link.target = "_blank";
@@ -83,7 +91,7 @@
       ["Cards", fmt(r.articleSum)],
       ["Shipping & fees", fmt(r.shipping)],
       ["Total incl. shipping", fmt(r.total)],
-      ["Σ cheapest English trend", fmt(r.trendSum) + (r.missing ? ` (excl. ${r.missing})` : "")],
+      [byPrinting ? "Σ trend of these printings" : "Σ cheapest English trend", fmt(r.trendSum) + (r.missing ? ` (excl. ${r.missing})` : "")],
       [r.diff == null ? "Difference" : r.diff >= 0 ? "You save vs trend" : "You overpay vs trend", r.diff != null ? fmt(Math.abs(r.diff)) : "?"],
     ];
     for (const [k, v] of rows) {
@@ -100,8 +108,8 @@
     return r;
   }
 
-  /** @param {{s: Shipment, r: ShipmentResult}[]} results @param {string} [status] */
-  function renderOverview(results, status) {
+  /** @param {{s: Shipment, r: ShipmentResult}[]} results @param {TrendSource} source @param {string} [status] */
+  function renderOverview(results, source, status) {
     const box = el("div", "cmc-overview");
     const head = el("div", "cmc-overview-head", "MTG cart check");
     const close = el("button", "cmc-btn", "×");
@@ -111,6 +119,7 @@
     buttons.append(offButton(restart), close);
     head.appendChild(buttons);
     box.appendChild(head);
+    box.appendChild(trendSourceSwitch(source, restart));
 
     if (status) {
       box.appendChild(el("div", null, status));
@@ -152,27 +161,30 @@
       removeOld();
       again = false;
       // Turned off: nothing is parsed or looked up, only the "On" button is shown.
-      if (!(await getSettings()).enabled) { renderOffBox(restart); return; }
+      const settings = await getSettings();
+      if (!settings.enabled) { renderOffBox(restart); return; }
+      const source = settings.trendSource;
       const shipments = parseCart(document);
       if (!shipments.length) return;
-      renderOverview([], "Looking up trend prices…");
+      renderOverview([], source, "Looking up trend prices…");
 
       const prices = new Map();
+      /** @type {Map<string, CartArticle>} one lookup per price key */
       const unique = new Map();
-      shipments.forEach((s) => s.articles.forEach((a) => unique.set(a.productId, a.name)));
-      for (const [pid, name] of unique) {
+      shipments.forEach((s) => s.articles.forEach((a) => unique.set(priceKey(a, source), a)));
+      for (const [key, a] of unique) {
         if (again) return; // turned off (or on) mid-check: finally{} starts a fresh run
         try {
-          const p = await lookup(pid, name);
-          if (p) prices.set(pid, p);
+          const p = await lookup(a.productId, a.name, { source, foil: a.foil });
+          if (p) prices.set(key, p);
         } catch (e) {
-          console.warn("[CMC] lookup failed", pid, name, e);
+          console.warn("[CMC] lookup failed", a.productId, a.name, e);
         }
       }
 
       removeOld();
-      const results = shipments.map((s) => ({ s, r: renderShipment(s, prices) }));
-      renderOverview(results);
+      const results = shipments.map((s) => ({ s, r: renderShipment(s, prices, source) }));
+      renderOverview(results, source);
     } finally {
       running = false;
       if (again) { again = false; run(); }
@@ -194,13 +206,16 @@
     timer = setTimeout(() => { if (signature() !== lastSignature) run(); }, 800);
   });
 
-  root.CMC = Object.assign(root.CMC, { run, evaluate });
+  root.CMC = Object.assign(root.CMC, { run, evaluate, priceKey });
   if (!root.CMC_NO_AUTORUN) {
     run();
     observer.observe(document.body, { childList: true, subtree: true });
-    // Switched on/off in another tab: follow along. Other settings don't affect the cart.
+    // Switched on/off or to another trend source in another tab: follow along. The other
+    // settings (price ranges, deal mode, languages) don't affect the cart.
     if (typeof browser !== "undefined") browser.storage.onChanged.addListener((c) => {
-      if (c.settings && migrate(c.settings.oldValue).enabled !== migrate(c.settings.newValue).enabled) restart();
+      if (!c.settings) return;
+      const before = migrate(c.settings.oldValue), after = migrate(c.settings.newValue);
+      if (before.enabled !== after.enabled || before.trendSource !== after.trendSource) restart();
     });
   }
 })(typeof globalThis !== "undefined" ? globalThis : window);

@@ -1,9 +1,10 @@
 // @ts-check
 /* Seller offer pages (/Magic/Users/<seller>/Offers/Singles):
- * flag offers that are sufficiently below the cheapest-English-printing trend. */
+ * flag offers that are sufficiently below the trend (of the cheapest English printing, or of
+ * the printing on offer: settings.trendSource). */
 (function (root) {
   "use strict";
-  const { parseEuro, allEuros, cleanName, lookup, clearCache, getSettings, saveSettings, requiredDiscount, ignoredBelow, offButton, renderOffBox } = root.CMC;
+  const { parseEuro, allEuros, cleanName, isFoil, lookup, clearCache, getSettings, saveSettings, requiredDiscount, ignoredBelow, offButton, renderOffBox, toggleRow, trendSourceSwitch } = root.CMC;
 
   const MARK = "data-cmc";
   /** @param {number | null | undefined} n */
@@ -102,6 +103,7 @@
         productId: productIdFromRow(row),
         language: detectLanguage(row),
         price,
+        foil: isFoil(row),
       });
     }
     return offers;
@@ -139,7 +141,8 @@
     // Every checked card gets a hover tooltip on its name (no visual clutter),
     // so you can verify what was compared.
     if (offer.link) {
-      offer.link.title = `Price read: ${fmt(offer.price)} · cheapest EN trend: ${fmt(p.trend)} (${p.set}${p.foilOnly ? ", foil" : ""})`;
+      const which = p.source === "printing" ? "trend of this printing" : "cheapest EN trend";
+      offer.link.title = `Price read: ${fmt(offer.price)} · ${which}: ${fmt(p.trend)} (${p.set}${p.foilOnly ? ", foil" : ""})`;
     }
     if (!j) return;
     const target = offer.nameCell || offer.el;
@@ -169,6 +172,7 @@
     head.appendChild(buttons);
     box.appendChild(head);
     box.appendChild(modeSwitch());
+    box.appendChild(trendSourceSwitch(currentSource, restart));
     if (status) box.appendChild(el("div", null, status));
     else {
       box.appendChild(el("div", null, deals.length ? `${deals.length} deal(s) on this page` : "No deals on this page"));
@@ -215,26 +219,16 @@
    * The choice is saved (it sticks for other pages and sellers) and the page is re-checked.
    */
   function modeSwitch() {
-    const wrap = el("div", "cmc-mode");
     /** @type {[DealMode, string, string][]} */
     const modes = [
       ["ranges", "My ranges", "Deal = at least the % you set for the offer's price range"],
       ["anyUnder", "Any under trend", "Deal = any offer below trend, including cheap ones"],
     ];
-    for (const [mode, label, tip] of modes) {
-      const b = el("button", "cmc-btn cmc-mode-btn", label);
-      b.title = tip;
-      b.setAttribute("aria-pressed", String(mode === currentMode));
-      b.onclick = async () => {
-        if (mode === currentMode) return;
-        currentMode = mode;
-        wrap.querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
-        await saveSettings({ ...(await getSettings()), dealMode: mode });
-        restart();
-      };
-      wrap.appendChild(b);
-    }
-    return wrap;
+    return toggleRow(modes, currentMode, async (dealMode) => {
+      currentMode = dealMode;
+      await saveSettings({ ...(await getSettings()), dealMode });
+      restart();
+    });
   }
 
   /** Re-check now; if a check is running, it stops early and runs again with the new settings. */
@@ -245,6 +239,8 @@
 
   /** @type {DealMode} mode of the last check, shown in the switch */
   let currentMode = "ranges";
+  /** @type {TrendSource} trend source of the last check, shown in the second switch */
+  let currentSource = "cheapestEnglish";
   let running = false;
   let again = false; // set while running: stop the current check and start over
   let lastSig = "";
@@ -260,6 +256,8 @@
       removeOld();
       const settings = await getSettings();
       currentMode = settings.dealMode;
+      currentSource = settings.trendSource;
+      const byPrinting = settings.trendSource === "printing";
       again = false;
       // Turned off: nothing is parsed or looked up, only the "On" button is shown.
       if (!settings.enabled) { renderOffBox(restart); return; }
@@ -285,14 +283,20 @@
         if (requiredDiscount(price, settings) == null) { stats.cheap++; continue; }
         if (settings.englishOnly && offer.language && offer.language !== "English") { stats.lang++; continue; }
         stats.checked++;
+        // "This printing" needs the product id: without it the printing is unknown (no API call).
+        if (byPrinting && !offer.productId) { stats.failed.push({ offer, reason: "printing unknown (no product ID)" }); continue; }
         /** @type {TrendInfo | null} */
         let p = null;
-        try { p = await lookup(offer.productId, offer.name); } catch (e) {
+        try { p = await lookup(offer.productId, offer.name, { source: settings.trendSource, foil: offer.foil }); } catch (e) {
           console.warn("[CMC] lookup failed", offer.name, e);
           stats.failed.push({ offer, reason: "lookup error, try Refresh" });
           continue;
         }
-        if (!p) { stats.failed.push({ offer, reason: "no English trend found" }); continue; }
+        if (!p) {
+          const reason = !byPrinting ? "no English trend found" : offer.foil ? "no foil trend for this printing" : "no trend for this printing";
+          stats.failed.push({ offer, reason });
+          continue;
+        }
         const j = judge(price, p.trend, settings);
         annotate(offer, p, j);
         if (j && !j.deal) { if (j.discount > 0) stats.under++; else stats.above++; }

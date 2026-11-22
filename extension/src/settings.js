@@ -19,7 +19,11 @@
     // "ranges": deal = at least the range's % under trend. "anyUnder": every offer is checked
     // (no price minimum) and anything strictly below trend is a deal. Toggled on seller pages.
     dealMode: "ranges",
-    englishOnly: true,     // only check offers whose card language is English
+    // Which trend to compare with, on the cart and seller pages: "cheapestEnglish" = the lowest
+    // trend of all English printings; "printing" = the trend of the exact printing on offer
+    // (foil trend for foil offers). Toggled in the overview box.
+    trendSource: "cheapestEnglish",
+    englishOnly: true,    // only check offers whose card language is English
     enabled: true,         // off (the switch in the overview box): no checks on any Cardmarket page
   };
   const MAX_BRACKETS = 10;
@@ -102,8 +106,10 @@
     s.brackets = normalizeBrackets(s.brackets);
     /** @type {DealMode} */
     const dealMode = s.dealMode === "anyUnder" ? "anyUnder" : "ranges";
+    /** @type {TrendSource} */
+    const trendSource = s.trendSource === "printing" ? "printing" : "cheapestEnglish";
     // Only known keys are returned, so old ones (pctLow…, desktopNotify before 1.4) drop out on the next save.
-    return { brackets: s.brackets, dealMode, englishOnly: !!s.englishOnly, enabled: s.enabled !== false };
+    return { brackets: s.brackets, dealMode, trendSource, englishOnly: !!s.englishOnly, enabled: s.enabled !== false };
   }
 
   /** @returns {Promise<Settings>} */

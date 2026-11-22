@@ -1,8 +1,9 @@
 // @ts-check
 /* Price lookup via Scryfall.
  * Scryfall's prices.eur is Cardmarket's price trend for that printing (non-foil),
- * prices.eur_foil the foil trend. We find every English paper printing of the
- * card and take the lowest trend. */
+ * prices.eur_foil the foil trend. Two ways to pick the trend (settings.trendSource):
+ *  - "cheapestEnglish": find every English paper printing of the card, take the lowest trend;
+ *  - "printing": the trend of the exact printing (Cardmarket product id), foil trend for foils. */
 (function (root) {
   "use strict";
 
@@ -67,15 +68,52 @@
     return card.oracle_id || (card.card_faces && card.card_faces[0] && card.card_faces[0].oracle_id) || null;
   }
 
+  /** @param {unknown} v @returns {number | null} */
+  function num(v) {
+    const n = v != null ? parseFloat(String(v)) : NaN;
+    return Number.isFinite(n) ? n : null;
+  }
+
+  /** The parts of a Scryfall card we keep for "this printing" mode. @param {any} card @returns {PrintingInfo} */
+  function printingInfo(card) {
+    const prices = card.prices || {};
+    return {
+      name: card.name,
+      set: card.set_name,
+      setCode: (card.set || "").toUpperCase(),
+      eur: num(prices.eur),
+      eurFoil: num(prices.eur_foil),
+      nonfoil: !Array.isArray(card.finishes) || card.finishes.includes("nonfoil"),
+    };
+  }
+
+  /**
+   * Scryfall card for a Cardmarket product id. One request answers both modes, so both
+   * cache entries are written: cmc:pid: (which card) and cmc:print: (this printing's prices).
+   * @param {string} productId @returns {Promise<any>}
+   */
+  async function fetchByProductId(productId) {
+    const card = await queuedFetchJson(`${API}/cards/cardmarket/${encodeURIComponent(productId)}`);
+    await cacheSet(`cmc:print:${productId}`, card ? printingInfo(card) : null);
+    return card;
+  }
+
+  /** @param {string} productId @returns {Promise<PrintingInfo | null>} */
+  async function printingForProduct(productId) {
+    const cached = await cacheGet(`cmc:print:${productId}`);
+    if (cached !== undefined) return cached;
+    const card = await fetchByProductId(productId);
+    if (card) await cacheSet(`cmc:pid:${productId}`, { oracleId: oracleIdOf(card), name: card.name });
+    return card ? printingInfo(card) : null;
+  }
+
   /** @param {string | null} productId @param {string} fallbackName @returns {Promise<{oracleId: string | null, name: string} | null>} */
   async function cardForProduct(productId, fallbackName) {
     const key = productId ? `cmc:pid:${productId}` : `cmc:name:${String(fallbackName).toLowerCase()}`;
     const cached = await cacheGet(key);
     if (cached !== undefined) return cached;
 
-    let card = productId
-      ? await queuedFetchJson(`${API}/cards/cardmarket/${encodeURIComponent(productId)}`)
-      : null;
+    let card = productId ? await fetchByProductId(productId) : null;
     if (!card && fallbackName) {
       card = await queuedFetchJson(`${API}/cards/named?exact=${encodeURIComponent(fallbackName)}`);
       // Cardmarket names sometimes differ slightly from Scryfall's (punctuation, accents, extra text).
@@ -140,14 +178,43 @@
     return `https://www.cardmarket.com/${lang}/Magic/Products/Search?searchString=${encodeURIComponent(front)}`;
   }
 
-  /** Main entry: Cardmarket product id -> cheapest English printing trend. */
-  /** @param {string | null} productId @param {string} fallbackName @returns {Promise<TrendInfo | null>} */
-  async function lookup(productId, fallbackName) {
-    const card = await cardForProduct(productId, fallbackName);
-    if (!card || !card.oracleId) return null;
-    const best = await cheapestEnglishTrend(card.oracleId);
+  /**
+   * Trend of the exact printing: the foil trend for a foil offer (or a foil-only printing),
+   * otherwise the normal one. null if the printing has no trend for that finish: there is
+   * deliberately no fallback to another printing (owner's choice).
+   * @param {PrintingInfo} info @param {boolean} foil @returns {Omit<TrendInfo, "url"> | null}
+   */
+  function printingTrend(info, foil) {
+    const useFoil = foil || !info.nonfoil;
+    const trend = useFoil ? info.eurFoil : info.eur;
+    if (trend == null) return null;
+    return { name: info.name, trend, foilOnly: useFoil, set: info.set, setCode: info.setCode, printings: 1 };
+  }
+
+  /**
+   * Main entry: the trend to compare a card with.
+   * "cheapestEnglish" (default): product id (or name) -> card -> cheapest English printing.
+   * "printing": product id -> that printing. Without a product id the printing is unknown,
+   * so there is no trend (and no API call).
+   * @param {string | null} productId @param {string} fallbackName @param {LookupOptions} [opts]
+   * @returns {Promise<TrendInfo | null>}
+   */
+  async function lookup(productId, fallbackName, opts = {}) {
+    /** @type {TrendSource} */
+    const source = opts.source === "printing" ? "printing" : "cheapestEnglish";
+    /** @type {Omit<TrendInfo, "url"> | null} */
+    let found = null;
+    if (source === "printing") {
+      const info = productId ? await printingForProduct(productId) : null;
+      found = info ? printingTrend(info, !!opts.foil) : null;
+    } else {
+      const card = await cardForProduct(productId, fallbackName);
+      const best = card && card.oracleId ? await cheapestEnglishTrend(card.oracleId) : null;
+      found = best ? Object.assign({ name: card ? card.name : fallbackName }, best) : null;
+    }
+    if (!found) return null;
     // The link is built here, not cached, so prices cached before this change get the new link too.
-    return best ? Object.assign({ name: card.name }, best, { url: cardmarketSearchUrl(card.name) }) : null;
+    return Object.assign({}, found, { source, url: cardmarketSearchUrl(found.name || fallbackName) });
   }
 
   root.CMC = Object.assign(root.CMC || {}, { lookup, clearCache });

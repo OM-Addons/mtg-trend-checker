@@ -57,6 +57,12 @@
     return r && r.value === "anyUnder" ? "anyUnder" : "ranges";
   }
 
+  /** @returns {TrendSource} */
+  function readSource() {
+    const r = /** @type {HTMLInputElement | null} */ (document.querySelector("input[name=trendSource]:checked"));
+    return r && r.value === "printing" ? "printing" : "cheapestEnglish";
+  }
+
   /** Updates the range labels, the "ignored" text and the add/remove buttons as the user types. */
   function refresh() {
     const rows = readRows();
@@ -85,6 +91,9 @@
     s.brackets.forEach(addRow);
     document.querySelectorAll("input[name=dealMode]").forEach((r) => {
       /** @type {HTMLInputElement} */ (r).checked = /** @type {HTMLInputElement} */ (r).value === s.dealMode;
+    });
+    document.querySelectorAll("input[name=trendSource]").forEach((r) => {
+      /** @type {HTMLInputElement} */ (r).checked = /** @type {HTMLInputElement} */ (r).value === s.trendSource;
     });
     boolKeys.forEach((k) => ($(k).checked = !!s[k]));
     refresh();
@@ -130,7 +139,7 @@
     }
     /** @type {Settings} */
     // enabled is switched in the overview box on Cardmarket pages; keep what is stored.
-    const s = { brackets: normalizeBrackets(rows), dealMode: readMode(), englishOnly: $("englishOnly").checked, enabled: (await getSettings()).enabled };
+    const s = { brackets: normalizeBrackets(rows), dealMode: readMode(), trendSource: readSource(), englishOnly: $("englishOnly").checked, enabled: (await getSettings()).enabled };
     await saveSettings(s);
     fill(s); // shows the ranges sorted, as they are applied
     flash("Saved ✓");

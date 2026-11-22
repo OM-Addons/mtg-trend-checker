@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+- **Compare with this printing:** a new switch in the overview box (cart and seller pages), **Cheapest EN** / **This printing**. "This printing" compares with the trend of the exact printing on offer instead of the cheapest English one, and foils with their foil trend. Cards without a trend for that printing show up as "couldn't be priced" (or make a cart seller "incomplete"). The choice is remembered, and it's also in the settings.
 
 ## 2.0.1 - 2026-11-21
 - Fixed: button labels in the overview box were invisible (white on white) when Firefox or Windows uses a dark theme.

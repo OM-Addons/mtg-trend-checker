@@ -17,13 +17,19 @@
   </style>
 </head>
 <body>
+  <h2>Compare with</h2>
+  <p>
+    <label><input type="radio" name="trendSource" value="cheapestEnglish"> Cheapest English printing: the lowest trend of all English printings of the card</label><br>
+    <label><input type="radio" name="trendSource" value="printing"> This printing: the trend of the exact printing on offer (foil trend for foils)</label>
+  </p>
+  <p class="hint">Used on the cart and on seller pages. You can also switch at the top of the overview box. With "This printing", cards without a trend for that printing (or offers without a product ID) count as having no trend.</p>
   <h2>Seller offer pages: deals</h2>
   <p>
     <label><input type="radio" name="dealMode" value="ranges"> Use my price ranges (below)</label><br>
     <label><input type="radio" name="dealMode" value="anyUnder"> Any card under trend: checks every offer and ignores the ranges</label>
   </p>
   <p class="hint">You can also switch between these two at the top of the overview box on a seller page.</p>
-  <p class="hint">An offer is flagged when it is at least this much cheaper than the trend price of the cheapest English printing. Each range starts at its price and runs until the next range starts.</p>
+  <p class="hint">An offer is flagged when it is at least this much cheaper than the trend price (see "Compare with" above). Each range starts at its price and runs until the next range starts.</p>
   <table>
     <thead><tr><th>From</th><th>Deal at</th><th>Range</th><th></th></tr></thead>
     <tbody id="brackets"></tbody>

@@ -90,7 +90,7 @@ test("rangeLabel shows where each range ends", () => {
 test("settings from older versions (three fixed percentages) become brackets", () => {
   const { migrate } = cmc();
   assert.deepEqual(plain(migrate({ pctLow: 30, pctMid: 20, pctHigh: 12, englishOnly: false, desktopNotify: true })), {
-    brackets: [{ from: 1, pct: 30 }, { from: 3, pct: 20 }, { from: 5, pct: 12 }], dealMode: "ranges", englishOnly: false, enabled: true,
+    brackets: [{ from: 1, pct: 30 }, { from: 3, pct: 20 }, { from: 5, pct: 12 }], dealMode: "ranges", trendSource: "cheapestEnglish", englishOnly: false, enabled: true,
   });
   assert.deepEqual(plain(migrate({ pctMid: 18 }).brackets), [{ from: 1, pct: 25 }, { from: 3, pct: 18 }, { from: 5, pct: 10 }]);
   // New-style settings are kept (old keys are ignored once brackets exist).
@@ -105,7 +105,7 @@ test("getSettings migrates what is in storage, saveSettings stores sorted bracke
   assert.deepEqual(plain(s.brackets), [{ from: 1, pct: 30 }, { from: 3, pct: 20 }, { from: 5, pct: 12 }]);
   await saveSettings({ ...s, brackets: [{ from: 4, pct: 1 }, { from: 0.5, pct: 2 }] });
   assert.deepEqual(browser.storage.local.data.settings, {
-    brackets: [{ from: 0.5, pct: 2 }, { from: 4, pct: 1 }], dealMode: "ranges", englishOnly: true, enabled: true,
+    brackets: [{ from: 0.5, pct: 2 }, { from: 4, pct: 1 }], dealMode: "ranges", trendSource: "cheapestEnglish", englishOnly: true, enabled: true,
   });
 });
 
@@ -222,7 +222,7 @@ test("settings page: save stores the ranges sorted and shows them sorted", async
   d.getElementById("englishOnly").checked = false;
   await click("save");
   assert.deepEqual(stored(), {
-    brackets: [{ from: 3, pct: 15 }, { from: 5, pct: 10 }, { from: 8, pct: 7 }], dealMode: "ranges", englishOnly: false, enabled: true,
+    brackets: [{ from: 3, pct: 15 }, { from: 5, pct: 10 }, { from: 8, pct: 7 }], dealMode: "ranges", trendSource: "cheapestEnglish", englishOnly: false, enabled: true,
   });
   assert.deepEqual(rows().map((r) => r.from), ["3", "5", "8"]);
   assert.equal(text(d.getElementById("saved")), "Saved ✓");
@@ -355,6 +355,22 @@ test("settings page: mode radios load, save, and change the ignored text", async
   assert.match(text(d.getElementById("ignored")), /Offers under € 1,00 are ignored/);
   await click("save");
   assert.equal(stored().dealMode, "ranges");
+});
+
+test("trendSource: defaults to cheapest English, anything unknown falls back to it", () => {
+  const { migrate } = cmc();
+  assert.equal(migrate({}).trendSource, "cheapestEnglish");
+  assert.equal(migrate({ trendSource: "printing" }).trendSource, "printing");
+  assert.equal(migrate({ trendSource: "other" }).trendSource, "cheapestEnglish");
+});
+
+test("settings page: 'Compare with' radios load and save", async () => {
+  const { d, click, stored } = await optionsPage({ brackets: DEFAULT_BRACKETS, trendSource: "printing" });
+  assert.equal(d.querySelector("input[name=trendSource]:checked").value, "printing");
+  d.querySelector("input[name=trendSource][value=cheapestEnglish]").checked = true;
+  await click("save");
+  assert.equal(stored().trendSource, "cheapestEnglish");
+  assert.equal(stored().dealMode, "ranges", "other settings are kept");
 });
 
 // ---------------------------------------------------------------------------

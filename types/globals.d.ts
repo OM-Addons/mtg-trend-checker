@@ -14,6 +14,8 @@ interface CartArticle {
   /** Price per copy in EUR, or null if it couldn't be read. */
   unitPrice: number | null;
   qty: number;
+  /** Row has Cardmarket's foil icon. */
+  foil: boolean;
 }
 
 /** One seller block ("shipment") in the shopping cart. */
@@ -53,20 +55,43 @@ interface Offer {
   /** Language from the flag icon tooltip, null if unknown. */
   language: string | null;
   price: number | null;
+  /** Row has Cardmarket's foil icon. */
+  foil: boolean;
 }
 
-/** Cheapest English printing found for a card. */
+/** The trend a card is compared with: the cheapest English printing, or the exact printing. */
 interface TrendInfo {
   name?: string;
-  /** Lowest Cardmarket trend price (EUR) among English paper printings. */
+  /** Cardmarket trend price (EUR): the lowest among English paper printings, or the exact printing's. */
   trend: number;
-  /** True when the cheapest printing only has a foil trend. */
+  /** True when `trend` is a foil trend (cheapest-EN: that printing has only a foil trend; printing: a foil offer). */
   foilOnly: boolean;
   set: string;
   setCode: string;
   /** Cardmarket search for the card (built by `lookup`, not cached). */
   url: string;
   printings: number;
+  /** Which trend this is (set by `lookup`). */
+  source?: TrendSource;
+}
+
+/** What `lookup` needs to know about the offer or cart row. */
+interface LookupOptions {
+  source?: TrendSource;
+  /** The row is a foil (only used for source "printing"). */
+  foil?: boolean;
+}
+
+/** One printing as cached from Scryfall's /cards/cardmarket/{id}. */
+interface PrintingInfo {
+  name: string;
+  set: string;
+  setCode: string;
+  /** Scryfall prices.eur / prices.eur_foil as numbers, null when missing. */
+  eur: number | null;
+  eurFoil: number | null;
+  /** False for foil-only printings (Scryfall `finishes` has no "nonfoil"). */
+  nonfoil: boolean;
 }
 
 /** Outcome of comparing one offer with its trend. */
@@ -89,10 +114,14 @@ interface Bracket {
 /** How seller-page deals are decided: by the user's price ranges, or any offer below trend. */
 type DealMode = "ranges" | "anyUnder";
 
+/** Which trend to compare with: the cheapest English printing, or the printing on offer. */
+type TrendSource = "cheapestEnglish" | "printing";
+
 interface Settings {
   /** Sorted by `from`, unique, 1 to MAX_BRACKETS entries. Offers below the first `from` are ignored. */
   brackets: Bracket[];
   dealMode: DealMode;
+  trendSource: TrendSource;
   englishOnly: boolean;
   /** False after the Off button in the overview box: no checks on any page until turned on. */
   enabled: boolean;
@@ -104,9 +133,10 @@ interface CMCNamespace {
   parseEuro(text: string | null | undefined): number | null;
   allEuros(text: string | null | undefined): number[];
   cleanName(text: string | null | undefined): string;
+  isFoil(row: Element): boolean;
   parseCart(doc: Document): Shipment[];
   // prices.js
-  lookup(productId: string | null, fallbackName: string): Promise<TrendInfo | null>;
+  lookup(productId: string | null, fallbackName: string, opts?: LookupOptions): Promise<TrendInfo | null>;
   clearCache(): Promise<void>;
   // settings.js
   DEFAULTS: Settings;
@@ -125,9 +155,12 @@ interface CMCNamespace {
   setEnabled(enabled: boolean): Promise<void>;
   offButton(after: () => unknown): HTMLButtonElement;
   renderOffBox(after: () => unknown): void;
+  toggleRow<T extends string>(choices: [T, string, string][], current: T, pick: (value: T) => unknown): HTMLElement;
+  trendSourceSwitch(current: TrendSource, after: () => unknown): HTMLElement;
   // content.js (cart page)
   run(): Promise<void>;
-  evaluate(shipment: Pick<Shipment, "total" | "articles">, prices: Map<string, Pick<TrendInfo, "trend">>): ShipmentResult;
+  evaluate(shipment: Pick<Shipment, "total" | "articles">, prices: Map<string, Pick<TrendInfo, "trend">>, source?: TrendSource): ShipmentResult;
+  priceKey(article: Pick<CartArticle, "productId" | "foil">, source: TrendSource): string;
   // offers.js (seller pages)
   runOffers(): Promise<void>;
   parseOffers(doc: Document): Offer[];
