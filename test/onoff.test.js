@@ -5,7 +5,7 @@ const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
 const { JSDOM } = require("jsdom");
-const { fixture, loadPage, fakeBrowser, fakeScryfall, print, text, CART_SCRIPTS, OFFER_SCRIPTS } = require("./helpers");
+const { fixture, loadPage, fakeBrowser, fakeScryfall, print, text, CART_SCRIPTS, OFFER_SCRIPTS, WIZARD_SCRIPTS } = require("./helpers");
 
 /** Waits until `fn()` is truthy (the click handlers save and re-check asynchronously). */
 async function until(fn, ms = 10000) {
@@ -118,5 +118,5 @@ test("saving the settings page keeps the add-on off", async () => {
 test("test script lists mirror the manifest's content scripts", () => {
   const manifest = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "extension", "manifest.json"), "utf8"));
   const lists = manifest.content_scripts.map((c) => c.js.map((f) => f.replace(/^src\//, "")));
-  assert.deepEqual(lists, [CART_SCRIPTS, OFFER_SCRIPTS]);
+  assert.deepEqual(lists, [CART_SCRIPTS, OFFER_SCRIPTS, WIZARD_SCRIPTS]);
 });

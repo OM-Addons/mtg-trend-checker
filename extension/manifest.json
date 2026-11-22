@@ -2,7 +2,7 @@
   "manifest_version": 2,
   "name": "Cardmarket MTG Trend Checker",
   "version": "2.0.1",
-  "description": "Compares Cardmarket MTG prices with the trend price of the cheapest English printing: checks your cart per seller and flags under-trend offers on seller pages.",
+  "description": "Compares Cardmarket MTG prices with the trend price of the cheapest English printing: checks your cart and shopping wizard results per seller and flags under-trend offers on seller pages.",
   "browser_specific_settings": {
     "gecko": {
       "id": "mtg-trend-checker@mtg-tools",
@@ -26,13 +26,19 @@
   "content_scripts": [
     {
       "matches": ["https://www.cardmarket.com/*/Magic/ShoppingCart*"],
-      "js": ["src/parse.js", "src/prices.js", "src/settings.js", "src/onoff.js", "src/content.js"],
+      "js": ["src/parse.js", "src/prices.js", "src/settings.js", "src/onoff.js", "src/verdict.js", "src/content.js"],
       "css": ["src/styles.css"],
       "run_at": "document_idle"
     },
     {
       "matches": ["https://www.cardmarket.com/*/Magic/Users/*/Offers/Singles*"],
       "js": ["src/parse.js", "src/prices.js", "src/settings.js", "src/onoff.js", "src/offers.js"],
+      "css": ["src/styles.css"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://www.cardmarket.com/*/Magic/Wants/ShoppingWizard/Results*"],
+      "js": ["src/parse.js", "src/prices.js", "src/settings.js", "src/onoff.js", "src/verdict.js", "src/wizard.js"],
       "css": ["src/styles.css"],
       "run_at": "document_idle"
     }

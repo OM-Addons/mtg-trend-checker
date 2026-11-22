@@ -62,3 +62,15 @@
   font-size: 13px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
+
+/* Shopping wizard results: seller blocks get a coloured edge, Cardmarket's lists get extra rows */
+.cmc-block-good { box-shadow: inset 6px 0 0 #1e8e3e; }
+.cmc-block-bad { box-shadow: inset 6px 0 0 #c5221f; }
+.cmc-block-unknown { box-shadow: inset 6px 0 0 #e8a600; }
+.cmc-wiz-verdict { font-weight: 700; }
+.cmc-unknown-text { color: #a06f00; }
+.cmc-overall { font-weight: 700; margin-bottom: 4px; }
+.detailed-result-card tr.cmc-row-good > td:last-child { box-shadow: inset 4px 0 0 #1e8e3e; }
+.detailed-result-card tr.cmc-row-bad > td:last-child { box-shadow: inset 4px 0 0 #c5221f; }
+/* Card names there are truncated to one line; the note under them may wrap. */
+.detailed-result-card .cmc-note { white-space: normal; }

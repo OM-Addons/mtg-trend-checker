@@ -1,10 +1,10 @@
 # Cardmarket MTG Trend Checker (Firefox)
 
-Compares Magic: The Gathering prices on Cardmarket with the trend price of the **cheapest English printing** of each card, in your shopping cart and on seller pages. Or, if you prefer, with the trend of the **exact printing** on offer (see [Compare with](#compare-with-cheapest-english-or-this-printing)).
+Compares Magic: The Gathering prices on Cardmarket with the trend price of the **cheapest English printing** of each card, in your shopping cart, in the shopping wizard results and on seller pages. Or, if you prefer, with the trend of the **exact printing** on offer (see [Compare with](#compare-with-cheapest-english-or-this-printing)).
 
 ## Compare with: cheapest English or this printing
 
-The overview box (bottom-right, on the cart and on seller pages) has a switch: **Cheapest EN** / **This printing**. The choice is remembered on every page until you switch back. You can also set it in the settings.
+The overview box (bottom-right, on the cart, the shopping wizard results and seller pages) has a switch: **Cheapest EN** / **This printing**. The choice is remembered on every page until you switch back. You can also set it in the settings.
 - **Cheapest EN** (default): the lowest trend of all English printings of the card, whichever set the offer is from.
 - **This printing**: the trend of the exact printing on offer. Foil offers (Cardmarket's foil icon) are compared with that printing's foil trend, other offers with its normal trend. If that printing has no trend for that finish, or the offer has no product ID (some seller-page rows without a picture), the card counts as having no trend. On a seller page it is listed under "couldn't be priced", and in the cart that seller becomes "incomplete" (yellow).
 
@@ -22,6 +22,15 @@ What you'll see on `cardmarket.com/<lang>/Magic/ShoppingCart`:
 - A small overview box in the bottom-right corner listing all sellers, with a **Refresh prices** button.
 
 It re-checks automatically when you remove items or sellers.
+
+## Shopping wizard results
+
+The same check on the results of Cardmarket's shopping wizard (`cardmarket.com/<lang>/Magic/Wants/ShoppingWizard/Results/…`):
+- **Each seller block** gets two extra rows in its list under Total: the summed trend, and ✅ *Worth it: you save €x* / ❌ *Not worth it: over by €x* / ⚠️ *Incomplete*. The block also gets a green, red or yellow edge. The rule is the cart's: the seller's Total (incl. shipping) must be lower than the summed trend.
+- **Results Summary** gets the same two rows for the whole result: Cardmarket's grand Total against the summed trend of all cards.
+- Each card shows its trend and set, with a green or red bar on its price, as in the cart.
+- The overview box shows the overall verdict, how many sellers are worth it, and the list of sellers (click one to jump to it).
+- The verdicts always cover the whole result, like Cardmarket's own Total. Unticking cards doesn't change them. Once you add cards to your cart, the cart check covers what you actually picked.
 
 ## Seller offer pages: under-trend deals
 
@@ -43,7 +52,7 @@ These price ranges can be changed in the settings (see below). Offers below the 
 - Only the page you're viewing is checked, so with a 20-per-page shop you check page by page. Sort by price descending to see the expensive cards first.
 - By default only English offers are checked, and non-English offers aren't looked up at all. If an offer's language can't be read from the flag icon, it is checked anyway.
 
-**Turning it off:** the **⏻ Off** button at the top of the overview box (cart and seller pages) turns the add-on off on every Cardmarket page: no notes, no price lookups, just a small **⏻ On** button in the corner. Click it to turn the add-on back on. The × button only hides the box on the current page.
+**Turning it off:** the **⏻ Off** button at the top of the overview box (cart, wizard and seller pages) turns the add-on off on every Cardmarket page: no notes, no price lookups, just a small **⏻ On** button in the corner. Click it to turn the add-on back on. The × button only hides the box on the current page.
 
 **Settings:** `about:addons` → *Cardmarket MTG Trend Checker* → **Preferences**, or the **Settings** button in the overview box. You can change what to compare with, the English-only filter and the price ranges. For the ranges you can edit, add (up to 10) and remove them. Each range has a start price and a percentage, and runs until the next range starts. The settings page shows each range and which offers are ignored. Set the first range to start at €0 to check every offer. Changes apply immediately to open seller pages. The **What's new** link at the bottom of the settings page describes the features and lists the changes in each new version.
 
@@ -83,7 +92,7 @@ Results are cached for 24 hours (Scryfall updates prices once a day). Requests a
 Cardmarket doesn't publish a trend price per language. The trend for a printing is calculated from sales in all languages. So "English" here means *only printings that exist in English are considered*, e.g. Japanese-only or Foreign Black Border printings are excluded. The trend value itself is still Cardmarket's all-language trend.
 
 ## Troubleshooting
-- **Nothing appears:** Cardmarket may have changed its page structure. The selectors are in `extension/src/parse.js` (cart) and `extension/src/offers.js` (seller pages). Open the browser console (F12) and look for `[CMC]` messages.
+- **Nothing appears:** Cardmarket may have changed its page structure. The selectors are in `extension/src/parse.js` (cart), `extension/src/wizard.js` (shopping wizard) and `extension/src/offers.js` (seller pages). Open the browser console (F12) and look for `[CMC]` messages.
 - **Cardmarket shows "Error 1015 / You are being rate limited":** Cardmarket's Cloudflare protection has blocked your IP address for sending too many requests. The add-on itself never sends requests to Cardmarket (only to Scryfall). Wait, or restart your router to get a new IP address, and click through pages less quickly.
 - **⚠️ Couldn't read seller total:** the `.summary` box has a different layout. Save the page (Ctrl+S, "Web Page, HTML only") so the parser can be fixed against it; see `test/fixtures/README.md`.
 - Only cards are priced. Sealed products in the cart show "No English trend price found" (or "No trend for this printing") and make that seller "incomplete".

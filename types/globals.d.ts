@@ -8,8 +8,8 @@
 /** One card row in the shopping cart. */
 interface CartArticle {
   el: Element;
-  /** Cardmarket product id (data-product-id). */
-  productId: string;
+  /** Cardmarket product id (cart: data-product-id; wizard: thumbnail URL, null if missing). */
+  productId: string | null;
   name: string;
   /** Price per copy in EUR, or null if it couldn't be read. */
   unitPrice: number | null;
@@ -26,6 +26,16 @@ interface Shipment {
   /** Seller total incl. shipping and fees, or null if it couldn't be read. */
   total: number | null;
   articles: CartArticle[];
+}
+
+/** Shopping wizard results page: the seller blocks plus Cardmarket's Results Summary. */
+interface WizardResult {
+  /** One per seller block; `summaryEl` is the block's <dl> (Articles Value, Shipping Cost, Total). */
+  shipments: Shipment[];
+  /** The <dl> of the Results Summary, or null if not found. */
+  summaryEl: Element | null;
+  /** Grand total of all sellers incl. shipping, or null if it couldn't be read. */
+  total: number | null;
 }
 
 /** Result of evaluating one shipment against trend prices. */
@@ -157,10 +167,24 @@ interface CMCNamespace {
   renderOffBox(after: () => unknown): void;
   toggleRow<T extends string>(choices: [T, string, string][], current: T, pick: (value: T) => unknown): HTMLElement;
   trendSourceSwitch(current: TrendSource, after: () => unknown): HTMLElement;
+  // verdict.js (cart and wizard pages)
+  cmcEl(tag: string, cls?: string | null, text?: string | null): HTMLElement;
+  removeMarks(): void;
+  priceKey(article: Pick<CartArticle, "productId" | "foil"> & { name?: string }, source: TrendSource): string;
+  evaluate(shipment: Pick<Shipment, "total" | "articles">, prices: Map<string, Pick<TrendInfo, "trend">>, source?: TrendSource): ShipmentResult;
+  lookupArticles(articles: CartArticle[], source: TrendSource, shouldStop: () => boolean): Promise<Map<string, TrendInfo> | null>;
+  annotateArticle(a: CartArticle, p: TrendInfo | undefined, source: TrendSource, cell: Element): void;
+  verdictKind(r: ShipmentResult): "good" | "bad" | "unknown";
+  verdictText(r: ShipmentResult, whatTotal?: string): string;
+  renderOverviewBox(o: {
+    title: string; source: TrendSource; restart: () => unknown; run: () => unknown; status?: string;
+    results?: { s: Shipment; r: ShipmentResult }[]; overall?: { text: string; kind: "good" | "bad" | "unknown" };
+  }): void;
   // content.js (cart page)
   run(): Promise<void>;
-  evaluate(shipment: Pick<Shipment, "total" | "articles">, prices: Map<string, Pick<TrendInfo, "trend">>, source?: TrendSource): ShipmentResult;
-  priceKey(article: Pick<CartArticle, "productId" | "foil">, source: TrendSource): string;
+  // wizard.js (shopping wizard results)
+  runWizard(): Promise<void>;
+  parseWizard(doc: Document): WizardResult;
   // offers.js (seller pages)
   runOffers(): Promise<void>;
   parseOffers(doc: Document): Offer[];

@@ -7,8 +7,9 @@ const SRC = path.join(__dirname, "..", "extension", "src");
 const FIXTURES = path.join(__dirname, "fixtures");
 
 /** Same script lists as the content_scripts in manifest.json. */
-const CART_SCRIPTS = ["parse.js", "prices.js", "settings.js", "onoff.js", "content.js"];
+const CART_SCRIPTS = ["parse.js", "prices.js", "settings.js", "onoff.js", "verdict.js", "content.js"];
 const OFFER_SCRIPTS = ["parse.js", "prices.js", "settings.js", "onoff.js", "offers.js"];
+const WIZARD_SCRIPTS = ["parse.js", "prices.js", "settings.js", "onoff.js", "verdict.js", "wizard.js"];
 
 function fixture(name) {
   return fs.readFileSync(path.join(FIXTURES, name), "utf8");
@@ -110,4 +111,4 @@ const printing = (oracle, eur, eurFoil, set = "Set", finishes = ["nonfoil", "foi
 /** Normalise text for assertions (collapses whitespace incl. the non-breaking space in "€ 1,00"). */
 const text = (el) => el.textContent.replace(/\s+/g, " ").trim();
 
-module.exports = { fixture, loadPage, fakeBrowser, fakeScryfall, print, printing, text, CART_SCRIPTS, OFFER_SCRIPTS };
+module.exports = { fixture, loadPage, fakeBrowser, fakeScryfall, print, printing, text, CART_SCRIPTS, OFFER_SCRIPTS, WIZARD_SCRIPTS };
