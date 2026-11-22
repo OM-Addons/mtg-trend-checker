@@ -247,6 +247,7 @@ async function optionsPage(stored, { fail = false } = {}) {
   const listed = () => [...d.querySelectorAll("#setList label")].map(text);
   const chips = () => [...d.querySelectorAll("#chips button")].map(text);
   const click = async (id) => { d.getElementById(id).click(); await wait(); };
+  w.confirm = () => true; // "Reset to defaults?" (jsdom has no dialogs)
   return { w, d, calls, search, listed, chips, click, stored: () => w.browser.storage.local.data.settings };
 }
 
@@ -276,20 +277,20 @@ test("settings page: ticking a set adds a tag, saving stores it, the tag removes
   d.querySelector("#setList input[data-set=mh2]").click();
   assert.deepEqual(chips(), ["Modern Horizons 2 (MH2) ✕"]);
   d.querySelector("#categories input[data-category=promo]").click();
-  await click("save");
+  await wait();
   assert.deepEqual(plain([stored().excludedCategories, stored().excludedSets]), [["memorabilia", "promo"], ["mh2"]]);
   assert.match(text(d.getElementById("saved")), /Prices will be fetched again/);
 
   d.querySelector("#chips button").click();
   assert.deepEqual(chips(), []);
   assert.equal(d.querySelector("#setList input[data-set=mh2]").checked, false, "the list follows the tag");
-  await click("save");
+  await wait();
   assert.deepEqual(plain(stored().excludedSets), []);
 });
 
-test("settings page: saving without changing the skipped sets doesn't announce a refetch", async () => {
+test("settings page: changing something other than the skipped sets doesn't announce a refetch", async () => {
   const { d, click } = await optionsPage({ excludedSets: ["m10"] });
-  await click("save");
+  await click("englishOnly");
   assert.equal(text(d.getElementById("saved")), "Saved ✓");
 });
 
@@ -315,7 +316,7 @@ test("settings page: set list unavailable -> message, already skipped sets are k
   const { d, chips, click, stored } = await optionsPage({ excludedSets: ["sld"] }, { fail: true });
   assert.match(text(d.getElementById("setStatus")), /Couldn't load the set list/);
   assert.deepEqual(chips(), ["SLD ✕"]);
-  await click("save");
+  await click("englishOnly");
   assert.deepEqual(plain(stored().excludedSets), ["sld"]);
 });
 

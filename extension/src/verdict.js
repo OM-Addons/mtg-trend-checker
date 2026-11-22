@@ -4,7 +4,7 @@
  * the verdict texts and the overview box (bottom-right). */
 (function (root) {
   "use strict";
-  const { lookup, clearCache, trendSetText, fmtEuro: fmt, offButton, settingsButton, trendSourceSwitch } = root.CMC;
+  const { lookup, clearCache, trendSetText, fmtEuro: fmt, offButton, settingsButton, trendSourceSwitch, minimizeButton, addMiniBar } = root.CMC;
   const MARK = "data-cmc";
 
   /**
@@ -140,17 +140,15 @@
   function renderOverviewBox(o) {
     const box = cmcEl("div", "cmc-overview");
     const head = cmcEl("div", "cmc-overview-head", o.title);
-    const close = cmcEl("button", "cmc-btn", "×");
-    close.title = "Hide (this page only)";
-    close.onclick = () => box.remove();
     const buttons = cmcEl("span", "cmc-head-buttons");
-    buttons.append(offButton(o.restart), close);
+    buttons.append(minimizeButton(), offButton(o.restart));
     head.appendChild(buttons);
     box.appendChild(head);
     box.appendChild(trendSourceSwitch(o.source, o.restart));
 
     if (o.status) {
       box.appendChild(cmcEl("div", null, o.status));
+      addMiniBar(box, o.title, "Checking…");
     } else {
       const results = o.results || [];
       if (o.overall) box.appendChild(cmcEl("div", `cmc-overall ${textClass(o.overall.kind)}`, o.overall.text));
@@ -158,6 +156,8 @@
       const bad = results.filter((x) => x.r.worth === false);
       const unk = results.length - good.length - bad.length;
       box.appendChild(cmcEl("div", null, `${SYMBOL.good} ${good.length} worth it · ${SYMBOL.bad} ${bad.length} not · ${SYMBOL.unknown} ${unk} unknown`));
+      // Minimized: the counts only; on the wizard coloured like the overall verdict.
+      addMiniBar(box, o.title, `${SYMBOL.good} ${good.length} · ${SYMBOL.bad} ${bad.length} · ${SYMBOL.unknown} ${unk}`, o.overall ? textClass(o.overall.kind) : null);
       const list = cmcEl("ul", "cmc-list");
       for (const { s, r } of results) {
         const kind = verdictKind(r);

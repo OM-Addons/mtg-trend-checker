@@ -2,56 +2,122 @@
 <html>
 <head>
   <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MTG Trend Checker settings</title>
   <style>
-    body { font: 14px system-ui, sans-serif; padding: 12px 16px; max-width: 560px; }
-    h2 { font-size: 16px; margin: 0 0 8px; }
-    table { border-collapse: collapse; }
-    th { text-align: left; font-weight: 600; font-size: 12px; color: #555; }
-    th, td { padding: 4px 10px 4px 0; }
-    input[type=number] { width: 72px; }
-    input.invalid { outline: 2px solid #d93025; }
-    .range { color: #555; font-size: 12px; }
-    .hint { color: #666; font-size: 12px; }
-    #saved { color: #1e8e3e; margin-left: 8px; }
-    #error { color: #d93025; margin-left: 8px; }
-    #categories label, #setList label { display: block; margin: 2px 0; }
+    :root {
+      --green: #1e8e3e; --red: #d93025; --text: #222; --muted: #666; --line: #dcdcdc;
+      --card: #fff; --page: #f3f4f6; --field: #fff;
+    }
+    * { box-sizing: border-box; }
+    body { font: 14px/1.45 system-ui, sans-serif; margin: 0; padding: 16px; color: var(--text); background: var(--page); }
+    main { max-width: 600px; margin: 0 auto; }
+
+    header { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+    h1 { font-size: 19px; margin: 0; }
+    #version { color: var(--muted); font-size: 13px; }
+    header a { margin-left: auto; font-size: 13px; color: var(--green); }
+
+    .card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; margin-bottom: 14px; }
+    h2 { font-size: 16px; margin: 0 0 10px; }
+    h3 { font-size: 14px; margin: 16px 0 4px; }
+    h3:first-of-type { margin-top: 0; }
+    p { margin: 6px 0; }
+    .hint { color: var(--muted); font-size: 12px; }
+    .info { display: inline-block; width: 16px; height: 16px; line-height: 16px; text-align: center; border-radius: 50%;
+            background: #e6e8eb; color: #444; font-size: 11px; font-style: normal; cursor: help; margin-left: 2px; }
+
+    .choices { display: grid; gap: 4px; margin: 4px 0; }
+    .choices label, #categories label, #setList label { display: flex; gap: 6px; align-items: baseline; }
+    #categories { display: grid; gap: 2px; margin: 4px 0 8px; }
+
+    input[type=number], input[type=search] { font: inherit; color: var(--text); background: var(--field); border: 1px solid #bbb; border-radius: 5px; padding: 3px 6px; }
+    input[type=number] { width: 76px; }
+    input[type=search] { width: 100%; max-width: 320px; }
+    input.invalid { outline: 2px solid var(--red); outline-offset: 1px; }
+    input[type=radio], input[type=checkbox] { accent-color: var(--green); }
+
+    button { font: inherit; color: var(--text); background: #f7f7f7; border: 1px solid #bbb; border-radius: 6px; padding: 3px 12px; cursor: pointer; }
+    button:hover:not(:disabled) { background: #ececec; }
+    button:disabled { opacity: 0.45; cursor: default; }
+    button.remove { padding: 1px 7px; }
+
+    table { border-collapse: collapse; margin: 6px 0; }
+    th { text-align: left; font-weight: 600; font-size: 12px; color: var(--muted); }
+    th, td { padding: 3px 10px 3px 0; }
+    .range { color: var(--muted); font-size: 12px; }
+
     #chips { display: flex; flex-wrap: wrap; gap: 4px; margin: 6px 0; }
-    #chips button { font-size: 12px; border: 1px solid #999; border-radius: 12px; padding: 1px 8px; background: none; color: inherit; cursor: pointer; }
-    #setSearch { width: 260px; }
+    #chips button { font-size: 12px; border-radius: 12px; padding: 1px 9px; background: #e9f6ec; border-color: #9cd3ab; }
     #setList { max-height: 220px; overflow-y: auto; margin-top: 4px; }
+    #error { color: var(--red); font-size: 13px; }
+
+    footer { display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: 12px; }
+    #saved { position: fixed; right: 16px; bottom: 16px; background: var(--green); color: #fff; border-radius: 6px; padding: 4px 12px;
+             font-size: 13px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2); }
+    #saved:empty { display: none; }
   </style>
 </head>
 <body>
-  <h2>Compare with</h2>
-  <p>
-    <label><input type="radio" name="trendSource" value="cheapestEnglish"> Cheapest English printing: the lowest trend of all English printings of the card</label><br>
-    <label><input type="radio" name="trendSource" value="printing"> This printing: the trend of the exact printing on offer (foil trend for foils)</label>
-  </p>
-  <p class="hint">Used on the cart and on seller pages. You can also switch at the top of the overview box. With "This printing", cards without a trend for that printing (or offers without a product ID) count as having no trend.</p>
-  <h2>Cheapest English printing: skip these printings</h2>
-  <p class="hint">Only used with "Cheapest English printing". If a skipped printing was cheaper, the note says so, e.g. "(M10, 1 cheaper filtered)". If every printing of a card is skipped, its cheapest one is used anyway and the note says "excluded set".</p>
-  <div id="categories"></div>
-  <p><label for="setSearch">Sets:</label> <input type="search" id="setSearch" placeholder="Search by name or code" autocomplete="off"></p>
-  <div id="chips"></div>
-  <p class="hint" id="setStatus"></p>
-  <div id="setList"></div>
-  <h2>Seller offer pages: deals</h2>
-  <p>
-    <label><input type="radio" name="dealMode" value="ranges"> Use my price ranges (below)</label><br>
-    <label><input type="radio" name="dealMode" value="anyUnder"> Any card under trend: checks every offer and ignores the ranges</label>
-  </p>
-  <p class="hint">You can also switch between these two at the top of the overview box on a seller page.</p>
-  <p class="hint">An offer is flagged when it is at least this much cheaper than the trend price (see "Compare with" above). Each range starts at its price and runs until the next range starts.</p>
-  <table>
-    <thead><tr><th>From</th><th>Deal at</th><th>Range</th><th></th></tr></thead>
-    <tbody id="brackets"></tbody>
-  </table>
-  <p><button id="add">+ Add range</button></p>
-  <p class="hint" id="ignored"></p>
-  <p><label><input type="checkbox" id="englishOnly"> Only check English offers</label></p>
-  <p><button id="save">Save</button> <button id="reset">Reset to defaults</button><span id="saved"></span><span id="error"></span></p>
-  <p class="hint"><a href="../changelog/changelog.html" id="whatsnew" target="_blank">What's new</a></p>
-  <script src="../src/settings.js"></script>
-  <script src="options.js"></script>
+<main>
+  <header>
+    <h1>MTG Trend Checker</h1>
+    <span id="version"></span>
+    <a href="../changelog/changelog.html" id="whatsnew" target="_blank">What's new</a>
+  </header>
+
+  <section class="card">
+    <h2>Seller pages</h2>
+    <h3>Deals</h3>
+    <div class="choices">
+      <label><input type="radio" name="dealMode" value="ranges"> <span>My price ranges <span class="hint">below</span></span></label>
+      <label><input type="radio" name="dealMode" value="anyUnder"> <span>Any card under trend <span class="hint">checks every offer, ignores the ranges</span></span></label>
+    </div>
+    <p class="hint">Also switchable in the overview box on a seller page.</p>
+
+    <h3>Price ranges</h3>
+    <p class="hint">A deal is an offer at least this much under trend.
+      <span class="info" tabindex="0" title="Each range starts at its price and runs until the next range starts. The trend is the one chosen under &quot;Compare with&quot; below.">i</span></p>
+    <table>
+      <thead><tr><th>From</th><th>Deal at</th><th>Range</th><th></th></tr></thead>
+      <tbody id="brackets"></tbody>
+    </table>
+    <p id="error" role="alert"></p>
+    <p><button id="add" type="button">+ Add range</button></p>
+    <p class="hint" id="ignored"></p>
+
+    <h3>Languages</h3>
+    <label><input type="checkbox" id="englishOnly"> Only check English offers</label>
+  </section>
+
+  <section class="card">
+    <h2>Trend price</h2>
+    <h3>Compare with</h3>
+    <div class="choices">
+      <label><input type="radio" name="trendSource" value="cheapestEnglish"> <span>Cheapest English printing <span class="hint">the lowest trend of all English printings</span></span></label>
+      <label><input type="radio" name="trendSource" value="printing"> <span>This printing <span class="hint">the exact printing on offer (foil trend for foils)</span></span></label>
+    </div>
+    <p class="hint">Cart, wizard and seller pages. Also switchable in the overview box.
+      <span class="info" tabindex="0" title="With &quot;This printing&quot;, cards without a trend for that printing (or offers without a product ID) count as having no trend.">i</span></p>
+
+    <h3>Skip these printings</h3>
+    <p class="hint">Only used with "Cheapest English printing".
+      <span class="info" tabindex="0" title="Skipped printings don't count for the cheapest. If a skipped printing was cheaper, the note says so, e.g. &quot;(M10, 1 cheaper filtered)&quot;. If every printing of a card is skipped, its cheapest one is used anyway and the note says &quot;excluded set&quot;.">i</span></p>
+    <div id="categories"></div>
+    <label for="setSearch" class="hint">Sets</label><br>
+    <input type="search" id="setSearch" placeholder="Search by name or code" autocomplete="off">
+    <div id="chips"></div>
+    <p class="hint" id="setStatus"></p>
+    <div id="setList"></div>
+  </section>
+
+  <footer>
+    <button id="reset" type="button">Reset to defaults</button>
+    <span>Changes are saved automatically.</span>
+  </footer>
+</main>
+<div id="saved" role="status"></div>
+<script src="../src/settings.js"></script>
+<script src="options.js"></script>
 </body>
 </html>

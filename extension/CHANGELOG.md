@@ -1,6 +1,9 @@
 # Changelog
 
 ## Unreleased
+- **Minimize the overview box:** the new **–** button shrinks the box to one line with a short summary (e.g. "🔥 3 deals" or "✅ 2 · ❌ 1 · ⚠️ 0"). Click the line to get the full box back. It stays minimized on every page until you restore it. The × button is gone.
+- **New look for the settings page:** grouped into "Seller pages" and "Trend price", shorter explanations (hover over **i** for details) and the version at the top.
+- **Settings save themselves:** no more Save button, every change is saved right away. A wrong price range is marked red and not saved until you fix it. "Reset to defaults" now asks first.
 
 ## 2.1.0 - 2026-11-22
 - **Settings button on the cart and shopping wizard pages:** the overview box there now has a **Settings** button too, like on seller pages.

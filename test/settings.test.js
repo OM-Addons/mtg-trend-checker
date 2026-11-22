@@ -90,7 +90,7 @@ test("rangeLabel shows where each range ends", () => {
 test("settings from older versions (three fixed percentages) become brackets", () => {
   const { migrate } = cmc();
   assert.deepEqual(plain(migrate({ pctLow: 30, pctMid: 20, pctHigh: 12, englishOnly: false, desktopNotify: true })), {
-    brackets: [{ from: 1, pct: 30 }, { from: 3, pct: 20 }, { from: 5, pct: 12 }], dealMode: "ranges", trendSource: "cheapestEnglish", englishOnly: false, enabled: true,
+    brackets: [{ from: 1, pct: 30 }, { from: 3, pct: 20 }, { from: 5, pct: 12 }], dealMode: "ranges", trendSource: "cheapestEnglish", englishOnly: false, enabled: true, minimized: false,
     excludedCategories: ["memorabilia"], excludedSets: [],
   });
   assert.deepEqual(plain(migrate({ pctMid: 18 }).brackets), [{ from: 1, pct: 25 }, { from: 3, pct: 18 }, { from: 5, pct: 10 }]);
@@ -106,7 +106,7 @@ test("getSettings migrates what is in storage, saveSettings stores sorted bracke
   assert.deepEqual(plain(s.brackets), [{ from: 1, pct: 30 }, { from: 3, pct: 20 }, { from: 5, pct: 12 }]);
   await saveSettings({ ...s, brackets: [{ from: 4, pct: 1 }, { from: 0.5, pct: 2 }] });
   assert.deepEqual(browser.storage.local.data.settings, {
-    brackets: [{ from: 0.5, pct: 2 }, { from: 4, pct: 1 }], dealMode: "ranges", trendSource: "cheapestEnglish", englishOnly: true, enabled: true,
+    brackets: [{ from: 0.5, pct: 2 }, { from: 4, pct: 1 }], dealMode: "ranges", trendSource: "cheapestEnglish", englishOnly: true, enabled: true, minimized: false,
     excludedCategories: ["memorabilia"], excludedSets: [],
   });
 });
@@ -177,8 +177,12 @@ async function optionsPage(stored) {
   }));
   /** Type into a field like a user would (fires the input event the page listens to). */
   const type = (input, value) => { input.value = value; input.dispatchEvent(new w.Event("input", { bubbles: true })); };
-  const click = async (id) => { d.getElementById(id).click(); await new Promise((r) => setTimeout(r, 10)); };
-  return { w, d, rows, type, click, stored: () => w.browser.storage.local.data.settings };
+  const settle = () => new Promise((r) => setTimeout(r, 10));
+  /** Type and leave the field: fires "change", which saves. */
+  const commit = async (input, value) => { type(input, value); input.dispatchEvent(new w.Event("change", { bubbles: true })); await settle(); };
+  const click = async (id) => { d.getElementById(id).click(); await settle(); };
+  w.confirm = () => true; // "Reset to defaults?" (jsdom has no dialogs)
+  return { w, d, rows, type, commit, click, settle, stored: () => w.browser.storage.local.data.settings };
 }
 
 test("settings page shows the ranges with labels and explains what is ignored", async () => {
@@ -217,41 +221,77 @@ test("settings page: add is disabled at the maximum number of ranges", async () 
   assert.equal(d.getElementById("add").disabled, true);
 });
 
-test("settings page: save stores the ranges sorted and shows them sorted", async () => {
-  const { d, rows, type, click, stored } = await optionsPage();
-  type(d.querySelectorAll(".from")[0], "8");
-  type(d.querySelectorAll(".pct")[0], "7");
-  d.getElementById("englishOnly").checked = false;
-  await click("save");
+test("settings page: has no Save button, shows the version and says changes save themselves", async () => {
+  const { d } = await optionsPage();
+  assert.equal(d.getElementById("save"), null);
+  assert.match(text(d.querySelector("header")), /MTG Trend Checker\s*\d+\.\d+\.\d+/);
+  assert.match(text(d.body), /Changes are saved automatically/);
+});
+
+test("settings page: Seller pages comes first, Trend price below it (owner's wish)", async () => {
+  const { d } = await optionsPage();
+  assert.deepEqual([...d.querySelectorAll("section.card h2")].map(text), ["Seller pages", "Trend price"]);
+});
+
+test("settings page: every change saves itself, ranges are sorted when you leave the field", async () => {
+  const { d, rows, commit, settle, stored } = await optionsPage();
+  await commit(d.querySelectorAll(".from")[0], "8");
+  assert.deepEqual(rows().map((r) => r.from), ["3", "5", "8"], "sorted once the field is left");
+  await commit(d.querySelectorAll(".pct")[2], "7");
+  d.getElementById("englishOnly").click();
+  await settle();
   assert.deepEqual(stored(), {
-    brackets: [{ from: 3, pct: 15 }, { from: 5, pct: 10 }, { from: 8, pct: 7 }], dealMode: "ranges", trendSource: "cheapestEnglish", englishOnly: false, enabled: true,
+    brackets: [{ from: 3, pct: 15 }, { from: 5, pct: 10 }, { from: 8, pct: 7 }], dealMode: "ranges", trendSource: "cheapestEnglish", englishOnly: false, enabled: true, minimized: false,
     excludedCategories: ["memorabilia"], excludedSets: [],
   });
   assert.deepEqual(rows().map((r) => r.from), ["3", "5", "8"]);
   assert.equal(text(d.getElementById("saved")), "Saved ✓");
 });
 
-test("settings page: invalid input shows an error on the page and saves nothing", async () => {
-  const { d, type, click, stored } = await optionsPage();
-  type(d.querySelectorAll(".pct")[1], "120");
-  await click("save");
-  assert.equal(text(d.getElementById("error")), "Percentages must be between 0 and 100.");
+test("settings page: invalid ranges are marked and not saved, other changes still are", async () => {
+  const { d, commit, settle, stored } = await optionsPage({ brackets: [{ from: 1, pct: 25 }, { from: 3, pct: 15 }, { from: 5, pct: 10 }] });
+  const before = JSON.parse(JSON.stringify(stored().brackets));
+  await commit(d.querySelectorAll(".pct")[1], "120");
+  assert.match(text(d.getElementById("error")), /^Percentages must be between 0 and 100\. Your ranges aren't saved until this is fixed\.$/);
   assert.ok(d.querySelectorAll(".pct")[1].classList.contains("invalid"));
-  assert.equal(stored(), undefined);
+  assert.deepEqual(stored().brackets, before);
 
-  type(d.querySelectorAll(".pct")[1], "15");
-  type(d.querySelectorAll(".from")[2], "1");
-  await click("save");
+  d.getElementById("englishOnly").click(); // still saved while the ranges are wrong
+  await settle();
+  assert.equal(stored().englishOnly, false);
+  assert.deepEqual(stored().brackets, before);
+
+  await commit(d.querySelectorAll(".pct")[1], "15");
+  await commit(d.querySelectorAll(".from")[2], "1");
   assert.match(text(d.getElementById("error")), /Two ranges start at € 1,00/);
   assert.ok(d.querySelectorAll(".from")[2].classList.contains("invalid"));
-  assert.equal(stored(), undefined);
+  assert.deepEqual(stored().brackets, before);
+
+  await commit(d.querySelectorAll(".from")[2], "6");
+  assert.equal(text(d.getElementById("error")), "", "fixed: the error goes away");
+  assert.deepEqual(stored().brackets, [{ from: 1, pct: 25 }, { from: 3, pct: 15 }, { from: 6, pct: 10 }]);
 });
 
-test("settings page: reset restores the three default ranges", async () => {
-  const { rows, click, stored } = await optionsPage({ brackets: [{ from: 0, pct: 50 }], englishOnly: false });
+test("settings page: adding and removing a range saves", async () => {
+  const { d, click, settle, stored } = await optionsPage();
+  await click("add");
+  assert.equal(stored().brackets.length, 4);
+  d.querySelectorAll(".remove")[0].click();
+  await settle();
+  assert.deepEqual(stored().brackets.map((b) => b.from), [3, 5, 10]);
+});
+
+test("settings page: reset restores the three default ranges, after asking", async () => {
+  const { w, rows, click, stored } = await optionsPage({ brackets: [{ from: 0, pct: 50 }], englishOnly: false, enabled: false, minimized: true });
+  w.confirm = () => false;
+  await click("reset");
+  assert.deepEqual(stored().brackets, [{ from: 0, pct: 50 }], "cancelled: nothing changes");
+  w.confirm = () => true;
   await click("reset");
   assert.deepEqual(rows().map((r) => [r.from, r.pct]), [["1", "25"], ["3", "15"], ["5", "10"]]);
   assert.deepEqual(stored().brackets, [{ from: 1, pct: 25 }, { from: 3, pct: 15 }, { from: 5, pct: 10 }]);
+  assert.equal(stored().enabled, false, "on/off is the overview box's switch: kept");
+  assert.equal(stored().minimized, true, "minimized too");
 });
 
 // ---------------------------------------------------------------------------
@@ -349,14 +389,12 @@ test("discounts under 1% show as <1%, not 0%", async () => {
 });
 
 test("settings page: mode radios load, save, and change the ignored text", async () => {
-  const { d, click, stored } = await optionsPage({ brackets: DEFAULT_BRACKETS, dealMode: "anyUnder", englishOnly: true });
+  const { d, settle, stored } = await optionsPage({ brackets: DEFAULT_BRACKETS, dealMode: "anyUnder", englishOnly: true });
   assert.equal(d.querySelector("input[name=dealMode]:checked").value, "anyUnder");
   assert.match(text(d.getElementById("ignored")), /every offer is checked and the ranges aren't used/);
-  const ranges = d.querySelector("input[value=ranges]");
-  ranges.checked = true;
-  ranges.dispatchEvent(new d.defaultView.Event("change"));
+  d.querySelector("input[value=ranges]").click();
   assert.match(text(d.getElementById("ignored")), /Offers under € 1,00 are ignored/);
-  await click("save");
+  await settle();
   assert.equal(stored().dealMode, "ranges");
 });
 
@@ -368,10 +406,10 @@ test("trendSource: defaults to cheapest English, anything unknown falls back to 
 });
 
 test("settings page: 'Compare with' radios load and save", async () => {
-  const { d, click, stored } = await optionsPage({ brackets: DEFAULT_BRACKETS, trendSource: "printing" });
+  const { d, settle, stored } = await optionsPage({ brackets: DEFAULT_BRACKETS, trendSource: "printing" });
   assert.equal(d.querySelector("input[name=trendSource]:checked").value, "printing");
-  d.querySelector("input[name=trendSource][value=cheapestEnglish]").checked = true;
-  await click("save");
+  d.querySelector("input[name=trendSource][value=cheapestEnglish]").click();
+  await settle();
   assert.equal(stored().trendSource, "cheapestEnglish");
   assert.equal(stored().dealMode, "ranges", "other settings are kept");
 });

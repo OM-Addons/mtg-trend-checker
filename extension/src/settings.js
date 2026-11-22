@@ -25,6 +25,7 @@
     trendSource: "cheapestEnglish",
     englishOnly: true,    // only check offers whose card language is English
     enabled: true,         // off (the switch in the overview box): no checks on any Cardmarket page
+    minimized: false,      // overview box shrunk to one line (its "–" button), on every page until restored
     // "Cheapest English printing" skips printings in these categories (SET_CATEGORIES ids)
     // and sets (lowercase Scryfall set codes). Memorabilia is skipped by default (owner's choice).
     excludedCategories: ["memorabilia"],
@@ -168,6 +169,7 @@
     // Only known keys are returned, so old ones (pctLow…, desktopNotify before 1.4) drop out on the next save.
     return {
       brackets: s.brackets, dealMode, trendSource, englishOnly: !!s.englishOnly, enabled: s.enabled !== false,
+      minimized: s.minimized === true,
       // Settings saved before this feature have neither key: they get the defaults (Memorabilia skipped).
       excludedCategories: normalizeCategories(s.excludedCategories),
       excludedSets: normalizeSetCodes(s.excludedSets),

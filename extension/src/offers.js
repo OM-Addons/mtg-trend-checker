@@ -4,7 +4,7 @@
  * the printing on offer: settings.trendSource). */
 (function (root) {
   "use strict";
-  const { parseEuro, allEuros, cleanName, isFoil, lookup, clearCache, trendSetText, exclusionOf, getSettings, saveSettings, requiredDiscount, ignoredBelow, offButton, renderOffBox, settingsButton, toggleRow, trendSourceSwitch } = root.CMC;
+  const { parseEuro, allEuros, cleanName, isFoil, lookup, clearCache, trendSetText, exclusionOf, getSettings, saveSettings, requiredDiscount, ignoredBelow, offButton, renderOffBox, settingsButton, toggleRow, trendSourceSwitch, trackMinimized, minimizeButton, addMiniBar, migrate } = root.CMC;
 
   const MARK = "data-cmc";
   /** @param {number | null | undefined} n */
@@ -164,17 +164,18 @@
   function renderOverview(deals, status, stats) {
     const box = el("div", "cmc-overview");
     const head = el("div", "cmc-overview-head", "Under-trend deals");
-    const close = el("button", "cmc-btn", "×");
-    close.title = "Hide (this page only)";
-    close.onclick = () => box.remove();
     const buttons = el("span", "cmc-head-buttons");
-    buttons.append(offButton(restart), close);
+    buttons.append(minimizeButton(), offButton(restart));
     head.appendChild(buttons);
     box.appendChild(head);
     box.appendChild(modeSwitch());
     box.appendChild(trendSourceSwitch(currentSource, restart));
-    if (status) box.appendChild(el("div", null, status));
-    else {
+    if (status) {
+      box.appendChild(el("div", null, status));
+      // "Looking up…" while checking; any other status is a problem worth opening the box for.
+      addMiniBar(box, "Under-trend deals", /^Looking up/.test(status) ? "Checking…" : "⚠️ see details");
+    } else {
+      addMiniBar(box, "Under-trend deals", deals.length ? `🔥 ${deals.length} deal${deals.length === 1 ? "" : "s"}` : "No deals", deals.length ? "cmc-good-text" : null);
       box.appendChild(el("div", null, deals.length ? `${deals.length} deal(s) on this page` : "No deals on this page"));
       if (stats) {
         // In "any under trend" mode every under-trend card is a deal, so "under trend" would always be 0.
@@ -253,6 +254,7 @@
     try {
       removeOld();
       const settings = await getSettings();
+      trackMinimized(settings);
       currentMode = settings.dealMode;
       currentSource = settings.trendSource;
       const byPrinting = settings.trendSource === "printing";
@@ -321,6 +323,12 @@
       clearTimeout(timer);
       timer = setTimeout(() => { if (sig() !== lastSig) run(); }, 800);
     }).observe(document.body, { childList: true, subtree: true });
-    if (typeof browser !== "undefined") browser.storage.onChanged.addListener((c) => { if (c.settings) restart(); });
+    // Settings changed (here or in another tab): check again, except when only the box was
+    // minimized or restored (onoff.js shows that without a new check).
+    if (typeof browser !== "undefined") browser.storage.onChanged.addListener((c) => {
+      if (!c.settings) return;
+      const strip = (/** @type {unknown} */ v) => JSON.stringify({ ...migrate(v), minimized: false });
+      if (strip(c.settings.oldValue) !== strip(c.settings.newValue)) restart();
+    });
   }
 })(typeof globalThis !== "undefined" ? globalThis : window);
