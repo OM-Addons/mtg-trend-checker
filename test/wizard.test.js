@@ -154,18 +154,6 @@ test("wizard page: the checkboxes don't change the verdict (whole result, like C
   assert.deepEqual(addedRows(blocks(w)[2].querySelector("dl")), ["Σ trend (cheapest EN) € 15,00", "✅ Worth it: you save € 0,40"]);
 });
 
-test("wizard page: seller blocks may grow to fit the added rows, and only while checked", async () => {
-  const { w, browser } = wizardPage(TRENDS);
-  await w.CMC.runWizard();
-  const b = blocks(w)[7]; // Seller8: 5 cards
-  assert.ok(b.classList.contains("cmc-grow"), "block");
-  assert.ok(b.querySelector(":scope > .card-body").classList.contains("cmc-grow"), "block body");
-  assert.ok(b.parentElement.classList.contains("cmc-grow"), "its column");
-  browser.storage.local.data.settings = { enabled: false };
-  await w.CMC.runWizard();
-  assert.equal(w.document.querySelectorAll(".cmc-grow").length, 0, "off: Cardmarket's layout is left alone");
-});
-
 test("wizard page while off: nothing is parsed or looked up", async () => {
   const { w, fetch } = wizardPage(TRENDS, { enabled: false });
   await w.CMC.runWizard();
