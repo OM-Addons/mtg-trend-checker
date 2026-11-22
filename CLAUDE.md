@@ -71,6 +71,7 @@ npm run build        # unsigned zip in dist/
 
 ## Conventions
 
+- **Ask about new features until they're fully clear, before building anything** (owner's wish). When the owner asks for a new feature (or a change to how an existing one behaves), don't start coding until you understand it completely. Ask questions in rounds (use `AskUserQuestion`, a few focused questions per round, with a recommended option where you have one) about whatever is still unclear: what exactly should happen, on which pages, edge cases (no trend, foils, non-English, < €1, empty pages), how it interacts with the business rules above and existing settings, whether it needs a setting and what the default is, UI text and placement, and what's out of scope. Keep asking until nothing is left to guess, then sum up your understanding in a few lines and get the owner's OK before writing code. Small bug fixes and clearly specified tasks don't need this.
 - **No build step, no framework, no dependencies in the extension.** Ask before introducing any.
 - Every file starts with `// @ts-check`. Add JSDoc types to new functions. When a shared data shape changes, update `types/globals.d.ts`.
 - Element IDs/classes added to Cardmarket pages are prefixed `cmc-`, and every injected node gets `data-cmc` so a re-run can remove it.
