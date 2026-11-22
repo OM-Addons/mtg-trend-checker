@@ -26,6 +26,11 @@
           "version": "2.0.1",
           "update_link": "https://github.com/OM-Addons/mtg-trend-checker/releases/download/v2.0.1/mtg-trend-checker-2.0.1.xpi",
           "update_hash": "sha256:03dcc7f04c08ba83144b61bd118fc405b15817bedfde83e3b107ba1f810191ee"
+        },
+        {
+          "version": "2.1.0",
+          "update_link": "https://github.com/OM-Addons/mtg-trend-checker/releases/download/v2.1.0/mtg-trend-checker-2.1.0.xpi",
+          "update_hash": "sha256:80302fe6fbcadd62b024560bdc6e050198e8f29ba5c596f2085780ea3358f83c"
         }
       ]
     }
