@@ -1,6 +1,9 @@
 # Changelog
 
 ## Unreleased
+- **Easier to read for colour-blind users:** the seller list in the overview box (cart and shopping wizard) now shows ✅ / ❌ / ⚠️ in front of each seller, not just green and red.
+- Removed the green/red bar on each card's price (cart): it only used colour, and the note under the card already shows the trend.
+- **Shopping wizard results:** the cart's ✅ worth it / ❌ not worth it check now also appears in the wizard results. Each seller block shows the summed trend and whether it's worth it, and the Results Summary does the same for the whole result. Cards get their trend notes, and the overview box lists the sellers.
 - **Compare with this printing:** a new switch in the overview box (cart and seller pages), **Cheapest EN** / **This printing**. "This printing" compares with the trend of the exact printing on offer instead of the cheapest English one, and foils with their foil trend. Cards without a trend for that printing show up as "couldn't be priced" (or make a cart seller "incomplete"). The choice is remembered, and it's also in the settings.
 
 ## 2.0.1 - 2026-11-21

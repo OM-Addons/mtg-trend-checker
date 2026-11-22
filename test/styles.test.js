@@ -17,6 +17,11 @@ function rule(selector) {
 // Buttons get the system colour ButtonText, which is near-white with a dark
 // Firefox/OS theme. Our buttons have a light background, so they must set
 // their own text colour or the labels become invisible.
+test(".cmc-unmasonry fallback turns Masonry's absolute positions off", () => {
+  assert.match(rule(".cmc-unmasonry"), /(^|;|\s)height\s*:\s*auto\s*!important/);
+  assert.match(rule(".cmc-unmasonry > *"), /position\s*:\s*static\s*!important/);
+});
+
 test(".cmc-btn sets its own text colour (readable with a dark Firefox theme)", () => {
   assert.match(rule(".cmc-btn"), /(^|;|\s)color\s*:/);
 });

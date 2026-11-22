@@ -43,6 +43,24 @@ test("real cart: verdict per seller", async () => {
   assert.ok(panels[1].classList.contains("cmc-bad"), text(panels[1]));
 });
 
+test("real cart: no coloured price bars on the cards (removed at the owner's request: colour only)", async () => {
+  const { w } = realCart();
+  await w.CMC.run();
+  assert.equal(w.document.querySelectorAll(".cmc-note").length, 2, "the notes are still there");
+  assert.equal(w.document.querySelectorAll("[class*='cmc-row-']").length, 0);
+});
+
+test("real cart: the overview doesn't rely on colour alone (symbols for colour-blind users)", async () => {
+  const { w } = realCart();
+  await w.CMC.run();
+  const box = w.document.querySelector(".cmc-overview");
+  assert.deepEqual([...box.querySelectorAll(".cmc-list li")].map(text), [
+    "✅ Seller1: € 6,24 vs € 7,00",
+    "❌ Seller2: € 8,55 vs € 8,00",
+  ]);
+  assert.match(text(box), /✅ 1 worth it · ❌ 1 not · ⚠️ 0 unknown/);
+});
+
 // ---------------------------------------------------------------------------
 // Seller page (real-offers-list.html): 20 English offers, only 3 at €1 or more,
 // all three with a product id in the thumbnail. Rows whose image is

@@ -11,7 +11,9 @@ Firefox extension that compares Magic: The Gathering prices on cardmarket.com wi
 **Cart page** (`/Magic/ShoppingCart`), per seller:
 - Worth it ⇔ seller total incl. shipping and fees **<** Σ (quantity × trend). Strictly lower: equal is *not* worth it.
 - If a card has no trend, the seller is "incomplete" (yellow), never green.
-- Per card: note with the trend and its set; thin green/red bar on the price cell.
+- Per card: note with the trend and its set. No coloured bar on the price (removed at the owner's request: colour-only signals are unreadable for colour-blind users; don't add colour-only cues, pair colour with ✅/❌/⚠️ or text).
+
+**Shopping wizard results** (`/Magic/Wants/ShoppingWizard/Results/…`): the cart's rule per seller block (Cardmarket's block Total incl. shipping **<** Σ quantity × trend; missing trend → incomplete) **and overall** (Results Summary grand Total vs Σ of all cards). Shown as two extra rows in Cardmarket's own `<dl>` lists (Σ trend + verdict), a coloured edge on each block, the cart's per-card notes, and the overview box (overall line, counts, seller list, switches). The card checkboxes are **ignored** (owner's decision: whole result, like Cardmarket's Total). Price column is read as per copy unless "Articles Value" says it's per line (only quantity 1 seen so far). Cardmarket stacks the blocks with **Masonry** (absolute positions measured once at load), so after adding or removing rows `relayout()` calls the page's `Masonry.data(grid).layout()` via `wrappedJSObject` (Firefox); if that fails, `cmc-unmasonry` turns the absolute positioning off. Without this the blocks overlap.
 
 **Seller offer pages** (`/Magic/Users/<seller>/Offers/Singles`), per offer, by the **offer price**:
 | Offer price | Deal when at least this % under trend (default brackets) |
@@ -39,7 +41,9 @@ extension/            ← exactly what Firefox loads (no build step)
   src/prices.js       Scryfall lookups, request queue, 24h cache
   src/settings.js     defaults, storage, price brackets (requiredDiscount)
   src/onoff.js        overview-box switches shared by cart and seller pages: on/off, trend source (toggleRow)
-  src/content.js      cart page: evaluate + render
+  src/verdict.js      "worth it" shared by cart and wizard: evaluate, lookups, card notes, overview box
+  src/content.js      cart page: verdict panels
+  src/wizard.js       shopping wizard results: parse blocks + summary, add verdict rows
   src/offers.js       seller pages: parse rows, judge, render, re-run on DOM changes
   src/background.js   opens the settings page
   src/styles.css      all injected styles (classes prefixed `cmc-`)
@@ -56,7 +60,7 @@ updates.json          self-hosted update manifest (written by the release workfl
 .claude/skills/release/  how to set up CI/signing and ship a version
 ```
 
-Scripts are **classic scripts, not modules**: they share code through the global `CMC` object (`root.CMC = Object.assign(root.CMC || {}, {...})`). Load order in `manifest.json` matters (parse → prices → settings → onoff → page script, on both pages). `test/helpers.js` has `CART_SCRIPTS`/`OFFER_SCRIPTS`, which **must mirror the manifest** (a test checks this).
+Scripts are **classic scripts, not modules**: they share code through the global `CMC` object (`root.CMC = Object.assign(root.CMC || {}, {...})`). Load order in `manifest.json` matters (parse → prices → settings → onoff → (verdict →) page script; verdict.js on the cart and wizard pages). `test/helpers.js` has `CART_SCRIPTS`/`OFFER_SCRIPTS`/`WIZARD_SCRIPTS`, which **must mirror the manifest** (a test checks this).
 
 ## Commands
 
@@ -90,8 +94,9 @@ npm run build        # unsigned zip in dist/
 
 ## Cardmarket pages (the fragile part)
 
-- Claude **cannot open Cardmarket** (it needs the owner's login) and can't see the real HTML. Cart selectors are in `parseCart` (`parse.js`); seller-page selectors in `parseOffers`, `priceOfRow` and `detectLanguage` (`offers.js`). The offer parser anchors on `a[href*='/Products/Singles/']` and walks up to the row (`.article-row` div, or a `<tr>` as a fallback). Seller pages have only one layout (owner confirmed); `offers-table.html` is a hand-made `<table>` variant kept as a robustness test.
+- Claude **cannot open Cardmarket** (it needs the owner's login) and can't see the real HTML. Cart selectors are in `parseCart` (`parse.js`); wizard selectors in `parseWizard` (`wizard.js`: `.detailed-result-card` blocks, `#ShoppingWizardResult dl`, desktop `td.card-name` rows; totals are the largest amount in a `<dl>`, so they don't depend on the site language); seller-page selectors in `parseOffers`, `priceOfRow` and `detectLanguage` (`offers.js`). The offer parser anchors on `a[href*='/Products/Singles/']` and walks up to the row (`.article-row` div, or a `<tr>` as a fallback). Seller pages have only one layout (owner confirmed); `offers-table.html` is a hand-made `<table>` variant kept as a robustness test.
 - **Fixtures**: `test/fixtures/real-*.html` are real saved pages (cart; seller page), anonymised; the others are hand-made and cover edge cases. When something breaks on the real site: ask the owner to save the page (Ctrl+S → "Web Page, HTML only") into `incoming-pages/` (git-ignored, raw pages never get committed), turn it into a fixture with `scripts/clean-page.js` (see `test/fixtures/README.md`), check the result yourself for personal data (name, address, username, e-mail, order numbers), write a failing test, then fix the parser. Never print personal data from raw pages in the chat.
+- The wizard page also renders every card twice (desktop table + `.d-md-none` mobile copy); `parseWizard` uses the desktop rows. `clean-page.js` replaces the owner's country in shipping tooltips with `[country]`.
 - Cardmarket renders every cart row twice (desktop table + mobile copy in `.d-lg-none`); `parseCart` must count each card once. Rows without a card image have **no product ID** in the HTML (name lookup is the fallback).
 - After any parser change, ask the owner to test in the browser (`npm start`, or reload in `about:debugging`) and check the card-name tooltips.
 
