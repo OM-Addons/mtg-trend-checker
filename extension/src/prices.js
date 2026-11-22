@@ -124,11 +124,24 @@
     return v;
   }
 
-  /** @param {string} oracleId @returns {Promise<Omit<TrendInfo, "url"> | null>} */
-  async function cheapestEnglishTrend(oracleId) {
+  /** Same skipped sets -> same text, whatever order they were ticked in. @param {Exclusion | undefined} ex */
+  function exclusionKey(ex) {
+    return ex ? `${[...ex.types].sort().join(",")}|${[...ex.sets].sort().join(",")}` : "|";
+  }
+
+  /**
+   * Cheapest English paper printing, skipping the printings in `exclude`. The cache entry
+   * remembers which sets were skipped (`sig`): after the user changes the selection it no
+   * longer matches, so the card is fetched again (prices are only cached for 24 h anyway).
+   * Entries from before this feature have no `sig` and are refetched too.
+   * @param {string} oracleId @param {Exclusion} [exclude]
+   * @returns {Promise<Omit<TrendInfo, "url"> | null>}
+   */
+  async function cheapestEnglishTrend(oracleId, exclude) {
     const key = `cmc:oracle:${oracleId}`;
+    const sig = exclusionKey(exclude);
     const cached = await cacheGet(key);
-    if (cached !== undefined) return cached;
+    if (cached && cached.sig === sig) return cached.v;
 
     const q = `oracleid:${oracleId} lang:en game:paper`;
     let url = `${API}/cards/search?q=${encodeURIComponent(q)}&unique=prints&order=released&dir=asc`;
@@ -140,8 +153,17 @@
       url = data.has_more ? data.next_page : null;
     }
 
+    const types = exclude ? exclude.types : [];
+    const sets = exclude ? exclude.sets : [];
+    /** @param {any} p */
+    const isExcluded = (p) => types.includes(p.set_type) || sets.includes(String(p.set || "").toLowerCase());
+
     /** @type {Omit<TrendInfo, "printings" | "url"> | null} */
-    let best = null;
+    let best = null;     // cheapest printing that isn't skipped
+    /** @type {Omit<TrendInfo, "printings" | "url"> | null} */
+    let bestAll = null;  // cheapest of all, for when every printing is skipped
+    /** @type {number[]} */
+    const skippedTrends = [];
     for (const p of prints) {
       const prices = p.prices || {};
       const eur = prices.eur != null ? parseFloat(prices.eur) : null;
@@ -149,18 +171,70 @@
       // Prefer the non-foil trend; only use foil if a printing has no non-foil version.
       const value = Number.isFinite(eur) ? eur : Number.isFinite(foil) ? foil : null;
       if (value == null) continue;
-      if (!best || value < best.trend) {
-        best = {
-          trend: value,
-          foilOnly: !Number.isFinite(eur),
-          set: p.set_name,
-          setCode: (p.set || "").toUpperCase(),
-        };
-      }
+      const info = { trend: value, foilOnly: !Number.isFinite(eur), set: p.set_name, setCode: (p.set || "").toUpperCase() };
+      if (!bestAll || value < bestAll.trend) bestAll = info;
+      if (isExcluded(p)) skippedTrends.push(value);
+      else if (!best || value < best.trend) best = info;
     }
-    const v = best ? Object.assign(best, { printings: prints.length }) : null;
-    await cacheSet(key, v);
+    /** @type {Omit<TrendInfo, "url"> | null} */
+    let v = null;
+    if (best) {
+      // Only skipped printings that were cheaper count: those are the ones that changed the trend.
+      const bestTrend = best.trend;
+      v = Object.assign(best, { printings: prints.length, skipped: skippedTrends.filter((t) => t < bestTrend).length });
+    } else if (bestAll) {
+      // Every priced printing is in a skipped set: use the cheapest anyway, and say so in the note.
+      v = Object.assign(bestAll, { printings: prints.length, skipped: 0, excludedFallback: true });
+    }
+    await cacheSet(key, { sig, v });
     return v;
+  }
+
+  /**
+   * The set part of a note, e.g. "M10", "M10, foil", "M10, 2 cheaper skipped" or
+   * "WC97, excluded set" (every printing was in a skipped set).
+   * @param {Pick<TrendInfo, "set" | "foilOnly" | "skipped" | "excludedFallback">} p
+   */
+  function trendSetText(p) {
+    let t = p.set + (p.foilOnly ? ", foil" : "");
+    if (p.excludedFallback) t += ", excluded set";
+    else if (p.skipped) t += `, ${p.skipped} cheaper skipped`;
+    return t;
+  }
+
+  // --- cleanup ---------------------------------------------------------------
+  const CLEANUP_KEY = "cacheCleanedAt"; // not "cmc:", so "Refresh prices" doesn't reset it
+  /** @type {Promise<number> | null} */
+  let cleanupOnce = null;
+
+  /**
+   * Deletes expired cache entries, at most once a day. Without this, entries for cards that
+   * are never looked up again would stay in storage forever.
+   * @param {number} [now] @returns {Promise<number>} how many entries were removed
+   */
+  async function cleanupCache(now = Date.now()) {
+    if (!storage) return 0;
+    const { [CLEANUP_KEY]: last } = await storage.get(CLEANUP_KEY);
+    if (typeof last === "number" && now - last >= 0 && now - last < CACHE_TTL_MS) return 0;
+    await storage.set({ [CLEANUP_KEY]: now });
+    const all = await storage.get(null);
+    const expired = Object.keys(all).filter((k) => {
+      const e = all[k];
+      return k.startsWith("cmc:") && !(e && typeof e.t === "number" && now - e.t < CACHE_TTL_MS);
+    });
+    if (expired.length) await storage.remove(expired);
+    return expired.length;
+  }
+
+  /** Runs the cleanup once per page, before the first lookup (so it can't remove a fresh entry). */
+  function cleanupBeforeFirstLookup() {
+    if (!cleanupOnce) {
+      cleanupOnce = cleanupCache().catch((e) => {
+        console.warn("[CMC] cache cleanup failed", e);
+        return 0;
+      });
+    }
+    return cleanupOnce;
   }
 
   /**
@@ -202,6 +276,7 @@
   async function lookup(productId, fallbackName, opts = {}) {
     /** @type {TrendSource} */
     const source = opts.source === "printing" ? "printing" : "cheapestEnglish";
+    await cleanupBeforeFirstLookup();
     /** @type {Omit<TrendInfo, "url"> | null} */
     let found = null;
     if (source === "printing") {
@@ -209,7 +284,7 @@
       found = info ? printingTrend(info, !!opts.foil) : null;
     } else {
       const card = await cardForProduct(productId, fallbackName);
-      const best = card && card.oracleId ? await cheapestEnglishTrend(card.oracleId) : null;
+      const best = card && card.oracleId ? await cheapestEnglishTrend(card.oracleId, opts.exclude) : null;
       found = best ? Object.assign({ name: card ? card.name : fallbackName }, best) : null;
     }
     if (!found) return null;
@@ -217,5 +292,5 @@
     return Object.assign({}, found, { source, url: cardmarketSearchUrl(found.name || fallbackName) });
   }
 
-  root.CMC = Object.assign(root.CMC || {}, { lookup, clearCache });
+  root.CMC = Object.assign(root.CMC || {}, { lookup, clearCache, cleanupCache, trendSetText });
 })(typeof globalThis !== "undefined" ? globalThis : window);

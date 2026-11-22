@@ -4,7 +4,7 @@
  * the verdict texts and the overview box (bottom-right). */
 (function (root) {
   "use strict";
-  const { lookup, clearCache, fmtEuro: fmt, offButton, trendSourceSwitch } = root.CMC;
+  const { lookup, clearCache, trendSetText, fmtEuro: fmt, offButton, trendSourceSwitch } = root.CMC;
   const MARK = "data-cmc";
 
   /**
@@ -66,9 +66,10 @@
    * Looks up every distinct card once (through the rate-limited, cached queue in prices.js).
    * Returns null when `shouldStop()` turns true in between (the page then starts over).
    * @param {CartArticle[]} articles @param {TrendSource} source @param {() => boolean} shouldStop
+   * @param {Exclusion} [exclude] printings "Cheapest English printing" skips
    * @returns {Promise<Map<string, TrendInfo> | null>}
    */
-  async function lookupArticles(articles, source, shouldStop) {
+  async function lookupArticles(articles, source, shouldStop, exclude) {
     /** @type {Map<string, TrendInfo>} */
     const prices = new Map();
     /** @type {Map<string, CartArticle>} */
@@ -77,7 +78,7 @@
     for (const [key, a] of unique) {
       if (shouldStop()) return null;
       try {
-        const p = await lookup(a.productId, a.name, { source, foil: a.foil });
+        const p = await lookup(a.productId, a.name, { source, foil: a.foil, exclude });
         if (p) prices.set(key, p);
       } catch (e) {
         console.warn("[CMC] lookup failed", a.productId, a.name, e);
@@ -99,7 +100,7 @@
       note.classList.add("cmc-muted");
     } else {
       note.append(`${byPrinting ? "Trend of this printing" : "Cheapest EN trend"}: ${fmt(p.trend)} `);
-      const link = /** @type {HTMLAnchorElement} */ (cmcEl("a", "cmc-link", `(${p.set}${p.foilOnly ? ", foil" : ""})`));
+      const link = /** @type {HTMLAnchorElement} */ (cmcEl("a", "cmc-link", `(${trendSetText(p)})`));
       link.href = p.url;
       link.target = "_blank";
       link.rel = "noopener";

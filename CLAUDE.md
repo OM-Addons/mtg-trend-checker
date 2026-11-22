@@ -6,6 +6,7 @@ Firefox extension that compares Magic: The Gathering prices on cardmarket.com wi
 
 **Trend price used everywhere** (`settings.trendSource`, cart and seller pages, toggled with the `Cheapest EN | This printing` row in the overview box, saved; also on the settings page):
 - `"cheapestEnglish"` (default): for a card, take all **English, paper** printings on Scryfall and use the **lowest** `prices.eur` (Scryfall's copy of Cardmarket's price trend). If a printing only has `eur_foil`, that counts for that printing. Cardmarket has no per-language trend: "English" means *only printings that exist in English*, not an English-only trend.
+- **Skipped printings** (`settings.excludedCategories` = `SET_CATEGORIES` ids in `settings.js`, matched by Scryfall `set_type` or set codes; `settings.excludedSets` = lowercase set codes; only for `"cheapestEnglish"`): skipped printings don't count for the cheapest. Default: only Memorabilia (owner's choice, also for existing users). If every priced printing is skipped, the cheapest of all is used anyway and the note says `excluded set`. The note says `N cheaper skipped` counting only skipped printings **cheaper** than the trend used (owner's choice). The cache entry (`cmc:oracle:`) stores the selection it was made with (`sig`), so a changed selection refetches. The settings page picks sets from Scryfall `/sets` (one call, cached as `cmc:sets`, only on the settings page).
 - `"printing"`: the trend of the exact printing (`/cards/cardmarket/{productId}`): `eur`, or `eur_foil` for **foil offers** (Cardmarket's icon with tooltip "Foil", `isFoil` in `parse.js`) and foil-only printings. **No fallback** (owner's decision): no product ID, or no trend for that finish → no trend ("couldn't be priced" / cart seller incomplete). Without a product ID no API call is made. In the cart, foil and non-foil copies of one product are priced separately (`priceKey`).
 
 **Cart page** (`/Magic/ShoppingCart`), per seller:
@@ -104,7 +105,7 @@ npm run build        # unsigned zip in dist/
 
 - Free, **no API key**. Rules: max ~10 requests/s (the queue waits 110 ms between requests), cache ≥24 h (prices update daily). Don't make this faster or the cache shorter.
 - Flow: `/cards/cardmarket/{productId}` → fallback `/cards/named?exact=` → `?fuzzy=` → `/cards/search?q=oracleid:… lang:en game:paper&unique=prints`.
-- Cache keys in `browser.storage.local` start with `cmc:`; settings live under `settings`. "Refresh prices" clears only `cmc:` keys.
+- Cache keys in `browser.storage.local` start with `cmc:`; settings live under `settings`. "Refresh prices" clears only `cmc:` keys. `cleanupCache` deletes expired `cmc:` entries at most once a day (date in `cacheCleanedAt`), awaited before a page's first lookup.
 - Every new feature must keep the "no API calls for offers below the first bracket (€1 by default) / skipped languages" guarantee (except the price part in `dealMode: "anyUnder"`, by the owner's choice); there are tests for it.
 
 ## Releasing

@@ -2,7 +2,10 @@
 /* Settings page: reads/writes the Settings object via settings.js. */
 (async function () {
   "use strict";
-  const { MAX_BRACKETS, defaults, getSettings, saveSettings, normalizeBrackets, validateBrackets, rangeLabel, fmtEuro } = window.CMC;
+  const {
+    MAX_BRACKETS, SET_CATEGORIES, defaults, getSettings, saveSettings, normalizeBrackets, validateBrackets,
+    normalizeSetCodes, exclusionOf, rangeLabel, fmtEuro,
+  } = window.CMC;
 
   /** @type {Array<"englishOnly">} */
   const boolKeys = ["englishOnly"];
@@ -85,6 +88,93 @@
       "No offers are ignored by price: every offer gets a price lookup.";
   }
 
+  // --- skipped printings: categories + a searchable set list --------------------
+  const SETS_KEY = "cmc:sets"; // "cmc:" so it expires and is cleaned up like the price cache
+  const DAY_MS = 24 * 60 * 60 * 1000;
+  const MAX_SHOWN = 50; // search results shown at once; more letters narrow it down
+  const categoriesBox = /** @type {HTMLElement} */ (document.getElementById("categories"));
+  const chips = /** @type {HTMLElement} */ (document.getElementById("chips"));
+  const setList = /** @type {HTMLElement} */ (document.getElementById("setList"));
+  /** @type {{code: string, name: string}[]} all paper sets, newest first (empty until loaded) */
+  let allSets = [];
+  /** @type {Set<string>} ticked set codes (saved on Save) */
+  const picked = new Set();
+  /** @type {string} shown under the search box while the list is loading or failed */
+  let setsProblem = "Loading the set list…";
+
+  for (const c of SET_CATEGORIES) {
+    const label = el("label");
+    const box = /** @type {HTMLInputElement} */ (el("input", { type: "checkbox", "data-category": c.id }));
+    label.append(box, ` ${c.label}`);
+    if (c.hint) {
+      const hint = el("span", { class: "hint" });
+      hint.textContent = ` (${c.hint})`;
+      label.append(hint);
+    }
+    categoriesBox.append(label);
+  }
+  const categoryBoxes = () => /** @type {HTMLInputElement[]} */ ([...categoriesBox.querySelectorAll("input[data-category]")]);
+
+  /** @param {string} code */
+  const setLabel = (code) => {
+    const s = allSets.find((x) => x.code === code);
+    return s ? `${s.name} (${code.toUpperCase()})` : code.toUpperCase();
+  };
+
+  /**
+   * The paper sets from Scryfall's /sets (one request, cached for a day). Digital-only sets
+   * and token sets are left out: they have no English paper printings to skip.
+   * @returns {Promise<{code: string, name: string}[]>}
+   */
+  async function loadSets() {
+    const storage = typeof browser !== "undefined" && browser.storage ? browser.storage.local : null;
+    if (storage) {
+      const { [SETS_KEY]: hit } = await storage.get(SETS_KEY);
+      if (hit && Date.now() - hit.t < DAY_MS && Array.isArray(hit.v)) return hit.v;
+    }
+    const res = await fetch("https://api.scryfall.com/sets", { headers: { Accept: "application/json" } });
+    if (!res.ok) throw new Error(`Scryfall ${res.status}`);
+    const data = await res.json();
+    const v = (data.data || [])
+      .filter((/** @type {any} */ s) => !s.digital && s.set_type !== "token")
+      .map((/** @type {any} */ s) => ({ code: String(s.code).toLowerCase(), name: String(s.name) }));
+    if (storage) await storage.set({ [SETS_KEY]: { t: Date.now(), v } });
+    return v;
+  }
+
+  /** The ticked sets as "Name (CODE) ✕" buttons; a click unticks the set. */
+  function renderChips() {
+    chips.replaceChildren();
+    for (const code of picked) {
+      const b = el("button", { type: "button", "aria-label": `Stop skipping ${setLabel(code)}` });
+      b.textContent = `${setLabel(code)} ✕`;
+      b.onclick = () => { picked.delete(code); renderChips(); renderList(); };
+      chips.append(b);
+    }
+  }
+
+  /** Search results: sets whose name contains the text or whose code starts with it. */
+  function renderList() {
+    setList.replaceChildren();
+    const q = $("setSearch").value.trim().toLowerCase();
+    if (!allSets.length) { $("setStatus").textContent = setsProblem; return; }
+    if (!q) { $("setStatus").textContent = `Type to search ${allSets.length} sets.`; return; }
+    const matches = allSets.filter((s) => s.name.toLowerCase().includes(q) || s.code.startsWith(q));
+    $("setStatus").textContent =
+      !matches.length ? "No set matches." :
+      matches.length > MAX_SHOWN ? `Showing ${MAX_SHOWN} of ${matches.length} sets: type more to narrow it down.` : "";
+    for (const s of matches.slice(0, MAX_SHOWN)) {
+      const label = el("label");
+      const box = /** @type {HTMLInputElement} */ (el("input", { type: "checkbox", "data-set": s.code }));
+      box.checked = picked.has(s.code);
+      box.onchange = () => { if (box.checked) picked.add(s.code); else picked.delete(s.code); renderChips(); };
+      label.append(box, ` ${s.name} (${s.code.toUpperCase()})`);
+      setList.append(label);
+    }
+  }
+
+  $("setSearch").addEventListener("input", renderList);
+
   /** @param {Settings} s */
   function fill(s) {
     tbody.replaceChildren();
@@ -96,6 +186,11 @@
       /** @type {HTMLInputElement} */ (r).checked = /** @type {HTMLInputElement} */ (r).value === s.trendSource;
     });
     boolKeys.forEach((k) => ($(k).checked = !!s[k]));
+    categoryBoxes().forEach((b) => (b.checked = s.excludedCategories.includes(b.dataset.category || "")));
+    picked.clear();
+    s.excludedSets.forEach((code) => picked.add(code));
+    renderChips();
+    renderList();
     refresh();
   }
 
@@ -137,12 +232,20 @@
       }
       return;
     }
+    const before = await getSettings();
     /** @type {Settings} */
-    // enabled is switched in the overview box on Cardmarket pages; keep what is stored.
-    const s = { brackets: normalizeBrackets(rows), dealMode: readMode(), trendSource: readSource(), englishOnly: $("englishOnly").checked, enabled: (await getSettings()).enabled };
+    const s = {
+      brackets: normalizeBrackets(rows), dealMode: readMode(), trendSource: readSource(), englishOnly: $("englishOnly").checked,
+      // enabled is switched in the overview box on Cardmarket pages; keep what is stored.
+      enabled: before.enabled,
+      excludedCategories: categoryBoxes().filter((b) => b.checked).map((b) => b.dataset.category || ""),
+      excludedSets: normalizeSetCodes([...picked]),
+    };
     await saveSettings(s);
     fill(s); // shows the ranges sorted, as they are applied
-    flash("Saved ✓");
+    // Other skipped printings = other trends: open pages fetch their cards again.
+    const changed = JSON.stringify(exclusionOf(before)) !== JSON.stringify(exclusionOf(s));
+    flash(changed ? "Saved ✓ Prices will be fetched again." : "Saved ✓");
   };
 
   $("reset").onclick = async () => {
@@ -160,4 +263,11 @@
   };
 
   fill(await getSettings());
+  loadSets()
+    .then((sets) => { allSets = sets; })
+    .catch((e) => {
+      console.warn("[CMC] set list", e);
+      setsProblem = "Couldn't load the set list from Scryfall. Sets you already skip are kept; reopen the settings later to change them.";
+    })
+    .then(() => { renderChips(); renderList(); });
 })();

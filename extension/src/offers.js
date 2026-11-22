@@ -4,7 +4,7 @@
  * the printing on offer: settings.trendSource). */
 (function (root) {
   "use strict";
-  const { parseEuro, allEuros, cleanName, isFoil, lookup, clearCache, getSettings, saveSettings, requiredDiscount, ignoredBelow, offButton, renderOffBox, toggleRow, trendSourceSwitch } = root.CMC;
+  const { parseEuro, allEuros, cleanName, isFoil, lookup, clearCache, trendSetText, exclusionOf, getSettings, saveSettings, requiredDiscount, ignoredBelow, offButton, renderOffBox, toggleRow, trendSourceSwitch } = root.CMC;
 
   const MARK = "data-cmc";
   /** @param {number | null | undefined} n */
@@ -142,7 +142,7 @@
     // so you can verify what was compared.
     if (offer.link) {
       const which = p.source === "printing" ? "trend of this printing" : "cheapest EN trend";
-      offer.link.title = `Price read: ${fmt(offer.price)} · ${which}: ${fmt(p.trend)} (${p.set}${p.foilOnly ? ", foil" : ""})`;
+      offer.link.title = `Price read: ${fmt(offer.price)} · ${which}: ${fmt(p.trend)} (${trendSetText(p)})`;
     }
     if (!j) return;
     const target = offer.nameCell || offer.el;
@@ -154,7 +154,7 @@
     } else {
       note.append(`Trend ${fmt(p.trend)} `);
     }
-    const a = /** @type {HTMLAnchorElement} */ (el("a", "cmc-link", `(${p.set}${p.foilOnly ? ", foil" : ""})`));
+    const a = /** @type {HTMLAnchorElement} */ (el("a", "cmc-link", `(${trendSetText(p)})`));
     a.href = p.url; a.target = "_blank"; a.rel = "noopener";
     note.append(a);
     target.appendChild(note);
@@ -287,7 +287,7 @@
         if (byPrinting && !offer.productId) { stats.failed.push({ offer, reason: "printing unknown (no product ID)" }); continue; }
         /** @type {TrendInfo | null} */
         let p = null;
-        try { p = await lookup(offer.productId, offer.name, { source: settings.trendSource, foil: offer.foil }); } catch (e) {
+        try { p = await lookup(offer.productId, offer.name, { source: settings.trendSource, foil: offer.foil, exclude: exclusionOf(settings) }); } catch (e) {
           console.warn("[CMC] lookup failed", offer.name, e);
           stats.failed.push({ offer, reason: "lookup error, try Refresh" });
           continue;

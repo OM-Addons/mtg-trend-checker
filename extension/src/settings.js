@@ -25,15 +25,38 @@
     trendSource: "cheapestEnglish",
     englishOnly: true,    // only check offers whose card language is English
     enabled: true,         // off (the switch in the overview box): no checks on any Cardmarket page
+    // "Cheapest English printing" skips printings in these categories (SET_CATEGORIES ids)
+    // and sets (lowercase Scryfall set codes). Memorabilia is skipped by default (owner's choice).
+    excludedCategories: ["memorabilia"],
+    excludedSets: [],
   };
   const MAX_BRACKETS = 10;
+  const MAX_EXCLUDED_SETS = 300;
+
+  /**
+   * Groups of printings that can be skipped for "Cheapest English printing", by Scryfall's
+   * set_type and/or set codes (checked against Scryfall's /sets list in Nov 2026).
+   * @type {SetCategory[]}
+   */
+  const SET_CATEGORIES = [
+    { id: "memorabilia", label: "Memorabilia", hint: "gold-bordered World Championship decks, Collectors' Edition, 30th Anniversary Edition, art series", types: ["memorabilia"], sets: [] },
+    { id: "funny", label: "Un-sets and playtest cards", hint: "Unglued, Unfinity, Mystery Booster playtest cards…", types: ["funny"], sets: [] },
+    { id: "promo", label: "Promos", hint: "prerelease, store, judge and other promos", types: ["promo"], sets: [] },
+    { id: "secretLair", label: "Secret Lair", hint: "", types: [], sets: ["sld", "slc", "slu", "slp", "pssc"] },
+    { id: "theList", label: "The List", hint: "", types: [], sets: ["plst", "ulst"] },
+  ];
 
   const storage = (typeof browser !== "undefined" && browser.storage && browser.storage.local) || null;
 
   /** Fresh copy of the defaults (brackets is an array, so a shallow copy would share it). */
   /** @returns {Settings} */
   function defaults() {
-    return { ...DEFAULTS, brackets: DEFAULTS.brackets.map((b) => ({ ...b })) };
+    return {
+      ...DEFAULTS,
+      brackets: DEFAULTS.brackets.map((b) => ({ ...b })),
+      excludedCategories: [...DEFAULTS.excludedCategories],
+      excludedSets: [...DEFAULTS.excludedSets],
+    };
   }
 
   /** Euro amounts are compared in whole cents to avoid float noise (2.9999 vs 3). */
@@ -87,6 +110,40 @@
     return out.length ? out : defaults().brackets;
   }
 
+  /** Known category ids, each once, in SET_CATEGORIES order. @param {unknown} list @returns {string[]} */
+  function normalizeCategories(list) {
+    const wanted = new Set(Array.isArray(list) ? list : []);
+    return SET_CATEGORIES.map((c) => c.id).filter((id) => wanted.has(id));
+  }
+
+  /** Lowercase set codes, each once; anything that doesn't look like a set code is dropped. @param {unknown} list @returns {string[]} */
+  function normalizeSetCodes(list) {
+    /** @type {Set<string>} */
+    const out = new Set();
+    for (const c of Array.isArray(list) ? list : []) {
+      const code = typeof c === "string" ? c.trim().toLowerCase() : "";
+      if (/^[a-z0-9]{2,8}$/.test(code)) out.add(code);
+    }
+    return [...out].slice(0, MAX_EXCLUDED_SETS);
+  }
+
+  /**
+   * What "Cheapest English printing" skips, as Scryfall set types and set codes.
+   * @param {Pick<Settings, "excludedCategories" | "excludedSets">} s @returns {Exclusion}
+   */
+  function exclusionOf(s) {
+    const categories = normalizeCategories(s.excludedCategories);
+    /** @type {Set<string>} */
+    const types = new Set();
+    const sets = new Set(normalizeSetCodes(s.excludedSets));
+    for (const c of SET_CATEGORIES) {
+      if (!categories.includes(c.id)) continue;
+      c.types.forEach((t) => types.add(t));
+      c.sets.forEach((code) => sets.add(code));
+    }
+    return { types: [...types].sort(), sets: [...sets].sort() };
+  }
+
   /**
    * Turns stored settings into the current shape. Versions up to 1.2 stored three fixed
    * percentages (pctLow/pctMid/pctHigh for €1 / €3 / €5); those become brackets.
@@ -109,7 +166,12 @@
     /** @type {TrendSource} */
     const trendSource = s.trendSource === "printing" ? "printing" : "cheapestEnglish";
     // Only known keys are returned, so old ones (pctLow…, desktopNotify before 1.4) drop out on the next save.
-    return { brackets: s.brackets, dealMode, trendSource, englishOnly: !!s.englishOnly, enabled: s.enabled !== false };
+    return {
+      brackets: s.brackets, dealMode, trendSource, englishOnly: !!s.englishOnly, enabled: s.enabled !== false,
+      // Settings saved before this feature have neither key: they get the defaults (Memorabilia skipped).
+      excludedCategories: normalizeCategories(s.excludedCategories),
+      excludedSets: normalizeSetCodes(s.excludedSets),
+    };
   }
 
   /** @returns {Promise<Settings>} */
@@ -164,7 +226,7 @@
   }
 
   root.CMC = Object.assign(root.CMC || {}, {
-    DEFAULTS, MAX_BRACKETS, defaults, getSettings, saveSettings, migrate,
+    DEFAULTS, MAX_BRACKETS, SET_CATEGORIES, defaults, exclusionOf, normalizeSetCodes, getSettings, saveSettings, migrate,
     normalizeBrackets, validateBrackets, requiredDiscount, ignoredBelow, rangeLabel, fmtEuro,
   });
 })(typeof globalThis !== "undefined" ? globalThis : window);
