@@ -112,17 +112,17 @@
         }
         at.appendChild(cmcEl("div", null, `trend ${fmt(p.trend)}`));
         priceCell.appendChild(at);
-        // The number is at the price now, so say what the set under the name is (owner's choice).
-        note.append("trend from: ");
       } else {
         note.append(`${byPrinting ? "Trend of this printing" : "Cheapest EN trend"}: ${fmt(p.trend)} `);
       }
-      const setText = priceCell ? trendSetText(p) : `(${trendSetText(p)})`;
-      const link = /** @type {HTMLAnchorElement} */ (cmcEl("a", "cmc-link", setText));
+      const link = /** @type {HTMLAnchorElement} */ (cmcEl("a", "cmc-link", priceCell ? trendSetText(p) : `(${trendSetText(p)})`));
       link.href = p.url;
       link.target = "_blank";
       link.rel = "noopener";
-      note.append(link);
+      // The number is at the price now, so the line under the name says what the set is:
+      // "(Trend from: M10)", only the set is the link (owner's wording).
+      if (priceCell) note.append("(Trend from: ", link, ")");
+      else note.append(link);
     }
     cell.appendChild(note);
   }

@@ -72,7 +72,7 @@ test("list layout: deals are flagged; trend and € difference under the price, 
   // Under the name: only the set link.
   const notes = nameNotes(w);
   assert.equal(notes.length, 7);
-  assert.ok(notes.every((n) => n === "trend from: S"), notes.join(" | "));
+  assert.ok(notes.every((n) => n === "(Trend from: S)"), notes.join(" | "));
   assert.ok([...notes, ...priceNotes(w)].every((n) => !n.includes("EN")), "no 'EN' in the notes");
 });
 

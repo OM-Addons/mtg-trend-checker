@@ -166,8 +166,6 @@
       at.appendChild(j.deal ? el("div", "cmc-diff cmc-deal-note", `${diff} (${pctText(j.discount)}%) 🔥`) : el("div", "cmc-diff", diff));
       at.appendChild(el("div", null, `trend ${fmt(p.trend)}`));
       offer.priceEl.appendChild(at);
-      // The number is at the price now, so say what the set under the name is (owner's choice).
-      note.append("trend from: ");
     } else if (j.deal) {
       note.classList.add("cmc-deal-note");
       note.append(`🔥 ${pctText(j.discount)}% (${fmt(savings(offer.price, p.trend))}) under trend ${fmt(p.trend)} `);
@@ -176,7 +174,10 @@
     }
     const a = /** @type {HTMLAnchorElement} */ (el("a", "cmc-link", atPrice ? trendSetText(p) : `(${trendSetText(p)})`));
     a.href = p.url; a.target = "_blank"; a.rel = "noopener";
-    note.append(a);
+    // The number is at the price now, so the line under the name says what the set is:
+    // "(Trend from: M10)", only the set is the link (owner's wording).
+    if (atPrice) note.append("(Trend from: ", a, ")");
+    else note.append(a);
     target.appendChild(note);
   }
 

@@ -31,7 +31,7 @@ test("each seller gets a verdict panel", async () => {
 test("cards: trend and difference per copy under the price, the set link under the name", async () => {
   const { w } = cartPage();
   await w.CMC.run();
-  assert.deepEqual(nameNotes(w), ["trend from: Promo, foil", "trend from: Masters 25", "trend from: Commander", "No English trend price found"]);
+  assert.deepEqual(nameNotes(w), ["(Trend from: Promo, foil)", "(Trend from: Masters 25)", "(Trend from: Commander)", "No English trend price found"]);
   assert.deepEqual(priceNotes(w), [
     "▲ € 0,30 over / trend € 0,50", // 2x Bolt at 0,80 each: per copy, not per line
     "▲ € 0,10 over / trend € 0,90",

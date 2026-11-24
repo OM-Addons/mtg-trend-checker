@@ -90,7 +90,7 @@ test("wizard page: each card gets the cart's note, and no coloured price bar (re
   const { w } = wizardPage(TRENDS);
   await w.CMC.runWizard();
   const rows = [...blocks(w)[2].querySelectorAll("table tbody tr")];
-  assert.deepEqual(rows.map((r) => text(r.querySelector("td.card-name .cmc-note"))), ["trend from: Set 786368", "trend from: Set 759962"]);
+  assert.deepEqual(rows.map((r) => text(r.querySelector("td.card-name .cmc-note"))), ["(Trend from: Set 786368)", "(Trend from: Set 759962)"]);
   // Trend and difference in the price cell (the last one), right under Cardmarket's price.
   assert.deepEqual(rows.map((r) => [...r.querySelectorAll("td:last-child .cmc-price-note > div")].map(text).join(" / ")),
     ["▼ € 2,00 under / trend € 5,00", "▼ € 1,00 under / trend € 10,00"]); // 3,00 and 9,00
@@ -126,7 +126,7 @@ test("wizard page, this printing: a foil is compared with its foil trend", async
   const b = blocks(w)[3];
   assert.equal(kindOf(b), "good", "22,52 < 8,99 + 7,99 + 6,00");
   assert.deepEqual(addedRows(b.querySelector("dl")), ["Σ trend of these printings € 22,98", "✅ Worth it: you save € 0,46"]);
-  assert.match(text(b), /trend from: Set 796173, foil/);
+  assert.match(text(b), /\(Trend from: Set 796173, foil\)/);
   const boros = [...b.querySelectorAll("table tbody tr")][2];
   assert.equal([...boros.querySelectorAll(".cmc-price-note > div")].map(text).join(" / "), "▼ € 2,01 under / trend € 6,00");
 });

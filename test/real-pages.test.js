@@ -68,11 +68,14 @@ test("real cart: no coloured price bars on the cards (removed at the owner's req
 test("real cart: trend and difference sit in Cardmarket's price cell, the set link under the name", async () => {
   const { w } = realCart();
   await w.CMC.run();
-  assert.deepEqual(nameNotes(w), ["trend from: Marvel", "trend from: Bloomburrow"]);
+  assert.deepEqual(nameNotes(w), ["(Trend from: Marvel)", "(Trend from: Bloomburrow)"]);
   assert.deepEqual(priceNotes(w), ["▼ € 4,50 under / trend € 7,00", "▼ € 2,00 under / trend € 8,00"]);
   assert.equal(w.document.querySelectorAll("td.price .cmc-price-note").length, 2);
-  // The set says what it is ("trend from:", owner's choice) and is still the link to a Cardmarket search.
-  const link = w.document.querySelector("td.name .cmc-note a.cmc-link");
+  // "(Trend from: Set)" on its own line below the card name (owner's wording); only the set is the link.
+  const note = w.document.querySelector("td.name .cmc-note");
+  assert.equal(note.tagName, "DIV", "a block element, so it sits below the name");
+  assert.match(note.previousElementSibling.href, /\/Products\/Singles\//, "right after the card name");
+  const link = note.querySelector("a.cmc-link");
   assert.equal(link.textContent, "Marvel");
   assert.match(link.href, /cardmarket\.com/);
 });
