@@ -158,20 +158,23 @@
     const target = offer.nameCell || offer.el;
     const note = el("div", "cmc-note");
     if (j.deal) offer.el.classList.add("cmc-deal-row");
-    if (offer.priceEl && offer.price != null) {
+    const atPrice = Boolean(offer.priceEl && offer.price != null);
+    if (offer.priceEl && offer.price != null) { // = atPrice, spelled out for the type checker
       const at = el("div", "cmc-note cmc-price-note");
       // Order (owner's wish): Cardmarket's price, then the difference, then the trend.
       const diff = trendDiffText(offer.price, p.trend);
       at.appendChild(j.deal ? el("div", "cmc-diff cmc-deal-note", `${diff} (${pctText(j.discount)}%) 🔥`) : el("div", "cmc-diff", diff));
       at.appendChild(el("div", null, `trend ${fmt(p.trend)}`));
       offer.priceEl.appendChild(at);
+      // The number is at the price now, so say what the set under the name is (owner's choice).
+      note.append("trend from: ");
     } else if (j.deal) {
       note.classList.add("cmc-deal-note");
       note.append(`🔥 ${pctText(j.discount)}% (${fmt(savings(offer.price, p.trend))}) under trend ${fmt(p.trend)} `);
     } else {
       note.append(`Trend ${fmt(p.trend)} `);
     }
-    const a = /** @type {HTMLAnchorElement} */ (el("a", "cmc-link", `(${trendSetText(p)})`));
+    const a = /** @type {HTMLAnchorElement} */ (el("a", "cmc-link", atPrice ? trendSetText(p) : `(${trendSetText(p)})`));
     a.href = p.url; a.target = "_blank"; a.rel = "noopener";
     note.append(a);
     target.appendChild(note);

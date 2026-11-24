@@ -68,9 +68,13 @@ test("real cart: no coloured price bars on the cards (removed at the owner's req
 test("real cart: trend and difference sit in Cardmarket's price cell, the set link under the name", async () => {
   const { w } = realCart();
   await w.CMC.run();
-  assert.deepEqual(nameNotes(w), ["(Marvel)", "(Bloomburrow)"]);
+  assert.deepEqual(nameNotes(w), ["trend from: Marvel", "trend from: Bloomburrow"]);
   assert.deepEqual(priceNotes(w), ["▼ € 4,50 under / trend € 7,00", "▼ € 2,00 under / trend € 8,00"]);
   assert.equal(w.document.querySelectorAll("td.price .cmc-price-note").length, 2);
+  // The set says what it is ("trend from:", owner's choice) and is still the link to a Cardmarket search.
+  const link = w.document.querySelector("td.name .cmc-note a.cmc-link");
+  assert.equal(link.textContent, "Marvel");
+  assert.match(link.href, /cardmarket\.com/);
 });
 
 test("cart: prices under trend are green like seller-page deals, without % or 🔥", async () => {
