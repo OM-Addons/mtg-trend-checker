@@ -36,11 +36,26 @@ test("real cart: each card counted once (desktop and mobile copies)", () => {
 test("real cart: verdict per seller", async () => {
   const { w } = realCart();
   await w.CMC.run();
-  const panels = [...w.document.querySelectorAll(".cmc-panel")];
+  const panels = [...w.document.querySelectorAll(".shipment-block")];
   assert.equal(panels.length, 2);
   // 6,24 < 1 x 7,00 -> worth it; 8,55 > 1 x 8,00 -> not
-  assert.ok(panels[0].classList.contains("cmc-good"), text(panels[0]));
-  assert.ok(panels[1].classList.contains("cmc-bad"), text(panels[1]));
+  assert.ok(panels[0].classList.contains("cmc-block-good"), text(panels[0]));
+  assert.ok(panels[1].classList.contains("cmc-block-bad"), text(panels[1]));
+});
+
+test("real cart: Σ trend and verdict are two rows under Cardmarket's Total, nothing repeated", async () => {
+  const { w } = realCart();
+  await w.CMC.run();
+  const summaries = [...w.document.querySelectorAll(".shipment-block")].map((b) => b.querySelector(".summary"));
+  const rows = (s) => [...s.children].filter((c) => c.matches(".d-flex")).map((c) => [...c.children].map((s) => text(s).trim()).join(" "));
+  assert.deepEqual(rows(summaries[0]), [
+    "Contents 1 Articles", "Article Value 2,50 €", "Shipping 3,74 €", "Total 6,24 €",
+    "Σ trend (cheapest EN) € 7,00", "✅ Worth it: you save € 0,76",
+  ]);
+  assert.deepEqual(rows(summaries[1]).slice(-2), ["Σ trend (cheapest EN) € 8,00", "❌ Not worth it: over by € 0,55"]);
+  // Cards, shipping and total are already on the page: no separate panel repeating them.
+  assert.equal(w.document.querySelectorAll(".cmc-panel, .cmc-table").length, 0);
+  assert.doesNotMatch(text(w.document.querySelector(".shipment-block")), /Total incl\. shipping|Shipping & fees/);
 });
 
 test("real cart: no coloured price bars on the cards (removed at the owner's request: colour only)", async () => {

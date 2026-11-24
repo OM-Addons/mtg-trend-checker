@@ -8,7 +8,7 @@
   "use strict";
   const {
     parseEuro, allEuros, cleanName, isFoil, getSettings, migrate, exclusionOf, renderOffBox, trackMinimized, fmtEuro: fmt,
-    cmcEl: el, removeMarks, priceKey, evaluate, lookupArticles, annotateArticle, verdictKind, verdictText, renderOverviewBox,
+    cmcEl: el, removeMarks, priceKey, evaluate, lookupArticles, annotateArticle, verdictKind, verdictText, diffWords, verdictRows, renderOverviewBox,
   } = root.CMC;
 
   /** Cardmarket product id hidden in the thumbnail tooltip (.../786368/786368.jpg), if present. */
@@ -111,15 +111,8 @@
       dl.insertBefore(dt, before);
       dl.insertBefore(dd, before);
     };
-    const sum = source === "printing" ? "Σ trend of these printings" : "Σ trend (cheapest EN)";
-    row(sum, fmt(r.trendSum) + (r.missing ? ` (excl. ${r.missing})` : ""), "cmc-wiz-row");
-    const cls = `cmc-wiz-row cmc-wiz-verdict ${r.worth === true ? "cmc-good-text" : r.worth === false ? "cmc-bad-text" : "cmc-unknown-text"}`;
-    if (r.diff != null) row(`${verdictText(r)}: ${diffWords(r.diff)}`, fmt(Math.abs(r.diff)), cls);
-    else row(verdictText(r, whatTotal), "", cls);
+    for (const { label, value, cls } of verdictRows(r, source, whatTotal)) row(label, value, `cmc-wiz-row ${cls}`);
   }
-
-  /** "you save" / "over by" / "equal to trend" (equal is not worth it). @param {number} diff Σ trend - total */
-  const diffWords = (diff) => (Math.round(diff * 100) > 0 ? "you save" : Math.round(diff * 100) < 0 ? "over by" : "equal to trend");
 
   /** @param {ShipmentResult} r */
   function overallText(r) {

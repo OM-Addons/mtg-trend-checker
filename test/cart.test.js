@@ -18,14 +18,14 @@ function cartPage() {
 test("each seller gets a verdict panel", async () => {
   const { w } = cartPage();
   await w.CMC.run();
-  const panels = [...w.document.querySelectorAll(".cmc-panel")];
+  const panels = [...w.document.querySelectorAll(".shipment-block")];
   assert.equal(panels.length, 3);
   // Alice: total 3,85 vs 2 x 0,50 + 0,90 = 1,90 -> not worth it
-  assert.ok(panels[0].classList.contains("cmc-bad"), text(panels[0]));
+  assert.ok(panels[0].classList.contains("cmc-block-bad"), text(panels[0]));
   // Bob: 1.052,50 vs 2,10 -> not worth it
-  assert.ok(panels[1].classList.contains("cmc-bad"), text(panels[1]));
+  assert.ok(panels[1].classList.contains("cmc-block-bad"), text(panels[1]));
   // Carol: card unknown to Scryfall -> incomplete
-  assert.ok(panels[2].classList.contains("cmc-unknown"), text(panels[2]));
+  assert.ok(panels[2].classList.contains("cmc-block-unknown"), text(panels[2]));
 });
 
 test("cards show the cheapest English trend and its set", async () => {
@@ -50,7 +50,7 @@ test("running twice doesn't duplicate annotations", async () => {
   const { w } = cartPage();
   await w.CMC.run();
   await w.CMC.run();
-  assert.equal(w.document.querySelectorAll(".cmc-panel").length, 3);
+  assert.equal(w.document.querySelectorAll(".cmc-cart-row").length, 6, "two rows per seller");
   assert.equal(w.document.querySelectorAll(".cmc-overview").length, 1);
 });
 

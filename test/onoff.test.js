@@ -48,7 +48,7 @@ test("cart while off: no Scryfall calls, no panels, only an On button", async ()
   const { w, fetch } = cartPage({ enabled: false });
   await w.CMC.run();
   assert.deepEqual(fetch.calls, []);
-  assert.equal(w.document.querySelectorAll(".cmc-panel, .cmc-note, .cmc-overview").length, 0);
+  assert.equal(w.document.querySelectorAll(".cmc-cart-row, .cmc-note, .cmc-overview").length, 0);
   assert.ok(button(w, "On"));
 });
 
@@ -72,13 +72,13 @@ test("seller page: Off removes everything and is saved, On checks the page again
 test("cart: Off and On work there too", async () => {
   const { w, browser } = cartPage();
   await w.CMC.run();
-  assert.ok(w.document.querySelector(".cmc-panel"));
+  assert.ok(w.document.querySelector(".cmc-cart-row"));
   button(w, "Off").click();
   await until(() => button(w, "On"));
   assert.equal(browser.storage.local.data.settings.enabled, false);
-  assert.equal(w.document.querySelectorAll(".cmc-panel").length, 0);
+  assert.equal(w.document.querySelectorAll(".cmc-cart-row").length, 0);
   button(w, "On").click();
-  await until(() => w.document.querySelector(".cmc-panel"));
+  await until(() => w.document.querySelector(".cmc-cart-row"));
   assert.equal(browser.storage.local.data.settings.enabled, true);
 });
 

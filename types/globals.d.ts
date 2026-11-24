@@ -215,6 +215,8 @@ interface CMCNamespace {
   annotateArticle(a: CartArticle, p: TrendInfo | undefined, source: TrendSource, cell: Element): void;
   verdictKind(r: ShipmentResult): "good" | "bad" | "unknown";
   verdictText(r: ShipmentResult, whatTotal?: string): string;
+  diffWords(diff: number): string;
+  verdictRows(r: ShipmentResult, source: TrendSource, whatTotal?: string): { label: string; value: string; cls: string }[];
   renderOverviewBox(o: {
     title: string; source: TrendSource; restart: () => unknown; run: () => unknown; status?: string;
     results?: { s: Shipment; r: ShipmentResult }[]; overall?: { text: string; kind: "good" | "bad" | "unknown" };
