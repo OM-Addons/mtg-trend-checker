@@ -4,8 +4,8 @@
 (function (root) {
   "use strict";
   const {
-    parseCart, getSettings, migrate, exclusionOf, renderOffBox, trackMinimized, fmtEuro: fmt,
-    cmcEl: el, removeMarks, priceKey, evaluate, lookupArticles, annotateArticle, verdictKind, verdictText, renderOverviewBox,
+    parseCart, getSettings, migrate, exclusionOf, renderOffBox, trackMinimized,
+    cmcEl: el, removeMarks, priceKey, evaluate, lookupArticles, annotateArticle, verdictKind, verdictRows, renderOverviewBox,
   } = root.CMC;
 
   /** @param {Shipment} shipment @param {Map<string, TrendInfo>} prices @param {TrendSource} source @returns {ShipmentResult} */
@@ -15,29 +15,33 @@
       annotateArticle(a, prices.get(priceKey(a, source)), source, a.el.querySelector("td.name, .name") || a.el);
     }
 
-    // Shipment verdict panel
-    const panel = el("div", `cmc-panel cmc-${verdictKind(r)}`);
-    panel.appendChild(el("div", "cmc-verdict", verdictText(r)));
-    const table = el("table", "cmc-table");
-    const rows = [
-      ["Cards", fmt(r.articleSum)],
-      ["Shipping & fees", fmt(r.shipping)],
-      ["Total incl. shipping", fmt(r.total)],
-      [source === "printing" ? "Σ trend of these printings" : "Σ cheapest English trend", fmt(r.trendSum) + (r.missing ? ` (excl. ${r.missing})` : "")],
-      [r.diff == null ? "Difference" : r.diff >= 0 ? "You save vs trend" : "You overpay vs trend", r.diff != null ? fmt(Math.abs(r.diff)) : "?"],
-    ];
-    for (const [k, v] of rows) {
-      const tr = el("tr");
-      tr.appendChild(el("td", null, k));
-      tr.appendChild(el("td", "cmc-num", v));
-      table.appendChild(tr);
+    // Like the wizard: a coloured edge on the seller block, and two rows under Cardmarket's
+    // own Total (Σ trend + verdict). Cards, shipping and total are already on the page.
+    shipment.el.classList.add(`cmc-block-${verdictKind(r)}`);
+    if (shipment.summaryEl) addRows(shipment.summaryEl, r, source);
+    else {
+      // No summary found: show the rows at the top of the block so the verdict isn't lost.
+      const box = el("div", "cmc-summary");
+      addRows(box, r, source);
+      shipment.el.prepend(box);
     }
-    panel.appendChild(table);
-
-    const anchor = shipment.summaryEl || shipment.el.firstElementChild;
-    if (anchor && anchor.parentNode) anchor.parentNode.insertBefore(panel, anchor);
-    else shipment.el.prepend(panel);
     return r;
+  }
+
+  /**
+   * Rows at the end of Cardmarket's summary box, copying the look of its own rows
+   * (`<div class="d-flex"><span class="flex-grow-1">label</span><span>value</span></div>`).
+   * @param {Element} summary @param {ShipmentResult} r @param {TrendSource} source
+   */
+  function addRows(summary, r, source) {
+    const last = summary.lastElementChild;
+    const rowClass = last && last.classList.contains("d-flex") ? "d-flex" : "";
+    for (const { label, value, cls } of verdictRows(r, source)) {
+      const row = el("div", `${rowClass} cmc-cart-row ${cls}`.trim());
+      row.appendChild(el("span", "flex-grow-1", label + " "));
+      row.appendChild(el("span", null, value));
+      summary.appendChild(row);
+    }
   }
 
   /** @param {TrendSource} source @param {{s: Shipment, r: ShipmentResult}[]} results @param {string} [status] */
@@ -111,3 +115,4 @@
     });
   }
 })(typeof globalThis !== "undefined" ? globalThis : window);
+

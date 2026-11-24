@@ -1,20 +1,3 @@
-.cmc-panel {
-  margin: 8px 0;
-  padding: 10px 12px;
-  border-radius: 6px;
-  border-left: 6px solid #999;
-  background: #f6f6f6;
-  font-size: 14px;
-  color: #222;
-}
-.cmc-panel.cmc-good { border-color: #1e8e3e; background: #e9f6ec; }
-.cmc-panel.cmc-bad { border-color: #c5221f; background: #fbeaea; }
-.cmc-panel.cmc-unknown { border-color: #e8a600; background: #fff7e0; }
-.cmc-verdict { font-weight: 700; font-size: 16px; margin-bottom: 4px; }
-.cmc-table { border-collapse: collapse; }
-.cmc-table td { padding: 1px 12px 1px 0; }
-.cmc-num { text-align: right; font-variant-numeric: tabular-nums; }
-
 .cmc-note { font-size: 12px; color: #444; margin-top: 2px; }
 .cmc-link { color: inherit; text-decoration: underline; }
 .cmc-muted { color: #888; }
@@ -70,11 +53,11 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
-/* Shopping wizard results: seller blocks get a coloured edge, Cardmarket's lists get extra rows */
+/* Cart and shopping wizard results: seller blocks get a coloured edge, Cardmarket's summaries get extra rows */
 .cmc-block-good { box-shadow: inset 6px 0 0 #1e8e3e; }
 .cmc-block-bad { box-shadow: inset 6px 0 0 #c5221f; }
 .cmc-block-unknown { box-shadow: inset 6px 0 0 #e8a600; }
-.cmc-wiz-verdict { font-weight: 700; }
+.cmc-verdict-row { font-weight: 700; }
 .cmc-unknown-text { color: #a06f00; }
 .cmc-overall { font-weight: 700; margin-bottom: 4px; }
 .cmc-unmasonry { height: auto !important; }

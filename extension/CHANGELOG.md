@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+- **Tidier cart:** the verdict panel above each seller's summary is gone. Instead, two rows appear under Cardmarket's own Total (summed trend, and ✅ Worth it / ❌ Not worth it with the amount), just like in the shopping wizard. The seller block gets a coloured edge. Cards, shipping and total are no longer shown twice.
 
 ## 2.2.0 - 2026-11-22
 - **Minimize the overview box:** the new **–** button shrinks the box to one line with a short summary (e.g. "🔥 3 deals" or "✅ 2 · ❌ 1 · ⚠️ 0"). Click the line to get the full box back. It stays minimized on every page until you restore it. The × button is gone.

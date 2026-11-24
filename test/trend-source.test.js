@@ -197,18 +197,18 @@ test("cart, this printing: foil and non-foil copies get their own trend; foil tr
     "Trend of this printing: € 8,00 (Strixhaven, foil)",
   ]);
   assert.equal(cardmarketCalls(fetch).filter((c) => c.endsWith("313985")).length, 1, "one request for both copies");
-  const panels = [...w.document.querySelectorAll(".cmc-panel")];
-  assert.ok(panels[0].classList.contains("cmc-bad"), "13,46 vs 1,30");
-  assert.ok(panels[1].classList.contains("cmc-good"), "7,60 < 8,00 foil trend");
-  assert.match(text(panels[1]), /Σ trend of these printingss*€ 8,00/);
+  const panels = [...w.document.querySelectorAll(".shipment-block")];
+  assert.ok(panels[0].classList.contains("cmc-block-bad"), "13,46 vs 1,30");
+  assert.ok(panels[1].classList.contains("cmc-block-good"), "7,60 < 8,00 foil trend");
+  assert.match(text(panels[1]), /Σ trend of these printings\s*€ 8,00/);
 });
 
 test("cart, cheapest EN (default): the same foil is compared with the cheapest English trend", async () => {
   const { w } = realFoilCart({});
   await w.CMC.run();
-  const panels = [...w.document.querySelectorAll(".cmc-panel")];
-  assert.ok(panels[1].classList.contains("cmc-bad"), "7,60 vs 3,00");
-  assert.match(text(panels[1]), /Σ cheapest English trends*€ 3,00/);
+  const panels = [...w.document.querySelectorAll(".shipment-block")];
+  assert.ok(panels[1].classList.contains("cmc-block-bad"), "7,60 vs 3,00");
+  assert.match(text(panels[1]), /Σ trend \(cheapest EN\)\s*€ 3,00/);
 });
 
 test("cart, this printing: no foil trend -> that seller is incomplete, never green", async () => {
@@ -219,8 +219,8 @@ test("cart, this printing: no foil trend -> that seller is incomplete, never gre
   const browser = fakeBrowser({ settings: { trendSource: "printing" } });
   const w = loadPage(fixture("real-cart-foil.html"), CART_SCRIPTS, fetch, { browser });
   await w.CMC.run();
-  const panels = [...w.document.querySelectorAll(".cmc-panel")];
-  assert.ok(panels[1].classList.contains("cmc-unknown"), "the non-foil trend (€20) is not used for a foil");
+  const panels = [...w.document.querySelectorAll(".shipment-block")];
+  assert.ok(panels[1].classList.contains("cmc-block-unknown"), "the non-foil trend (€20) is not used for a foil");
   assert.match(text(w.document.body), /No foil trend for this printing/);
 });
 
@@ -233,8 +233,8 @@ test("cart switch: 'This printing' is saved and the cart is re-checked", async (
   await wait();
   await done(w, /worth it ·/);
   assert.equal(browser.storage.local.data.settings.trendSource, "printing");
-  assert.ok(w.document.querySelectorAll(".cmc-panel")[1].classList.contains("cmc-good"));
-  assert.equal(w.document.querySelectorAll(".cmc-panel").length, 2, "old panels are replaced, not doubled");
+  assert.ok(w.document.querySelectorAll(".shipment-block")[1].classList.contains("cmc-block-good"));
+  assert.equal(w.document.querySelectorAll(".cmc-cart-row").length, 4, "old rows are replaced, not doubled");
 });
 
 test("evaluate: in printing mode foil copies are keyed separately", () => {

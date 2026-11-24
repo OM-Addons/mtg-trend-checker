@@ -25,7 +25,7 @@ Checks your cart one seller at a time:
 > **Worth it** = seller total (cards + shipping + fees) **<** Σ (quantity × trend price of each card: of its *cheapest English printing*, or of *this printing*)
 
 What you'll see on `cardmarket.com/<lang>/Magic/ShoppingCart`:
-- A green ✅ / red ❌ / yellow ⚠️ panel above each seller's summary, showing cards, shipping, total, summed trend and how much you save or overpay.
+- Two extra rows in each seller's summary, under Cardmarket's Total: the summed trend, and ✅ *Worth it: you save €x* / ❌ *Not worth it: over by €x* / ⚠️ *Incomplete*. The seller block also gets a green, red or yellow edge. Cards, shipping and total aren't repeated: Cardmarket already shows them.
 - Under each card: the trend price and which set it is from (", foil" when it is a foil trend). The set name links to a Cardmarket search for the card, where you can pick that printing. It isn't a direct link to the printing: Scryfall's direct link got an IP address rate-limited by Cardmarket (Cloudflare "Error 1015").
 - A small overview box in the bottom-right corner listing all sellers, each marked ✅ / ❌ / ⚠️ (not only by colour), with **Refresh prices** and **Settings** buttons.
 

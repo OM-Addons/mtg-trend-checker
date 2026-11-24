@@ -126,6 +126,27 @@
       `⚠️ Incomplete: no price for ${r.missing} card(s)`;
   }
 
+  /** "you save" / "over by" / "equal to trend" (equal is not worth it). @param {number} diff Σ trend - total */
+  const diffWords = (diff) => (Math.round(diff * 100) > 0 ? "you save" : Math.round(diff * 100) < 0 ? "over by" : "equal to trend");
+
+  /**
+   * The two rows added under Cardmarket's own Total (cart summary, wizard lists): the summed
+   * trend, and the verdict with how much you save or overpay. Cardmarket already shows the
+   * cards, shipping and total, so those aren't repeated (owner's wish).
+   * @param {ShipmentResult} r @param {TrendSource} source @param {string} [whatTotal]
+   * @returns {{label: string, value: string, cls: string}[]}
+   */
+  function verdictRows(r, source, whatTotal) {
+    const sum = source === "printing" ? "Σ trend of these printings" : "Σ trend (cheapest EN)";
+    const cls = `cmc-verdict-row ${r.worth === true ? "cmc-good-text" : r.worth === false ? "cmc-bad-text" : "cmc-unknown-text"}`;
+    return [
+      { label: sum, value: fmt(r.trendSum) + (r.missing ? ` (excl. ${r.missing})` : ""), cls: "" },
+      r.diff != null
+        ? { label: `${verdictText(r)}: ${diffWords(r.diff)}`, value: fmt(Math.abs(r.diff)), cls }
+        : { label: verdictText(r, whatTotal), value: "", cls },
+    ];
+  }
+
   /**
    * Overview box (bottom-right) for the cart and the wizard results.
    * @param {object} o
@@ -178,6 +199,6 @@
   const textClass = (kind) => (kind === "good" ? "cmc-good-text" : kind === "bad" ? "cmc-bad-text" : "cmc-muted");
 
   root.CMC = Object.assign(root.CMC, {
-    cmcEl, removeMarks, priceKey, evaluate, lookupArticles, annotateArticle, verdictKind, verdictText, renderOverviewBox,
+    cmcEl, removeMarks, priceKey, evaluate, lookupArticles, annotateArticle, verdictKind, verdictText, diffWords, verdictRows, renderOverviewBox,
   });
 })(typeof globalThis !== "undefined" ? globalThis : window);
