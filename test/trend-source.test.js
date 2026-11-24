@@ -2,7 +2,7 @@
 // (settings.trendSource = "printing"), on the cart and seller pages, plus foil detection.
 const { test } = require("node:test");
 const assert = require("node:assert/strict");
-const { fixture, loadPage, fakeBrowser, fakeScryfall, print, printing, text, CART_SCRIPTS, OFFER_SCRIPTS } = require("./helpers");
+const { fixture, loadPage, fakeBrowser, fakeScryfall, print, printing, text, nameNotes, priceNotes, CART_SCRIPTS, OFFER_SCRIPTS } = require("./helpers");
 
 const plain = (v) => JSON.parse(JSON.stringify(v));
 const wait = (ms = 20) => new Promise((r) => setTimeout(r, ms));
@@ -125,9 +125,10 @@ test("seller page, this printing: foil offers vs their foil trend; still no call
   assert.deepEqual(flagged(w), ["________ Goblin"]);
   assert.deepEqual(cardmarketCalls(fetch).sort(), ["/cards/cardmarket/676400", "/cards/cardmarket/677324"]);
   assert.equal(searchCalls(fetch).length, 0);
-  const notes = [...w.document.querySelectorAll(".cmc-note")].map(text);
-  assert.ok(notes.includes("🔥 20% (€ 1,01) under trend € 5,00 (Unfinity, foil)"), notes.join(" | "));
-  assert.ok(notes.includes("Trend € 3,20 (Unfinity, foil)"), notes.join(" | "));
+  const notes = priceNotes(w);
+  assert.ok(notes.includes("trend € 5,00 / ▼ € 1,01 under (20%) 🔥"), notes.join(" | "));
+  assert.ok(notes.some((n) => n.startsWith("trend € 3,20 / ")), notes.join(" | "));
+  assert.deepEqual(nameNotes(w).sort(), ["(Unfinity, foil)", "(Unfinity, foil)"]);
   const goblin = [...w.document.querySelectorAll(".cmc-deal-row a")][0];
   assert.match(goblin.title, /trend of this printing: €\s5,00 \(Unfinity, foil\)/);
 });
@@ -136,7 +137,8 @@ test("seller page, cheapest EN (default): same offers compared with the cheapest
   const { w } = realFoilOffers({});
   await w.CMC.runOffers();
   assert.deepEqual(flagged(w), [], "both are far above the €1 cheapest trend");
-  assert.match([...w.document.querySelectorAll(".cmc-note")].map(text).join(" | "), /Trend € 1,00 \(Unfinity\)/);
+  assert.deepEqual(priceNotes(w), ["trend € 1,00 / ▲ € 1,90 over", "trend € 1,00 / ▲ € 2,99 over"]);
+  assert.deepEqual(nameNotes(w), ["(Unfinity)", "(Unfinity)"]);
 });
 
 test("seller page switch: 'This printing' is saved and the page is re-checked", async () => {
@@ -190,11 +192,11 @@ function realFoilCart(settings) {
 test("cart, this printing: foil and non-foil copies get their own trend; foil trend decides the verdict", async () => {
   const { w, fetch } = realFoilCart({ trendSource: "printing" });
   await w.CMC.run();
-  const notes = [...w.document.querySelectorAll(".cmc-note")].map(text);
-  assert.deepEqual(notes, [
-    "Trend of this printing: € 1,00 (Unhinged, foil)",
-    "Trend of this printing: € 0,30 (Unhinged)",
-    "Trend of this printing: € 8,00 (Strixhaven, foil)",
+  assert.deepEqual(nameNotes(w), ["(Unhinged, foil)", "(Unhinged)", "(Strixhaven, foil)"]);
+  assert.deepEqual(priceNotes(w), [
+    "trend € 1,00 / ▼ € 0,19 under", // foil copy at 0,81
+    "trend € 0,30 / ▼ € 0,02 under", // non-foil copy at 0,28
+    "trend € 8,00 / ▼ € 3,00 under", // foil at 5,00
   ]);
   assert.equal(cardmarketCalls(fetch).filter((c) => c.endsWith("313985")).length, 1, "one request for both copies");
   const panels = [...w.document.querySelectorAll(".shipment-block")];

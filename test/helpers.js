@@ -118,4 +118,10 @@ const printing = (oracle, eur, eurFoil, set = "Set", finishes = ["nonfoil", "foi
 /** Normalise text for assertions (collapses whitespace incl. the non-breaking space in "€ 1,00"). */
 const text = (el) => el.textContent.replace(/\s+/g, " ").trim();
 
-module.exports = { fixture, loadPage, fakeBrowser, fakeScryfall, print, printing, text, CART_SCRIPTS, OFFER_SCRIPTS, WIZARD_SCRIPTS };
+/** Notes under the card names (set link, or the full note when there's no price cell). */
+const nameNotes = (w) => [...w.document.querySelectorAll(".cmc-note:not(.cmc-price-note)")].map(text);
+/** Lines under Cardmarket's price, one string per card, e.g. "trend € 7,00 / ▼ € 4,50 under". */
+const priceNotes = (w) => [...w.document.querySelectorAll(".cmc-price-note")].map((n) =>
+  n.children.length ? [...n.children].map(text).join(" / ") : text(n));
+
+module.exports = { fixture, loadPage, fakeBrowser, fakeScryfall, print, printing, text, nameNotes, priceNotes, CART_SCRIPTS, OFFER_SCRIPTS, WIZARD_SCRIPTS };

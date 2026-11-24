@@ -12,7 +12,7 @@
   function renderShipment(shipment, prices, source) {
     const r = evaluate(shipment, prices, source);
     for (const a of shipment.articles) {
-      annotateArticle(a, prices.get(priceKey(a, source)), source, a.el.querySelector("td.name, .name") || a.el);
+      annotateArticle(a, prices.get(priceKey(a, source)), source, a.el.querySelector("td.name, .name") || a.el, a.el.querySelector("td.price"));
     }
 
     // Like the wizard: a coloured edge on the seller block, and two rows under Cardmarket's

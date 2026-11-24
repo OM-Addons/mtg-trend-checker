@@ -3,7 +3,7 @@ const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
 const { JSDOM } = require("jsdom");
-const { fixture, loadPage, fakeBrowser, fakeScryfall, print, text, OFFER_SCRIPTS } = require("./helpers");
+const { fixture, loadPage, fakeBrowser, fakeScryfall, print, text, nameNotes, priceNotes, OFFER_SCRIPTS } = require("./helpers");
 
 /** settings.js on its own (no page script), for the pure functions. */
 const cmc = () => loadPage("<body></body>", ["settings.js"], null).CMC;
@@ -358,7 +358,8 @@ test("overview switch: changes mode, saves it and re-checks the page", async () 
   assert.equal(browser.storage.local.data.settings.dealMode, "anyUnder", "the choice is remembered");
   assert.equal(flaggedNames(w).length, 7);
   assert.ok(fetch.calls.some((c) => c.includes("Cheap Card")));
-  assert.equal(w.document.querySelectorAll(".cmc-note").length, 8, "old notes are replaced, not doubled");
+  assert.equal(nameNotes(w).length, 8, "old notes are replaced, not doubled");
+  assert.equal(priceNotes(w).length, 8, "old price notes are replaced, not doubled");
 
   w.document.querySelectorAll(".cmc-mode-btn")[0].click();
   await new Promise((r) => setTimeout(r, 20));
@@ -385,7 +386,7 @@ test("discounts under 1% show as <1%, not 0%", async () => {
   const w = loadPage(fixture("offers-list.html"), OFFER_SCRIPTS, fetch, { browser });
   await w.CMC.runOffers();
   const note = [...w.document.querySelectorAll(".cmc-deal-note")].map(text);
-  assert.deepEqual(note, ["🔥 <1% (€ 0,01) under trend € 1,51 (S)"]);
+  assert.deepEqual(note, ["▼ € 0,01 under (<1%) 🔥"]);
 });
 
 test("settings page: mode radios load, save, and change the ignored text", async () => {

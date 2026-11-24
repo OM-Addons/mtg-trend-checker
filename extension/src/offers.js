@@ -4,7 +4,7 @@
  * the printing on offer: settings.trendSource). */
 (function (root) {
   "use strict";
-  const { parseEuro, allEuros, cleanName, isFoil, lookup, clearCache, trendSetText, exclusionOf, getSettings, saveSettings, requiredDiscount, ignoredBelow, offButton, renderOffBox, settingsButton, toggleRow, trendSourceSwitch, trackMinimized, minimizeButton, addMiniBar, migrate } = root.CMC;
+  const { parseEuro, allEuros, cleanName, isFoil, lookup, clearCache, trendSetText, trendDiffText, exclusionOf, getSettings, saveSettings, requiredDiscount, ignoredBelow, offButton, renderOffBox, settingsButton, toggleRow, trendSourceSwitch, trackMinimized, minimizeButton, addMiniBar, migrate } = root.CMC;
 
   const MARK = "data-cmc";
   /** @param {number | null | undefined} n */
@@ -97,6 +97,8 @@
       offers.push({
         el: row,
         nameCell: link.closest("td, .col-seller, .col-product, div") || row,
+        // Desktop price box (stacked column inside it, if any); notes there sit right under the price.
+        priceEl: row.querySelector(".col-offer .price-container .flex-column") || row.querySelector(".col-offer .price-container"),
         name,
         url: link.href,
         link,
@@ -121,6 +123,11 @@
     return { pct, discount, deal };
   }
 
+  /** "no trend" under the price (the reason is in the overview box's "couldn't be priced" list). @param {Offer} offer */
+  function noTrend(offer) {
+    if (offer.priceEl) offer.priceEl.appendChild(el("div", "cmc-note cmc-price-note cmc-muted", "no trend"));
+  }
+
   /** Discount for display: whole percent, but "<1" instead of a misleading "0". */
   /** @param {number} d */
   const pctText = (d) => (d > 0 && d < 1 ? "<1" : String(Math.round(d)));
@@ -134,9 +141,12 @@
     document.querySelectorAll(".cmc-deal-row").forEach((n) => n.classList.remove("cmc-deal-row"));
   }
 
-  /** Deals: green row + 🔥 note. Every other checked card: just the trend price.
+  /**
+   * Deals: green row + 🔥. Every other checked card: the trend and the € difference, no
+   * percentage (owner's wish). With a price box, those go right under the price and only the
+   * set link under the name; without one (layout not recognised) the old note under the name.
+   * @param {Offer} offer @param {TrendInfo} p @param {Judgement | null} j
    */
-  /** @param {Offer} offer @param {TrendInfo} p @param {Judgement | null} j */
   function annotate(offer, p, j) {
     // Every checked card gets a hover tooltip on its name (no visual clutter),
     // so you can verify what was compared.
@@ -147,8 +157,14 @@
     if (!j) return;
     const target = offer.nameCell || offer.el;
     const note = el("div", "cmc-note");
-    if (j.deal) {
-      offer.el.classList.add("cmc-deal-row");
+    if (j.deal) offer.el.classList.add("cmc-deal-row");
+    if (offer.priceEl && offer.price != null) {
+      const at = el("div", "cmc-note cmc-price-note");
+      at.appendChild(el("div", null, `trend ${fmt(p.trend)}`));
+      const diff = trendDiffText(offer.price, p.trend);
+      at.appendChild(j.deal ? el("div", "cmc-diff cmc-deal-note", `${diff} (${pctText(j.discount)}%) 🔥`) : el("div", "cmc-diff", diff));
+      offer.priceEl.appendChild(at);
+    } else if (j.deal) {
       note.classList.add("cmc-deal-note");
       note.append(`🔥 ${pctText(j.discount)}% (${fmt(savings(offer.price, p.trend))}) under trend ${fmt(p.trend)} `);
     } else {
@@ -284,7 +300,7 @@
         if (settings.englishOnly && offer.language && offer.language !== "English") { stats.lang++; continue; }
         stats.checked++;
         // "This printing" needs the product id: without it the printing is unknown (no API call).
-        if (byPrinting && !offer.productId) { stats.failed.push({ offer, reason: "printing unknown (no product ID)" }); continue; }
+        if (byPrinting && !offer.productId) { stats.failed.push({ offer, reason: "printing unknown (no product ID)" }); noTrend(offer); continue; }
         /** @type {TrendInfo | null} */
         let p = null;
         try { p = await lookup(offer.productId, offer.name, { source: settings.trendSource, foil: offer.foil, exclude: exclusionOf(settings) }); } catch (e) {
@@ -295,6 +311,7 @@
         if (!p) {
           const reason = !byPrinting ? "no English trend found" : offer.foil ? "no foil trend for this printing" : "no trend for this printing";
           stats.failed.push({ offer, reason });
+          noTrend(offer);
           continue;
         }
         const j = judge(price, p.trend, settings);

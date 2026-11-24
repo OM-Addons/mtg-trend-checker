@@ -1,6 +1,6 @@
 const { test } = require("node:test");
 const assert = require("node:assert/strict");
-const { fixture, loadPage, fakeScryfall, print, text, CART_SCRIPTS } = require("./helpers");
+const { fixture, loadPage, fakeScryfall, print, text, nameNotes, priceNotes, CART_SCRIPTS } = require("./helpers");
 
 function cartPage() {
   const fetch = fakeScryfall({
@@ -28,12 +28,33 @@ test("each seller gets a verdict panel", async () => {
   assert.ok(panels[2].classList.contains("cmc-block-unknown"), text(panels[2]));
 });
 
-test("cards show the cheapest English trend and its set", async () => {
+test("cards: trend and difference per copy under the price, the set link under the name", async () => {
   const { w } = cartPage();
   await w.CMC.run();
-  const notes = [...w.document.querySelectorAll(".cmc-note")].map(text);
-  assert.match(notes[0], /Cheapest EN trend: € 0,50 \(Promo, foil\)/);
-  assert.match(notes[1], /€ 0,90 \(Masters 25\)/);
+  assert.deepEqual(nameNotes(w), ["(Promo, foil)", "(Masters 25)", "(Commander)", "No English trend price found"]);
+  assert.deepEqual(priceNotes(w), [
+    "trend € 0,50 / ▲ € 0,30 over", // 2x Bolt at 0,80 each: per copy, not per line
+    "trend € 0,90 / ▲ € 0,10 over",
+    "trend € 2,10 / ▲ € 1.047,90 over",
+    "no trend", // the reason is under the name
+  ]);
+  const priceCell = w.document.querySelector("[data-product-id='100'] td.price");
+  assert.ok(priceCell.querySelector(".cmc-price-note"), "the trend is in the price cell itself");
+});
+
+test("trendDiffText: under, over, equal (in whole cents)", () => {
+  const { w } = cartPage();
+  const diff = (price, trend) => w.CMC.trendDiffText(price, trend).replace(/\s/g, " ");
+  assert.equal(diff(2.5, 7), "▼ € 4,50 under");
+  assert.equal(diff(5.8, 5), "▲ € 0,80 over");
+  assert.equal(diff(3, 3.0000001), "= trend");
+});
+
+test("cart rows without a price cell keep the full note under the name", async () => {
+  const { w } = cartPage();
+  w.document.querySelector("[data-product-id='200'] td.price").className = "something-else";
+  await w.CMC.run();
+  assert.equal(nameNotes(w)[1], "Cheapest EN trend: € 0,90 (Masters 25)");
 });
 
 test("evaluate: worth it only when the total is strictly lower than the trend sum", () => {

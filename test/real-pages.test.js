@@ -5,7 +5,7 @@ const { test } = require("node:test");
 const assert = require("node:assert/strict");
 /** Copy values out of the jsdom window so deepEqual compares plain data. */
 const plain = (v) => JSON.parse(JSON.stringify(v));
-const { fixture, loadPage, fakeScryfall, print, text, CART_SCRIPTS, OFFER_SCRIPTS } = require("./helpers");
+const { fixture, loadPage, fakeScryfall, print, text, nameNotes, priceNotes, CART_SCRIPTS, OFFER_SCRIPTS } = require("./helpers");
 
 // ---------------------------------------------------------------------------
 // Cart (real-cart.html): 2 sellers, 1 card each.
@@ -61,8 +61,16 @@ test("real cart: Σ trend and verdict are two rows under Cardmarket's Total, not
 test("real cart: no coloured price bars on the cards (removed at the owner's request: colour only)", async () => {
   const { w } = realCart();
   await w.CMC.run();
-  assert.equal(w.document.querySelectorAll(".cmc-note").length, 2, "the notes are still there");
+  assert.equal(nameNotes(w).length, 2, "the notes are still there");
   assert.equal(w.document.querySelectorAll("[class*='cmc-row-']").length, 0);
+});
+
+test("real cart: trend and difference sit in Cardmarket's price cell, the set link under the name", async () => {
+  const { w } = realCart();
+  await w.CMC.run();
+  assert.deepEqual(nameNotes(w), ["(Marvel)", "(Bloomburrow)"]);
+  assert.deepEqual(priceNotes(w), ["trend € 7,00 / ▼ € 4,50 under", "trend € 8,00 / ▼ € 2,00 under"]);
+  assert.equal(w.document.querySelectorAll("td.price .cmc-price-note").length, 2);
 });
 
 test("real cart: the overview doesn't rely on colour alone (symbols for colour-blind users)", async () => {
@@ -117,5 +125,8 @@ test("real seller page: only the 3 offers from €1 are looked up, one is a deal
   const deals = [...w.document.querySelectorAll(".cmc-deal-row")];
   assert.equal(deals.length, 1);
   assert.match(text(deals[0]), /Realm Seekers/);
-  assert.equal(w.document.querySelectorAll(".cmc-note").length, 3);
+  assert.equal(nameNotes(w).length, 3);
+  // The trend lines go into the desktop price box, right under the price.
+  assert.equal(w.document.querySelectorAll(".col-offer .price-container .cmc-price-note").length, 3);
+  assert.match(text(deals[0].querySelector(".cmc-price-note")), /under \(\d+%\) 🔥$/);
 });

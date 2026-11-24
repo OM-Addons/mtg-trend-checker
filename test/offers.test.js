@@ -1,6 +1,6 @@
 const { test } = require("node:test");
 const assert = require("node:assert/strict");
-const { fixture, loadPage, fakeScryfall, print, text, OFFER_SCRIPTS } = require("./helpers");
+const { fixture, loadPage, fakeScryfall, print, text, nameNotes, priceNotes, OFFER_SCRIPTS } = require("./helpers");
 
 // ---------------------------------------------------------------------------
 // Thresholds (pure logic)
@@ -50,21 +50,47 @@ test("list layout: rows, product id from thumbnail, language", () => {
   assert.equal(offers[7].name, "Boundary Five");
 });
 
-test("list layout: deals are flagged, others show just the trend price", async () => {
+test("list layout: deals are flagged; trend and € difference under the price, no % for non-deals", async () => {
   const { w } = listPage();
   await w.CMC.runOffers();
   const flagged = [...w.document.querySelectorAll(".cmc-deal-row")].map((r) => r.querySelector("a").textContent);
   // Boundary Five: €5.00 vs €5.80 trend = 13.8% under; €5 falls in the "from €5" range (10%), so a deal.
   assert.deepEqual(flagged, ["Low Deal", "Mid Deal", "High Deal", "Boundary Five (V.2)"]);
 
-  const notes = [...w.document.querySelectorAll(".cmc-note")].map(text);
-  // Deal: percentage, then the savings in euros in brackets (Low Deal: €1,50 vs €2,00).
+  // Under the price, in Cardmarket's price box. Deals: € under, %, then the 🔥 (owner's wish: fire last).
+  assert.deepEqual(priceNotes(w), [
+    "trend € 2,00 / ▼ € 0,50 under (25%) 🔥", // Low Deal 1,50
+    "trend € 2,20 / ▼ € 0,40 under", // Low NoDeal 1,80: no percentage for non-deals
+    "trend € 4,00 / ▼ € 0,60 under (15%) 🔥", // Mid Deal 3,40
+    "trend € 10,00 / ▼ € 1,00 under (10%) 🔥", // High Deal 9,00
+    "trend € 10,00 / ▼ € 0,50 under", // High NoDeal 9,50
+    "trend € 5,80 / ▼ € 0,80 under (14%) 🔥", // Boundary Five 5,00
+    "trend € 2,50 / ▲ € 0,50 over", // Above Trend 3,00
+  ]);
+  const first = w.document.querySelectorAll(".price-container")[1];
+  assert.ok(first.querySelector(".cmc-price-note"), "Low Deal's trend sits in its price box");
+  // Under the name: only the set link.
+  const notes = nameNotes(w);
+  assert.equal(notes.length, 7);
+  assert.ok(notes.every((n) => n === "(S)"), notes.join(" | "));
+  assert.ok([...notes, ...priceNotes(w)].every((n) => !n.includes("EN")), "no 'EN' in the notes");
+});
+
+test("seller rows without a price box keep the old note under the name", async () => {
+  const { w } = listPage();
+  w.document.querySelectorAll(".price-container").forEach((p) => { p.className = "other"; });
+  await w.CMC.runOffers();
+  const notes = nameNotes(w);
   assert.ok(notes.includes("🔥 25% (€ 0,50) under trend € 2,00 (S)"));
-  // Non-deals, including above trend: price only, no percentage
   assert.ok(notes.includes("Trend € 2,20 (S)"));
-  assert.ok(notes.includes("Trend € 2,50 (S)"), "above-trend card still shows its trend");
-  assert.ok(notes.every((n) => !n.includes("EN")), "no 'EN' in the notes");
-  assert.ok(notes.filter((n) => !n.startsWith("🔥")).every((n) => !n.includes("%")));
+  assert.equal(priceNotes(w).length, 0);
+});
+
+test("seller page: an offer without a trend says 'no trend' under the price", async () => {
+  const fetch = fakeScryfall({ byProductId: {}, byName: { "Low Deal": "Low Deal" }, prints: { "Low Deal": [print(2, "S")] } });
+  const w = loadPage(fixture("offers-list.html"), OFFER_SCRIPTS, fetch);
+  await w.CMC.runOffers();
+  assert.deepEqual(priceNotes(w).filter((n) => n === "no trend").length, 6, "every looked-up card except Low Deal");
 });
 
 test("overview lists each deal with its savings in euros and percent", async () => {

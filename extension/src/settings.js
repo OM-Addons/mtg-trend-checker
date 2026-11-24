@@ -68,6 +68,17 @@
   const fmtEuro = (n) => (n == null ? "?" : n.toLocaleString("nl-NL", { style: "currency", currency: "EUR" }));
 
   /**
+   * Price vs trend per copy, shown under Cardmarket's price: "▼ € 4,50 under",
+   * "▲ € 0,80 over" or "= trend". Arrows come with words, so it never relies on colour.
+   * @param {number} price @param {number} trend
+   */
+  function trendDiffText(price, trend) {
+    const diff = cents(trend) - cents(price);
+    if (diff === 0) return "= trend";
+    return diff > 0 ? `▼ ${fmtEuro(diff / 100)} under` : `▲ ${fmtEuro(-diff / 100)} over`;
+  }
+
+  /**
    * Strict check for what the user typed on the settings page.
    * @param {{from: number, pct: number}[]} rows
    * @returns {{message: string, index: number, field: "from" | "pct" | null} | null} null when valid
@@ -229,6 +240,6 @@
 
   root.CMC = Object.assign(root.CMC || {}, {
     DEFAULTS, MAX_BRACKETS, SET_CATEGORIES, defaults, exclusionOf, normalizeSetCodes, getSettings, saveSettings, migrate,
-    normalizeBrackets, validateBrackets, requiredDiscount, ignoredBelow, rangeLabel, fmtEuro,
+    normalizeBrackets, validateBrackets, requiredDiscount, ignoredBelow, rangeLabel, fmtEuro, trendDiffText,
   });
 })(typeof globalThis !== "undefined" ? globalThis : window);

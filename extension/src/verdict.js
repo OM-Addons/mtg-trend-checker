@@ -4,7 +4,7 @@
  * the verdict texts and the overview box (bottom-right). */
 (function (root) {
   "use strict";
-  const { lookup, clearCache, trendSetText, fmtEuro: fmt, offButton, settingsButton, trendSourceSwitch, minimizeButton, addMiniBar } = root.CMC;
+  const { lookup, clearCache, trendSetText, fmtEuro: fmt, trendDiffText, offButton, settingsButton, trendSourceSwitch, minimizeButton, addMiniBar } = root.CMC;
   const MARK = "data-cmc";
 
   /**
@@ -88,18 +88,28 @@
   }
 
   /**
-   * Note under a card: its trend and set, linking to a Cardmarket search. (There used to be a
-   * green/red bar on the price as well; removed at the owner's request, as it was colour only.)
-   * @param {CartArticle} a @param {TrendInfo | undefined} p @param {TrendSource} source @param {Element} cell where the note goes
+   * Notes for one card. With a price cell: the trend and the difference go right under
+   * Cardmarket's price (easy to compare), and only the set link under the name. Without
+   * one (layout not recognised): the full note under the name, as before.
+   * @param {CartArticle} a @param {TrendInfo | undefined} p @param {TrendSource} source
+   * @param {Element} cell name cell @param {Element | null} [priceCell]
    */
-  function annotateArticle(a, p, source, cell) {
+  function annotateArticle(a, p, source, cell, priceCell) {
     const byPrinting = source === "printing";
     const note = cmcEl("div", "cmc-note");
     if (!p) {
       note.textContent = !byPrinting ? "No English trend price found" : a.foil ? "No foil trend for this printing" : "No trend for this printing";
       note.classList.add("cmc-muted");
+      if (priceCell) priceCell.appendChild(cmcEl("div", "cmc-note cmc-price-note cmc-muted", "no trend"));
     } else {
-      note.append(`${byPrinting ? "Trend of this printing" : "Cheapest EN trend"}: ${fmt(p.trend)} `);
+      if (priceCell) {
+        const at = cmcEl("div", "cmc-note cmc-price-note");
+        at.appendChild(cmcEl("div", null, `trend ${fmt(p.trend)}`));
+        if (a.unitPrice != null) at.appendChild(cmcEl("div", "cmc-diff", trendDiffText(a.unitPrice, p.trend)));
+        priceCell.appendChild(at);
+      } else {
+        note.append(`${byPrinting ? "Trend of this printing" : "Cheapest EN trend"}: ${fmt(p.trend)} `);
+      }
       const link = /** @type {HTMLAnchorElement} */ (cmcEl("a", "cmc-link", `(${trendSetText(p)})`));
       link.href = p.url;
       link.target = "_blank";
