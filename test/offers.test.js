@@ -59,13 +59,13 @@ test("list layout: deals are flagged; trend and € difference under the price, 
 
   // Under the price, in Cardmarket's price box. Deals: € under, %, then the 🔥 (owner's wish: fire last).
   assert.deepEqual(priceNotes(w), [
-    "trend € 2,00 / ▼ € 0,50 under (25%) 🔥", // Low Deal 1,50
-    "trend € 2,20 / ▼ € 0,40 under", // Low NoDeal 1,80: no percentage for non-deals
-    "trend € 4,00 / ▼ € 0,60 under (15%) 🔥", // Mid Deal 3,40
-    "trend € 10,00 / ▼ € 1,00 under (10%) 🔥", // High Deal 9,00
-    "trend € 10,00 / ▼ € 0,50 under", // High NoDeal 9,50
-    "trend € 5,80 / ▼ € 0,80 under (14%) 🔥", // Boundary Five 5,00
-    "trend € 2,50 / ▲ € 0,50 over", // Above Trend 3,00
+    "▼ € 0,50 under (25%) 🔥 / trend € 2,00", // Low Deal 1,50
+    "▼ € 0,40 under / trend € 2,20", // Low NoDeal 1,80: no percentage for non-deals
+    "▼ € 0,60 under (15%) 🔥 / trend € 4,00", // Mid Deal 3,40
+    "▼ € 1,00 under (10%) 🔥 / trend € 10,00", // High Deal 9,00
+    "▼ € 0,50 under / trend € 10,00", // High NoDeal 9,50
+    "▼ € 0,80 under (14%) 🔥 / trend € 5,80", // Boundary Five 5,00
+    "▲ € 0,50 over / trend € 2,50", // Above Trend 3,00
   ]);
   const first = w.document.querySelectorAll(".price-container")[1];
   assert.ok(first.querySelector(".cmc-price-note"), "Low Deal's trend sits in its price box");

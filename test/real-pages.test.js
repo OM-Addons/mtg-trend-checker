@@ -69,7 +69,7 @@ test("real cart: trend and difference sit in Cardmarket's price cell, the set li
   const { w } = realCart();
   await w.CMC.run();
   assert.deepEqual(nameNotes(w), ["(Marvel)", "(Bloomburrow)"]);
-  assert.deepEqual(priceNotes(w), ["trend € 7,00 / ▼ € 4,50 under", "trend € 8,00 / ▼ € 2,00 under"]);
+  assert.deepEqual(priceNotes(w), ["▼ € 4,50 under / trend € 7,00", "▼ € 2,00 under / trend € 8,00"]);
   assert.equal(w.document.querySelectorAll("td.price .cmc-price-note").length, 2);
 });
 
@@ -135,5 +135,6 @@ test("real seller page: only the 3 offers from €1 are looked up, one is a deal
   assert.equal(nameNotes(w).length, 3);
   // The trend lines go into the desktop price box, right under the price.
   assert.equal(w.document.querySelectorAll(".col-offer .price-container .cmc-price-note").length, 3);
-  assert.match(text(deals[0].querySelector(".cmc-price-note")), /under \(\d+%\) 🔥$/);
+  // Price -> difference -> trend (owner's order).
+  assert.match(text(deals[0].querySelector(".cmc-price-note")), /^▼ .* under \(\d+%\) 🔥 ?trend € /);
 });

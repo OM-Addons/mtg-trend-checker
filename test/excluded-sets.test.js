@@ -140,7 +140,7 @@ test("cart: the note says how many cheaper printings were skipped", async () => 
   const notes = nameNotes(w);
   assert.equal(notes[0], "(M10, 1 cheaper filtered)");
   assert.equal(notes[1], "(Masters 25)", "nothing skipped: plain note");
-  assert.equal(priceNotes(w)[0], "trend € 1,80 / ▼ € 1,00 under");
+  assert.equal(priceNotes(w)[0], "▼ € 1,00 under / trend € 1,80");
 });
 
 test("seller page: default settings skip Memorabilia, in the note and the name tooltip", async () => {
@@ -155,7 +155,7 @@ test("seller page: default settings skip Memorabilia, in the note and the name t
   const notes = nameNotes(w).join(" | ");
   assert.match(notes, /\(M10, 1 cheaper filtered\)/);
   assert.match(notes, /\(Collectors' Edition, excluded set\)/);
-  assert.match(priceNotes(w).join(" | "), /trend € 4,00 \/ ▼ € 0,60 under \(15%\) 🔥/);
+  assert.match(priceNotes(w).join(" | "), /▼ € 0,60 under \(15%\) 🔥 \/ trend € 4,00/);
   const mid = [...w.document.querySelectorAll("a")].find((a) => a.textContent.trim() === "Mid Deal");
   assert.match(mid.title, /cheapest EN trend: €\s4,00 \(M10, 1 cheaper filtered\)/);
 });

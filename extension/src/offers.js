@@ -160,9 +160,10 @@
     if (j.deal) offer.el.classList.add("cmc-deal-row");
     if (offer.priceEl && offer.price != null) {
       const at = el("div", "cmc-note cmc-price-note");
-      at.appendChild(el("div", null, `trend ${fmt(p.trend)}`));
+      // Order (owner's wish): Cardmarket's price, then the difference, then the trend.
       const diff = trendDiffText(offer.price, p.trend);
       at.appendChild(j.deal ? el("div", "cmc-diff cmc-deal-note", `${diff} (${pctText(j.discount)}%) 🔥`) : el("div", "cmc-diff", diff));
+      at.appendChild(el("div", null, `trend ${fmt(p.trend)}`));
       offer.priceEl.appendChild(at);
     } else if (j.deal) {
       note.classList.add("cmc-deal-note");

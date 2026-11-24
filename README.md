@@ -26,7 +26,7 @@ Checks your cart one seller at a time:
 
 What you'll see on `cardmarket.com/<lang>/Magic/ShoppingCart`:
 - Two extra rows in each seller's summary, under Cardmarket's Total: the summed trend, and ✅ *Worth it: you save €x* / ❌ *Not worth it: over by €x* / ⚠️ *Incomplete*. The seller block also gets a green, red or yellow edge. Cards, shipping and total aren't repeated: Cardmarket already shows them.
-- Right under each card's price: the trend, and how far the price (per copy) is under or over it, e.g. "trend € 7,00" and "▼ € 4,50 under" (or "▲ € 0,80 over", "= trend"). Prices under trend are bold green, like deals on seller pages. Cards without a trend say "no trend" there, with the reason under the name.
+- Right under each card's price: how far the price (per copy) is under or over the trend, then the trend itself, e.g. "▼ € 4,50 under" and "trend € 7,00" (or "▲ € 0,80 over", "= trend"). Prices under trend are bold green, like deals on seller pages. Cards without a trend say "no trend" there, with the reason under the name.
 - Under each card's name: which set the trend is from (", foil" when it is a foil trend). The set name links to a Cardmarket search for the card, where you can pick that printing. It isn't a direct link to the printing: Scryfall's direct link got an IP address rate-limited by Cardmarket (Cloudflare "Error 1015").
 - A small overview box in the bottom-right corner listing all sellers, each marked ✅ / ❌ / ⚠️ (not only by colour), with **Refresh prices** and **Settings** buttons.
 
@@ -56,7 +56,7 @@ These price ranges can be changed in the settings (see below). Offers below the 
 
 **Any under trend:** sometimes you just want to see every card that's cheaper than its trend. The overview box on a seller page has a switch at the top: **My ranges** / **Any under trend**. In "Any under trend" mode every offer is checked, including cheap ones, and anything strictly below trend is flagged. The English-only filter still applies. The choice is remembered for other pages and sellers until you switch back.
 
-- Right under each checked offer's price: the trend and the difference, e.g. "trend € 7,21" and "▼ € 1,02 under". Deals also get a green row and the percentage with a 🔥: "▼ € 1,02 under (14%) 🔥". Other offers show no percentage. Offers without a trend say "no trend". The set the trend is from is under the card name.
+- Right under each checked offer's price: the difference, then the trend, e.g. "▼ € 1,02 under" and "trend € 7,21". Deals also get a green row and the percentage with a 🔥: "▼ € 1,02 under (14%) 🔥". Other offers show no percentage. Offers without a trend say "no trend". The set the trend is from is under the card name.
 - An overview box (bottom-right) lists the deals on the page with the price, the trend and the savings, e.g. "Adrix and Nev, Twincasters: € 4,49 vs € 5,71 (€ 1,22 - 21%)".
 - Only the page you're viewing is checked, so with a 20-per-page shop you check page by page. Sort by price descending to see the expensive cards first.
 - By default only English offers are checked, and non-English offers aren't looked up at all. If an offer's language can't be read from the flag icon, it is checked anyway.

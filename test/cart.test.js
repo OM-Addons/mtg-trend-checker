@@ -33,9 +33,9 @@ test("cards: trend and difference per copy under the price, the set link under t
   await w.CMC.run();
   assert.deepEqual(nameNotes(w), ["(Promo, foil)", "(Masters 25)", "(Commander)", "No English trend price found"]);
   assert.deepEqual(priceNotes(w), [
-    "trend € 0,50 / ▲ € 0,30 over", // 2x Bolt at 0,80 each: per copy, not per line
-    "trend € 0,90 / ▲ € 0,10 over",
-    "trend € 2,10 / ▲ € 1.047,90 over",
+    "▲ € 0,30 over / trend € 0,50", // 2x Bolt at 0,80 each: per copy, not per line
+    "▲ € 0,10 over / trend € 0,90",
+    "▲ € 1.047,90 over / trend € 2,10",
     "no trend", // the reason is under the name
   ]);
   assert.equal(w.document.querySelectorAll(".cmc-under").length, 0, "only prices under trend are green, not over");
