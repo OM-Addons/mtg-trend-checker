@@ -105,7 +105,11 @@
       if (priceCell) {
         const at = cmcEl("div", "cmc-note cmc-price-note");
         at.appendChild(cmcEl("div", null, `trend ${fmt(p.trend)}`));
-        if (a.unitPrice != null) at.appendChild(cmcEl("div", "cmc-diff", trendDiffText(a.unitPrice, p.trend)));
+        if (a.unitPrice != null) {
+          // Under trend: green like a seller-page deal (owner's wish), the ▼ and "under" keep it readable without colour.
+          const under = Math.round(a.unitPrice * 100) < Math.round(p.trend * 100);
+          at.appendChild(cmcEl("div", under ? "cmc-diff cmc-under" : "cmc-diff", trendDiffText(a.unitPrice, p.trend)));
+        }
         priceCell.appendChild(at);
       } else {
         note.append(`${byPrinting ? "Trend of this printing" : "Cheapest EN trend"}: ${fmt(p.trend)} `);

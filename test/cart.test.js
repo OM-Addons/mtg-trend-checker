@@ -38,6 +38,7 @@ test("cards: trend and difference per copy under the price, the set link under t
     "trend € 2,10 / ▲ € 1.047,90 over",
     "no trend", // the reason is under the name
   ]);
+  assert.equal(w.document.querySelectorAll(".cmc-under").length, 0, "only prices under trend are green, not over");
   const priceCell = w.document.querySelector("[data-product-id='100'] td.price");
   assert.ok(priceCell.querySelector(".cmc-price-note"), "the trend is in the price cell itself");
 });

@@ -26,7 +26,7 @@ Checks your cart one seller at a time:
 
 What you'll see on `cardmarket.com/<lang>/Magic/ShoppingCart`:
 - Two extra rows in each seller's summary, under Cardmarket's Total: the summed trend, and ✅ *Worth it: you save €x* / ❌ *Not worth it: over by €x* / ⚠️ *Incomplete*. The seller block also gets a green, red or yellow edge. Cards, shipping and total aren't repeated: Cardmarket already shows them.
-- Right under each card's price: the trend, and how far the price (per copy) is under or over it, e.g. "trend € 7,00" and "▼ € 4,50 under" (or "▲ € 0,80 over", "= trend"). Cards without a trend say "no trend" there, with the reason under the name.
+- Right under each card's price: the trend, and how far the price (per copy) is under or over it, e.g. "trend € 7,00" and "▼ € 4,50 under" (or "▲ € 0,80 over", "= trend"). Prices under trend are bold green, like deals on seller pages. Cards without a trend say "no trend" there, with the reason under the name.
 - Under each card's name: which set the trend is from (", foil" when it is a foil trend). The set name links to a Cardmarket search for the card, where you can pick that printing. It isn't a direct link to the printing: Scryfall's direct link got an IP address rate-limited by Cardmarket (Cloudflare "Error 1015").
 - A small overview box in the bottom-right corner listing all sellers, each marked ✅ / ❌ / ⚠️ (not only by colour), with **Refresh prices** and **Settings** buttons.
 

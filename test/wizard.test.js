@@ -94,6 +94,7 @@ test("wizard page: each card gets the cart's note, and no coloured price bar (re
   // Trend and difference in the price cell (the last one), right under Cardmarket's price.
   assert.deepEqual(rows.map((r) => [...r.querySelectorAll("td:last-child .cmc-price-note > div")].map(text).join(" / ")),
     ["trend € 5,00 / ▼ € 2,00 under", "trend € 10,00 / ▼ € 1,00 under"]); // 3,00 and 9,00
+  assert.equal(rows.filter((r) => r.querySelector(".cmc-diff.cmc-under")).length, 2, "under trend: green");
   assert.equal(w.document.querySelectorAll("[class*='cmc-row-']").length, 0);
   assert.match(text(blocks(w)[4]), /No English trend price found/);
 });

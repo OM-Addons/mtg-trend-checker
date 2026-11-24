@@ -73,6 +73,13 @@ test("real cart: trend and difference sit in Cardmarket's price cell, the set li
   assert.equal(w.document.querySelectorAll("td.price .cmc-price-note").length, 2);
 });
 
+test("cart: prices under trend are green like seller-page deals, without % or 🔥", async () => {
+  const { w } = realCart();
+  await w.CMC.run();
+  const under = [...w.document.querySelectorAll(".cmc-diff.cmc-under")].map(text);
+  assert.deepEqual(under, ["▼ € 4,50 under", "▼ € 2,00 under"]);
+});
+
 test("real cart: the overview doesn't rely on colour alone (symbols for colour-blind users)", async () => {
   const { w } = realCart();
   await w.CMC.run();
