@@ -139,6 +139,7 @@
   function removeOld() {
     document.querySelectorAll(`[${MARK}]`).forEach((n) => n.remove());
     document.querySelectorAll(".cmc-deal-row").forEach((n) => n.classList.remove("cmc-deal-row"));
+    document.querySelectorAll(".cmc-name-cell").forEach((n) => n.classList.remove("cmc-name-cell"));
   }
 
   /**
@@ -156,7 +157,9 @@
     }
     if (!j) return;
     const target = offer.nameCell || offer.el;
-    const note = el("div", "cmc-note");
+    // Own line below the name, even if Cardmarket lays the cell out as a flex row (styles.css).
+    const note = el("div", "cmc-note cmc-name-note");
+    target.classList.add("cmc-name-cell");
     if (j.deal) offer.el.classList.add("cmc-deal-row");
     const atPrice = Boolean(offer.priceEl && offer.price != null);
     if (offer.priceEl && offer.price != null) { // = atPrice, spelled out for the type checker

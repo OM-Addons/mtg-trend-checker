@@ -20,7 +20,7 @@
   }
 
   /** Classes this script (and the wizard page) put on Cardmarket's own elements. */
-  const ADDED_CLASSES = ["cmc-block-good", "cmc-block-bad", "cmc-block-unknown", "cmc-unmasonry"];
+  const ADDED_CLASSES = ["cmc-block-good", "cmc-block-bad", "cmc-block-unknown", "cmc-unmasonry", "cmc-name-cell"];
 
   /** Removes everything a previous run added. */
   function removeMarks() {
@@ -96,7 +96,9 @@
    */
   function annotateArticle(a, p, source, cell, priceCell) {
     const byPrinting = source === "printing";
-    const note = cmcEl("div", "cmc-note");
+    // Own line below the name, even if Cardmarket lays the cell out as a flex row (styles.css).
+    const note = cmcEl("div", "cmc-note cmc-name-note");
+    cell.classList.add("cmc-name-cell");
     if (!p) {
       note.textContent = !byPrinting ? "No English trend price found" : a.foil ? "No foil trend for this printing" : "No trend for this printing";
       note.classList.add("cmc-muted");

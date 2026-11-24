@@ -74,6 +74,7 @@ test("real cart: trend and difference sit in Cardmarket's price cell, the set li
   // "(Trend from: Set)" on its own line below the card name (owner's wording); only the set is the link.
   const note = w.document.querySelector("td.name .cmc-note");
   assert.equal(note.tagName, "DIV", "a block element, so it sits below the name");
+  assert.ok(note.classList.contains("cmc-name-note") && note.parentElement.classList.contains("cmc-name-cell"), "own line even if the cell is a flex row");
   assert.match(note.previousElementSibling.href, /\/Products\/Singles\//, "right after the card name");
   const link = note.querySelector("a.cmc-link");
   assert.equal(link.textContent, "Marvel");

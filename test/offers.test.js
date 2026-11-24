@@ -136,7 +136,7 @@ test("table rows: parses rows, languages and puts notes in the name cell", async
   await w.CMC.runOffers();
   assert.equal(w.document.querySelectorAll(".cmc-deal-row").length, 1); // Dualcaster 9 vs 12 = 25%
   const notes = [...w.document.querySelectorAll(".cmc-note")];
-  assert.ok(notes.every((n) => n.parentElement.className === "name"));
+  assert.ok(notes.every((n) => n.parentElement.matches("td.name")));
   assert.ok(!fetch.calls.some((c) => /\/(300|400|500)$/.test(c)), "no calls for cheap/non-English");
 });
 
@@ -205,4 +205,15 @@ test("trend link: front face only for double-faced cards, and the page's site la
   const w = loadPage("<body></body>", OFFER_SCRIPTS, fetch, { url: "https://www.cardmarket.com/de/Magic/Users/x/Offers/Singles" });
   const p = await w.CMC.lookup(null, name);
   assert.equal(p.url, "https://www.cardmarket.com/de/Magic/Products/Search?searchString=Delver%20of%20Secrets");
+});
+
+test("seller page: the set line gets its own line below the name, also after a re-run", async () => {
+  const { w } = listPage();
+  await w.CMC.runOffers();
+  const notes = [...w.document.querySelectorAll(".cmc-name-note")];
+  assert.equal(notes.length, 7);
+  assert.ok(notes.every((n) => n.parentElement.classList.contains("cmc-name-cell")));
+  await w.CMC.runOffers();
+  assert.equal(w.document.querySelectorAll(".cmc-name-note").length, 7, "not doubled");
+  assert.equal(w.document.querySelectorAll(".cmc-name-cell").length, 7);
 });

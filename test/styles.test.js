@@ -30,3 +30,11 @@ test("minimized overview box: only the one-line bar shows, and the bar only whil
   assert.match(rule(".cmc-overview.cmc-minimized > :not(.cmc-mini)"), /display\s*:\s*none/);
   assert.match(rule(".cmc-overview:not(.cmc-minimized) > .cmc-mini"), /display\s*:\s*none/);
 });
+
+// Cardmarket may lay the name cell out as a row (flexbox): then our "(Trend from: …)" line
+// would sit next to the name. It must always get a line of its own below the name.
+test("the note under the card name always gets its own line, also in a flex cell", () => {
+  assert.match(rule(".cmc-name-cell"), /flex-wrap\s*:\s*wrap\s*!important/);
+  assert.match(rule(".cmc-name-note"), /flex\s*:\s*0 0 100%/);
+  assert.match(rule(".cmc-name-note"), /width\s*:\s*100%/);
+});
