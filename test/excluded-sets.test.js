@@ -155,7 +155,7 @@ test("seller page: default settings skip Memorabilia, in the note and the name t
   const notes = nameNotes(w).join(" | ");
   assert.match(notes, /\(Trend from: M10, 1 cheaper filtered\)/);
   assert.match(notes, /\(Trend from: Collectors' Edition, excluded set\)/);
-  assert.match(priceNotes(w).join(" | "), /▼ € 0,60 under \(15%\) 🔥 \/ trend € 4,00/);
+  assert.match(priceNotes(w).join(" | "), /▼ € 0,60 under \/ \(15%\) 🔥 \/ trend € 4,00/);
   const mid = [...w.document.querySelectorAll("a")].find((a) => a.textContent.trim() === "Mid Deal");
   assert.match(mid.title, /cheapest EN trend: €\s4,00 \(M10, 1 cheaper filtered\)/);
 });

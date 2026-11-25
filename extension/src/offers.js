@@ -166,7 +166,9 @@
       const at = el("div", "cmc-note cmc-price-note");
       // Order (owner's wish): Cardmarket's price, then the difference, then the trend.
       const diff = trendDiffText(offer.price, p.trend);
-      at.appendChild(j.deal ? el("div", "cmc-diff cmc-deal-note", `${diff} (${pctText(j.discount)}%) 🔥`) : el("div", "cmc-diff", diff));
+      // The price box is narrow: short lines, so a deal is "▼ €x under" / "(N%) 🔥" (fire last, owner's wish).
+      at.appendChild(el("div", j.deal ? "cmc-diff cmc-deal-note" : "cmc-diff", diff));
+      if (j.deal) at.appendChild(el("div", "cmc-deal-note", `(${pctText(j.discount)}%) 🔥`));
       at.appendChild(el("div", null, `trend ${fmt(p.trend)}`));
       offer.priceEl.appendChild(at);
     } else if (j.deal) {

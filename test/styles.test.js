@@ -38,3 +38,9 @@ test("the note under the card name always gets its own line, also in a flex cell
   assert.match(rule(".cmc-name-note"), /flex\s*:\s*0 0 100%/);
   assert.match(rule(".cmc-name-note"), /width\s*:\s*100%/);
 });
+
+// Seller pages: Cardmarket's price box is narrow. Our lines there may wrap between words, so they
+// stay inside the box instead of sticking out to the left (owner's report).
+test("seller-page price lines wrap inside the narrow price box", () => {
+  assert.match(rule(".price-container .cmc-price-note"), /white-space\s*:\s*normal/);
+});

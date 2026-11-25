@@ -59,12 +59,12 @@ test("list layout: deals are flagged; trend and € difference under the price, 
 
   // Under the price, in Cardmarket's price box. Deals: € under, %, then the 🔥 (owner's wish: fire last).
   assert.deepEqual(priceNotes(w), [
-    "▼ € 0,50 under (25%) 🔥 / trend € 2,00", // Low Deal 1,50
+    "▼ € 0,50 under / (25%) 🔥 / trend € 2,00", // Low Deal 1,50
     "▼ € 0,40 under / trend € 2,20", // Low NoDeal 1,80: no percentage for non-deals
-    "▼ € 0,60 under (15%) 🔥 / trend € 4,00", // Mid Deal 3,40
-    "▼ € 1,00 under (10%) 🔥 / trend € 10,00", // High Deal 9,00
+    "▼ € 0,60 under / (15%) 🔥 / trend € 4,00", // Mid Deal 3,40
+    "▼ € 1,00 under / (10%) 🔥 / trend € 10,00", // High Deal 9,00
     "▼ € 0,50 under / trend € 10,00", // High NoDeal 9,50
-    "▼ € 0,80 under (14%) 🔥 / trend € 5,80", // Boundary Five 5,00
+    "▼ € 0,80 under / (14%) 🔥 / trend € 5,80", // Boundary Five 5,00
     "▲ € 0,50 over / trend € 2,50", // Above Trend 3,00
   ]);
   const first = w.document.querySelectorAll(".price-container")[1];

@@ -144,5 +144,9 @@ test("real seller page: only the 3 offers from €1 are looked up, one is a deal
   // The trend lines go into the desktop price box, right under the price.
   assert.equal(w.document.querySelectorAll(".col-offer .price-container .cmc-price-note").length, 3);
   // Price -> difference -> trend (owner's order).
-  assert.match(text(deals[0].querySelector(".cmc-price-note")), /^▼ .* under \(\d+%\) 🔥 ?trend € /);
+  const lines = [...deals[0].querySelectorAll(".cmc-price-note > div")].map(text);
+  assert.equal(lines.length, 3, "difference, % + fire, trend: short lines that fit the narrow price box");
+  assert.match(lines[0], /^▼ € [\d,]+ under$/);
+  assert.match(lines[1], /^\(\d+%\) 🔥$/);
+  assert.match(lines[2], /^trend € /);
 });
