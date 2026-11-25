@@ -16,7 +16,7 @@ Some printings have a trend that says little about what a normal copy costs. The
 - **Categories:** Memorabilia (gold-bordered World Championship decks, Collectors' Edition, 30th Anniversary Edition, art series), Un-sets and playtest cards, Promos, Secret Lair, The List. **Memorabilia is skipped by default.**
 - **Single sets:** type part of a set's name or code, then tick it. Ticked sets appear as tags, and clicking a tag (✕) stops skipping that set. The set list comes from Scryfall and is loaded once a day, only on the settings page.
 
-If a skipped printing was cheaper than the one used, the note says so, e.g. "Trend € 2,00 (M10, 1 cheaper filtered)". If *every* printing of a card is skipped, its cheapest one is used anyway and the note says "(…, excluded set)". **This printing** isn't affected. After you change the selection, open pages look their cards up again.
+If a skipped printing was cheaper than the one used, the set note says so, e.g. "(Trend from: M10, 1 cheaper filtered)". If *every* printing of a card is skipped, its cheapest one is used anyway and the note says "(Trend from: …, excluded set)". **This printing** isn't affected. After you change the selection, open pages look their cards up again.
 
 ## Shopping cart
 
@@ -26,7 +26,8 @@ Checks your cart one seller at a time:
 
 What you'll see on `cardmarket.com/<lang>/Magic/ShoppingCart`:
 - Two extra rows in each seller's summary, under Cardmarket's Total: the summed trend, and ✅ *Worth it: you save €x* / ❌ *Not worth it: over by €x* / ⚠️ *Incomplete*. The seller block also gets a green, red or yellow edge. Cards, shipping and total aren't repeated: Cardmarket already shows them.
-- Under each card: the trend price and which set it is from (", foil" when it is a foil trend). The set name links to a Cardmarket search for the card, where you can pick that printing. It isn't a direct link to the printing: Scryfall's direct link got an IP address rate-limited by Cardmarket (Cloudflare "Error 1015").
+- Right under each card's price, in Cardmarket's own format with the amounts lined up under the price: how far the price (per copy) is under or over the trend, then the trend itself, e.g. "▼ 4,50 €" and "Trend 7,00 €" (▲ = over, = = equal), with the amounts lined up under the price. Prices under trend are bold green, like deals on seller pages. Cards without a trend say "no trend" there, with the reason under the name.
+- Below each card's name: which set the trend is from, e.g. "(Trend from: M10)" (", foil" when it is a foil trend). The set name links to a Cardmarket search for the card, where you can pick that printing. It isn't a direct link to the printing: Scryfall's direct link got an IP address rate-limited by Cardmarket (Cloudflare "Error 1015").
 - A small overview box in the bottom-right corner listing all sellers, each marked ✅ / ❌ / ⚠️ (not only by colour), with **Refresh prices** and **Settings** buttons.
 
 It re-checks automatically when you remove items or sellers.
@@ -36,7 +37,7 @@ It re-checks automatically when you remove items or sellers.
 The same check on the results of Cardmarket's shopping wizard (`cardmarket.com/<lang>/Magic/Wants/ShoppingWizard/Results/…`):
 - **Each seller block** gets two extra rows in its list under Total: the summed trend, and ✅ *Worth it: you save €x* / ❌ *Not worth it: over by €x* / ⚠️ *Incomplete*. The block also gets a green, red or yellow edge. The rule is the cart's: the seller's Total (incl. shipping) must be lower than the summed trend.
 - **Results Summary** gets the same two rows for the whole result: Cardmarket's grand Total against the summed trend of all cards.
-- Each card shows its trend and set, as in the cart.
+- Each card shows its trend and difference under the price, and its set under the name, as in the cart.
 - The overview box shows the overall verdict, how many sellers are worth it, and the list of sellers (click one to jump to it).
 - The verdicts always cover the whole result, like Cardmarket's own Total. Unticking cards doesn't change them. Once you add cards to your cart, the cart check covers what you actually picked.
 
@@ -55,7 +56,7 @@ These price ranges can be changed in the settings (see below). Offers below the 
 
 **Any under trend:** sometimes you just want to see every card that's cheaper than its trend. The overview box on a seller page has a switch at the top: **My ranges** / **Any under trend**. In "Any under trend" mode every offer is checked, including cheap ones, and anything strictly below trend is flagged. The English-only filter still applies. The choice is remembered for other pages and sellers until you switch back.
 
-- Deals are marked with a green row and a 🔥 note. The note shows how much cheaper it is, in euros and percent, e.g. "🔥 14% (€ 1,02) under trend € 7,21". Every other checked card shows the trend price (no percentage).
+- Right under each checked offer's price, lined up with it: the difference, then the trend, e.g. "1,02 € ▼" and "7,21 € Trend" (▲ = over, = = equal). Deals also get a green row and the percentage with a 🔥: "1,02 € ▼ (14%) 🔥". Other offers show no percentage. Offers without a trend say "no trend". The set the trend is from is below the card name ("(Trend from: …)").
 - An overview box (bottom-right) lists the deals on the page with the price, the trend and the savings, e.g. "Adrix and Nev, Twincasters: € 4,49 vs € 5,71 (€ 1,22 - 21%)".
 - Only the page you're viewing is checked, so with a 20-per-page shop you check page by page. Sort by price descending to see the expensive cards first.
 - By default only English offers are checked, and non-English offers aren't looked up at all. If an offer's language can't be read from the flag icon, it is checked anyway.

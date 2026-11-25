@@ -4,7 +4,7 @@
  * the verdict texts and the overview box (bottom-right). */
 (function (root) {
   "use strict";
-  const { lookup, clearCache, trendSetText, fmtEuro: fmt, offButton, settingsButton, trendSourceSwitch, minimizeButton, addMiniBar } = root.CMC;
+  const { lookup, clearCache, trendSetText, fmtEuro: fmt, priceNote, offButton, settingsButton, trendSourceSwitch, minimizeButton, addMiniBar } = root.CMC;
   const MARK = "data-cmc";
 
   /**
@@ -20,7 +20,7 @@
   }
 
   /** Classes this script (and the wizard page) put on Cardmarket's own elements. */
-  const ADDED_CLASSES = ["cmc-block-good", "cmc-block-bad", "cmc-block-unknown", "cmc-unmasonry"];
+  const ADDED_CLASSES = ["cmc-block-good", "cmc-block-bad", "cmc-block-unknown", "cmc-unmasonry", "cmc-name-cell"];
 
   /** Removes everything a previous run added. */
   function removeMarks() {
@@ -88,23 +88,37 @@
   }
 
   /**
-   * Note under a card: its trend and set, linking to a Cardmarket search. (There used to be a
-   * green/red bar on the price as well; removed at the owner's request, as it was colour only.)
-   * @param {CartArticle} a @param {TrendInfo | undefined} p @param {TrendSource} source @param {Element} cell where the note goes
+   * Notes for one card. With a price cell: the trend and the difference go right under
+   * Cardmarket's price (easy to compare), and only the set link under the name. Without
+   * one (layout not recognised): the full note under the name, as before.
+   * @param {CartArticle} a @param {TrendInfo | undefined} p @param {TrendSource} source
+   * @param {Element} cell name cell @param {Element | null} [priceCell]
    */
-  function annotateArticle(a, p, source, cell) {
+  function annotateArticle(a, p, source, cell, priceCell) {
     const byPrinting = source === "printing";
-    const note = cmcEl("div", "cmc-note");
+    // Own line below the name, even if Cardmarket lays the cell out as a flex row (styles.css).
+    const note = cmcEl("div", "cmc-note cmc-name-note");
+    cell.classList.add("cmc-name-cell");
     if (!p) {
       note.textContent = !byPrinting ? "No English trend price found" : a.foil ? "No foil trend for this printing" : "No trend for this printing";
       note.classList.add("cmc-muted");
+      if (priceCell) priceCell.appendChild(cmcEl("div", "cmc-note cmc-price-note cmc-muted", "no trend"));
     } else {
-      note.append(`${byPrinting ? "Trend of this printing" : "Cheapest EN trend"}: ${fmt(p.trend)} `);
-      const link = /** @type {HTMLAnchorElement} */ (cmcEl("a", "cmc-link", `(${trendSetText(p)})`));
+      if (priceCell) {
+        // Under trend: green like a seller-page deal (owner's wish); the ▼ keeps it readable without colour.
+        const under = a.unitPrice != null && Math.round(a.unitPrice * 100) < Math.round(p.trend * 100);
+        priceCell.appendChild(priceNote(a.unitPrice, p.trend, { green: under, labelsFirst: true }));
+      } else {
+        note.append(`${byPrinting ? "Trend of this printing" : "Cheapest EN trend"}: ${fmt(p.trend)} `);
+      }
+      const link = /** @type {HTMLAnchorElement} */ (cmcEl("a", "cmc-link", priceCell ? trendSetText(p) : `(${trendSetText(p)})`));
       link.href = p.url;
       link.target = "_blank";
       link.rel = "noopener";
-      note.append(link);
+      // The number is at the price now, so the line under the name says what the set is:
+      // "(Trend from: M10)", only the set is the link (owner's wording).
+      if (priceCell) note.append("(Trend from: ", link, ")");
+      else note.append(link);
     }
     cell.appendChild(note);
   }

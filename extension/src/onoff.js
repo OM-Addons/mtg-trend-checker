@@ -4,10 +4,64 @@
  * On/off: "Off" is saved in the settings (enabled: false), so it sticks on every Cardmarket
  * page: the page then shows only a small "On" button and makes no price lookups.
  * Trend source: "Cheapest EN | This printing", also saved (settings.trendSource).
- * Minimize: "–" shrinks the box to one line, also saved (settings.minimized). */
+ * Minimize: "–" shrinks the box to one line, also saved (settings.minimized).
+ * priceNote: the lines under Cardmarket's price on every page (cart, wizard, seller pages). */
 (function (root) {
   "use strict";
   const { getSettings, saveSettings } = root.CMC;
+
+  /** Euros as Cardmarket shows them: "1.234,56 €" (amount first, no-break space before €). @param {number} n */
+  const fmtCardmarket = (n) => n.toLocaleString("de-DE", { style: "currency", currency: "EUR" });
+
+  /**
+   * One line under the price: the amount and a short label (arrow / "Trend"). The label hangs to
+   * the right of the amount, or comes first (labelsFirst), right in front of the amount.
+   * @param {string} amount @param {string} suffix @param {string} cls @param {boolean} labelsFirst
+   */
+  function priceLine(amount, suffix, cls, labelsFirst) {
+    const line = document.createElement("div");
+    line.className = `cmc-line ${cls}`.trim();
+    const a = document.createElement("span");
+    a.className = "cmc-amount";
+    a.textContent = amount;
+    const s = document.createElement("span");
+    s.className = "cmc-suffix";
+    s.textContent = suffix;
+    if (labelsFirst) line.append(s, " ", a);
+    else line.append(a, " ", s);
+    return line;
+  }
+
+  /**
+   * The lines under Cardmarket's price (owner's layout A), in its own format:
+   *     10,99 €          ← Cardmarket's price
+   *      2,02 € ▼ (16%) 🔥   difference per copy: ▼ under / ▲ over / = equal (+ % and fire for a deal)
+   *     13,01 € Trend
+   * The amounts end exactly where the price ends; the text after them hangs to the right
+   * (styles.css), so they line up. Arrows and words are always there: never colour alone.
+   * @param {number | null} price per copy (null: only the trend line)
+   * @param {number} trend
+   * @param {{pct?: string, green?: boolean, labelsFirst?: boolean}} [opts] pct: seller-page deal
+   *   (adds "(N%) 🔥", green); green: price under trend in the cart / wizard; labelsFirst: cart and
+   *   wizard (owner's wish): "▼ 2,02 €" / "Trend 13,01 €", label right in front of the amount and
+   *   the amount under the price, so nothing hangs out of the table cell
+   * @returns {HTMLElement}
+   */
+  function priceNote(price, trend, opts = {}) {
+    const box = document.createElement("div");
+    box.setAttribute("data-cmc", "1");
+    box.className = opts.labelsFirst ? "cmc-note cmc-price-note cmc-labels-first" : "cmc-note cmc-price-note";
+    const first = Boolean(opts.labelsFirst);
+    if (price != null) {
+      const diff = Math.round(trend * 100) - Math.round(price * 100); // whole cents: no float noise
+      const arrow = diff > 0 ? "▼" : diff < 0 ? "▲" : "=";
+      const deal = opts.pct != null;
+      const cls = deal ? "cmc-diff cmc-deal-note" : opts.green ? "cmc-diff cmc-under" : "cmc-diff";
+      box.appendChild(priceLine(fmtCardmarket(Math.abs(diff) / 100), deal ? `${arrow} (${opts.pct}%) 🔥` : arrow, cls, first));
+    }
+    box.appendChild(priceLine(fmtCardmarket(trend), "Trend", "", first));
+    return box;
+  }
 
   /** @param {boolean} enabled */
   async function setEnabled(enabled) {
@@ -173,6 +227,6 @@
   }
 
   root.CMC = Object.assign(root.CMC, {
-    setEnabled, offButton, renderOffBox, settingsButton, toggleRow, trendSourceSwitch, trackMinimized, minimizeButton, addMiniBar,
+    priceNote, setEnabled, offButton, renderOffBox, settingsButton, toggleRow, trendSourceSwitch, trackMinimized, minimizeButton, addMiniBar,
   });
 })(typeof globalThis !== "undefined" ? globalThis : window);

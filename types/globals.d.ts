@@ -57,6 +57,8 @@ interface Offer {
   el: Element;
   /** Cell the notes are appended to. */
   nameCell: Element;
+  /** Desktop price box: the lines go right under the price. Null if not found. */
+  priceEl: Element | null;
   link: HTMLAnchorElement;
   name: string;
   url: string;
@@ -196,6 +198,7 @@ interface CMCNamespace {
   ignoredBelow(s: Settings): number;
   rangeLabel(from: number, allFroms: number[]): string;
   fmtEuro(n: number | null | undefined): string;
+  priceNote(price: number | null, trend: number, opts?: { pct?: string; green?: boolean; labelsFirst?: boolean }): HTMLElement;
   // onoff.js (every page with an overview box)
   setEnabled(enabled: boolean): Promise<void>;
   offButton(after: () => unknown): HTMLButtonElement;
@@ -212,7 +215,7 @@ interface CMCNamespace {
   priceKey(article: Pick<CartArticle, "productId" | "foil"> & { name?: string }, source: TrendSource): string;
   evaluate(shipment: Pick<Shipment, "total" | "articles">, prices: Map<string, Pick<TrendInfo, "trend">>, source?: TrendSource): ShipmentResult;
   lookupArticles(articles: CartArticle[], source: TrendSource, shouldStop: () => boolean, exclude?: Exclusion): Promise<Map<string, TrendInfo> | null>;
-  annotateArticle(a: CartArticle, p: TrendInfo | undefined, source: TrendSource, cell: Element): void;
+  annotateArticle(a: CartArticle, p: TrendInfo | undefined, source: TrendSource, cell: Element, priceCell?: Element | null): void;
   verdictKind(r: ShipmentResult): "good" | "bad" | "unknown";
   verdictText(r: ShipmentResult, whatTotal?: string): string;
   diffWords(diff: number): string;

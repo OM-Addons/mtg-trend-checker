@@ -2,7 +2,7 @@
 // grand total € 200,82). Same "worth it" rule as the cart, per seller and overall.
 const { test } = require("node:test");
 const assert = require("node:assert/strict");
-const { fixture, loadPage, fakeBrowser, fakeScryfall, print, printing, text, WIZARD_SCRIPTS } = require("./helpers");
+const { fixture, loadPage, fakeBrowser, fakeScryfall, print, printing, text, nameNotes, priceNotes, WIZARD_SCRIPTS } = require("./helpers");
 
 const plain = (v) => JSON.parse(JSON.stringify(v));
 const wait = (ms = 20) => new Promise((r) => setTimeout(r, ms));
@@ -90,7 +90,11 @@ test("wizard page: each card gets the cart's note, and no coloured price bar (re
   const { w } = wizardPage(TRENDS);
   await w.CMC.runWizard();
   const rows = [...blocks(w)[2].querySelectorAll("table tbody tr")];
-  assert.deepEqual(rows.map((r) => text(r.querySelector(".cmc-note"))), ["Cheapest EN trend: € 5,00 (Set 786368)", "Cheapest EN trend: € 10,00 (Set 759962)"]);
+  assert.deepEqual(rows.map((r) => text(r.querySelector("td.card-name .cmc-note"))), ["(Trend from: Set 786368)", "(Trend from: Set 759962)"]);
+  // Trend and difference in the price cell (the last one), right under Cardmarket's price.
+  assert.deepEqual(rows.map((r) => [...r.querySelectorAll("td:last-child .cmc-price-note > div")].map(text).join(" / ")),
+    ["▼ 2,00 € / Trend 5,00 €", "▼ 1,00 € / Trend 10,00 €"]); // 3,00 and 9,00
+  assert.equal(rows.filter((r) => r.querySelector(".cmc-diff.cmc-under")).length, 2, "under trend: green");
   assert.equal(w.document.querySelectorAll("[class*='cmc-row-']").length, 0);
   assert.match(text(blocks(w)[4]), /No English trend price found/);
 });
@@ -122,7 +126,9 @@ test("wizard page, this printing: a foil is compared with its foil trend", async
   const b = blocks(w)[3];
   assert.equal(kindOf(b), "good", "22,52 < 8,99 + 7,99 + 6,00");
   assert.deepEqual(addedRows(b.querySelector("dl")), ["Σ trend of these printings € 22,98", "✅ Worth it: you save € 0,46"]);
-  assert.match(text(b), /Trend of this printing: € 6,00 \(Set 796173, foil\)/);
+  assert.match(text(b), /\(Trend from: Set 796173, foil\)/);
+  const boros = [...b.querySelectorAll("table tbody tr")][2];
+  assert.equal([...boros.querySelectorAll(".cmc-price-note > div")].map(text).join(" / "), "▼ 2,01 € / Trend 6,00 €");
 });
 
 test("wizard page: the trend switch is saved and the page is re-checked without doubling rows", async () => {
@@ -144,7 +150,8 @@ test("wizard page: running twice doesn't duplicate rows, notes or classes", asyn
   await w.CMC.runWizard();
   await w.CMC.runWizard();
   assert.equal(w.document.querySelectorAll("#ShoppingWizardResult dt.cmc-wiz-row").length, 2);
-  assert.equal(w.document.querySelectorAll(".cmc-note").length, 28);
+  assert.equal(nameNotes(w).length, 28);
+  assert.equal(priceNotes(w).length, 28);
 });
 
 test("wizard page: the checkboxes don't change the verdict (whole result, like Cardmarket's Total)", async () => {

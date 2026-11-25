@@ -1,6 +1,6 @@
 const { test } = require("node:test");
 const assert = require("node:assert/strict");
-const { fixture, loadPage, fakeScryfall, print, text, OFFER_SCRIPTS } = require("./helpers");
+const { fixture, loadPage, fakeScryfall, print, text, nameNotes, priceNotes, OFFER_SCRIPTS } = require("./helpers");
 
 // ---------------------------------------------------------------------------
 // Thresholds (pure logic)
@@ -50,21 +50,47 @@ test("list layout: rows, product id from thumbnail, language", () => {
   assert.equal(offers[7].name, "Boundary Five");
 });
 
-test("list layout: deals are flagged, others show just the trend price", async () => {
+test("list layout: deals are flagged; trend and € difference under the price, no % for non-deals", async () => {
   const { w } = listPage();
   await w.CMC.runOffers();
   const flagged = [...w.document.querySelectorAll(".cmc-deal-row")].map((r) => r.querySelector("a").textContent);
   // Boundary Five: €5.00 vs €5.80 trend = 13.8% under; €5 falls in the "from €5" range (10%), so a deal.
   assert.deepEqual(flagged, ["Low Deal", "Mid Deal", "High Deal", "Boundary Five (V.2)"]);
 
-  const notes = [...w.document.querySelectorAll(".cmc-note")].map(text);
-  // Deal: percentage, then the savings in euros in brackets (Low Deal: €1,50 vs €2,00).
+  // Under the price, in Cardmarket's price box. Deals: € under, %, then the 🔥 (owner's wish: fire last).
+  assert.deepEqual(priceNotes(w), [
+    "0,50 € ▼ (25%) 🔥 / 2,00 € Trend", // Low Deal 1,50
+    "0,40 € ▼ / 2,20 € Trend", // Low NoDeal 1,80: no percentage for non-deals
+    "0,60 € ▼ (15%) 🔥 / 4,00 € Trend", // Mid Deal 3,40
+    "1,00 € ▼ (10%) 🔥 / 10,00 € Trend", // High Deal 9,00
+    "0,50 € ▼ / 10,00 € Trend", // High NoDeal 9,50
+    "0,80 € ▼ (14%) 🔥 / 5,80 € Trend", // Boundary Five 5,00
+    "0,50 € ▲ / 2,50 € Trend", // Above Trend 3,00
+  ]);
+  const first = w.document.querySelectorAll(".price-container")[1];
+  assert.ok(first.querySelector(".cmc-price-note"), "Low Deal's trend sits in its price box");
+  // Under the name: only the set link.
+  const notes = nameNotes(w);
+  assert.equal(notes.length, 7);
+  assert.ok(notes.every((n) => n === "(Trend from: S)"), notes.join(" | "));
+  assert.ok([...notes, ...priceNotes(w)].every((n) => !n.includes("EN")), "no 'EN' in the notes");
+});
+
+test("seller rows without a price box keep the old note under the name", async () => {
+  const { w } = listPage();
+  w.document.querySelectorAll(".price-container").forEach((p) => { p.className = "other"; });
+  await w.CMC.runOffers();
+  const notes = nameNotes(w);
   assert.ok(notes.includes("🔥 25% (€ 0,50) under trend € 2,00 (S)"));
-  // Non-deals, including above trend: price only, no percentage
   assert.ok(notes.includes("Trend € 2,20 (S)"));
-  assert.ok(notes.includes("Trend € 2,50 (S)"), "above-trend card still shows its trend");
-  assert.ok(notes.every((n) => !n.includes("EN")), "no 'EN' in the notes");
-  assert.ok(notes.filter((n) => !n.startsWith("🔥")).every((n) => !n.includes("%")));
+  assert.equal(priceNotes(w).length, 0);
+});
+
+test("seller page: an offer without a trend says 'no trend' under the price", async () => {
+  const fetch = fakeScryfall({ byProductId: {}, byName: { "Low Deal": "Low Deal" }, prints: { "Low Deal": [print(2, "S")] } });
+  const w = loadPage(fixture("offers-list.html"), OFFER_SCRIPTS, fetch);
+  await w.CMC.runOffers();
+  assert.deepEqual(priceNotes(w).filter((n) => n === "no trend").length, 6, "every looked-up card except Low Deal");
 });
 
 test("overview lists each deal with its savings in euros and percent", async () => {
@@ -110,7 +136,7 @@ test("table rows: parses rows, languages and puts notes in the name cell", async
   await w.CMC.runOffers();
   assert.equal(w.document.querySelectorAll(".cmc-deal-row").length, 1); // Dualcaster 9 vs 12 = 25%
   const notes = [...w.document.querySelectorAll(".cmc-note")];
-  assert.ok(notes.every((n) => n.parentElement.className === "name"));
+  assert.ok(notes.every((n) => n.parentElement.matches("td.name")));
   assert.ok(!fetch.calls.some((c) => /\/(300|400|500)$/.test(c)), "no calls for cheap/non-English");
 });
 
@@ -179,4 +205,44 @@ test("trend link: front face only for double-faced cards, and the page's site la
   const w = loadPage("<body></body>", OFFER_SCRIPTS, fetch, { url: "https://www.cardmarket.com/de/Magic/Users/x/Offers/Singles" });
   const p = await w.CMC.lookup(null, name);
   assert.equal(p.url, "https://www.cardmarket.com/de/Magic/Products/Search?searchString=Delver%20of%20Secrets");
+});
+
+test("seller page: the set line gets its own line below the name, also after a re-run", async () => {
+  const { w } = listPage();
+  await w.CMC.runOffers();
+  const notes = [...w.document.querySelectorAll(".cmc-name-note")];
+  assert.equal(notes.length, 7);
+  assert.ok(notes.every((n) => n.parentElement.classList.contains("cmc-name-cell")));
+  await w.CMC.runOffers();
+  assert.equal(w.document.querySelectorAll(".cmc-name-note").length, 7, "not doubled");
+  assert.equal(w.document.querySelectorAll(".cmc-name-cell").length, 7);
+});
+
+test("real seller page: 'no trend' under the price, and a re-run doesn't double it", async () => {
+  const fetch = fakeScryfall({ byProductId: {}, prints: {} });
+  const w = loadPage(fixture("real-offers-list.html"), OFFER_SCRIPTS, fetch);
+  await w.CMC.runOffers();
+  await w.CMC.runOffers();
+  assert.deepEqual(priceNotes(w), ["no trend", "no trend", "no trend"], "the 3 offers from €1");
+});
+
+// The text after the amounts ("▼ (16%) 🔥", "Trend") hangs to the right of the price and covered
+// Cardmarket's "available" count (owner's report). Every price box gets room on its right, also
+// on rows we don't annotate, so all prices stay lined up; turning off removes it again.
+test("real seller page: every price box gets room for the hanging text", async () => {
+  const fetch = fakeScryfall({ byProductId: {}, prints: {} });
+  const w = loadPage(fixture("real-offers-list.html"), OFFER_SCRIPTS, fetch);
+  await w.CMC.runOffers();
+  const boxes = [...w.document.querySelectorAll(".col-offer .price-container")];
+  assert.ok(boxes.length > 3, "also the cheap rows");
+  assert.ok(boxes.every((b) => b.classList.contains("cmc-price-room")));
+  // The room comes on top of Cardmarket's fixed widths: the offer area of every row and the
+  // "Offer" header above it grow too, so nothing in them gets squeezed.
+  const offerCols = [...w.document.querySelectorAll(".article-row .col-offer")];
+  assert.ok(offerCols.length >= boxes.length);
+  assert.ok(offerCols.every((c) => c.classList.contains("cmc-offer-room")));
+  assert.ok(w.document.querySelector(".table-header .col-offer").classList.contains("cmc-offer-room"), "header stays above its column");
+  await w.CMC.runOffers();
+  assert.equal(w.document.querySelectorAll(".cmc-price-room").length, boxes.length, "a re-run doesn't add more");
+  assert.equal(w.document.querySelectorAll(".cmc-offer-room").length, offerCols.length + 1);
 });

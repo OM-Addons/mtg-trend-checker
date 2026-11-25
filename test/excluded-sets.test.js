@@ -6,7 +6,7 @@ const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
 const { JSDOM } = require("jsdom");
-const { fixture, loadPage, fakeBrowser, fakeScryfall, print, printing, text, CART_SCRIPTS, OFFER_SCRIPTS } = require("./helpers");
+const { fixture, loadPage, fakeBrowser, fakeScryfall, print, printing, text, nameNotes, priceNotes, CART_SCRIPTS, OFFER_SCRIPTS } = require("./helpers");
 
 const plain = (v) => JSON.parse(JSON.stringify(v));
 const wait = (ms = 20) => new Promise((r) => setTimeout(r, ms));
@@ -137,9 +137,10 @@ test("cart: the note says how many cheaper printings were skipped", async () => 
   const browser = fakeBrowser({ settings: { excludedCategories: ["promo"] } });
   const w = loadPage(fixture("cart.html"), CART_SCRIPTS, fetch, { browser });
   await w.CMC.run();
-  const notes = [...w.document.querySelectorAll(".cmc-note")].map(text);
-  assert.match(notes[0], /Cheapest EN trend: € 1,80 \(M10, 1 cheaper filtered\)/);
-  assert.match(notes[1], /€ 0,90 \(Masters 25\)$/, "nothing skipped: plain note");
+  const notes = nameNotes(w);
+  assert.equal(notes[0], "(Trend from: M10, 1 cheaper filtered)");
+  assert.equal(notes[1], "(Trend from: Masters 25)", "nothing skipped: plain note");
+  assert.equal(priceNotes(w)[0], "▼ 1,00 € / Trend 1,80 €");
 });
 
 test("seller page: default settings skip Memorabilia, in the note and the name tooltip", async () => {
@@ -151,9 +152,10 @@ test("seller page: default settings skip Memorabilia, in the note and the name t
   const browser = fakeBrowser({ settings: { englishOnly: true } });
   const w = loadPage(fixture("offers-list.html"), OFFER_SCRIPTS, fetch, { browser });
   await w.CMC.runOffers();
-  const notes = [...w.document.querySelectorAll(".cmc-note")].map(text).join(" | ");
-  assert.match(notes, /€ 4,00 \(M10, 1 cheaper filtered\)/);
-  assert.match(notes, /€ 10,00 \(Collectors' Edition, excluded set\)/);
+  const notes = nameNotes(w).join(" | ");
+  assert.match(notes, /\(Trend from: M10, 1 cheaper filtered\)/);
+  assert.match(notes, /\(Trend from: Collectors' Edition, excluded set\)/);
+  assert.match(priceNotes(w).join(" | "), /0,60 € ▼ \(15%\) 🔥 \/ 4,00 € Trend/);
   const mid = [...w.document.querySelectorAll("a")].find((a) => a.textContent.trim() === "Mid Deal");
   assert.match(mid.title, /cheapest EN trend: €\s4,00 \(M10, 1 cheaper filtered\)/);
 });

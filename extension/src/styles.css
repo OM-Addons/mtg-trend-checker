@@ -1,4 +1,27 @@
 .cmc-note { font-size: 12px; color: #444; margin-top: 2px; }
+.cmc-name-cell { flex-wrap: wrap !important; }
+.cmc-name-note { flex: 0 0 100%; width: 100%; }
+/* ↑ "(Trend from: …)" on its own line below the card name: if Cardmarket makes the name cell
+   a flex row, it wraps and the note takes the full width; in a table cell nothing changes. */
+.cmc-price-note { text-align: right; font-weight: 400; white-space: nowrap; line-height: 1.3; }
+.cmc-line { position: relative; }
+.cmc-suffix { position: absolute; left: 100%; top: 0; margin-left: 0.3em; text-align: left; }
+.cmc-labels-first .cmc-suffix { position: static; margin-left: 0; }
+.cmc-price-room { box-sizing: content-box !important; padding-right: 4.75rem !important; }
+@media (min-width: 992px) { .cmc-offer-room { width: calc(260px + 4.75rem) !important; } }
+@media (min-width: 1200px) { .cmc-offer-room { width: calc(280px + 4.75rem) !important; } }
+/* ↑ Difference + trend right under Cardmarket's price (owner's layout A): the amounts end where Cardmarket's price ends, so
+   they line up; the arrow / "Trend" hang to the right of it, outside the layout, so they never
+   push the amounts left or make the box wider or taller.
+   Cart and wizard (.cmc-labels-first, owner's wish): the label sits right in front of its amount
+   ("▼ 4,50 €"), the line right-aligned so the amounts end under the price; nothing hangs out of
+   the table cell (the cell just gets as wide as it needs).
+   Seller pages: Cardmarket's price box is a fixed 4.75rem inside an offer area of a fixed
+   260px (280px from 1200px wide) (users_offers_offers.css). .cmc-price-room adds 4.75rem of
+   empty space right of the price for that text (about "▼ (16%) 🔥" in the 12px note font), ON
+   TOP of the box's width (content-box), so the price isn't squeezed out to the left.
+   .cmc-offer-room widens the offer area and its "Offer" header by the same amount, so the
+   count, quantity and cart button keep their room; the card details get a bit narrower. */
 .cmc-link { color: inherit; text-decoration: underline; }
 .cmc-muted { color: #888; }
 
@@ -39,7 +62,8 @@
 
 /* Seller offer pages */
 .cmc-deal-row { background: #e9f6ec !important; box-shadow: inset 5px 0 0 #1e8e3e; }
-.cmc-deal-note { color: #1e7a36; font-weight: 700; }
+.cmc-deal-note,
+.cmc-under { color: #1e7a36; font-weight: 700; } /* .cmc-under: cart/wizard prices under trend, same green as deals */
 
 /* On/off switch */
 .cmc-head-buttons { display: flex; gap: 4px; }

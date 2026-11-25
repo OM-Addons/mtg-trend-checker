@@ -175,7 +175,11 @@
       removeMarks();
       const results = wizard.shipments.map((s) => {
         const r = evaluate(s, prices, source);
-        for (const a of s.articles) annotateArticle(a, prices.get(priceKey(a, source)), source, a.el.querySelector("td.card-name, .text-truncate") || a.el);
+        for (const a of s.articles) {
+          // Desktop rows: the price is the last cell. Mobile-only rows: no separate price cell.
+          const priceCell = a.el.matches("tr") ? a.el.querySelector("td:last-child") : null;
+          annotateArticle(a, prices.get(priceKey(a, source)), source, a.el.querySelector("td.card-name, .text-truncate") || a.el, priceCell);
+        }
         s.el.classList.add(`cmc-block-${verdictKind(r)}`);
         if (s.summaryEl) addRows(s.summaryEl, r, source, "seller total");
         return { s, r };

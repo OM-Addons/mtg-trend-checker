@@ -5,7 +5,7 @@ const { test } = require("node:test");
 const assert = require("node:assert/strict");
 /** Copy values out of the jsdom window so deepEqual compares plain data. */
 const plain = (v) => JSON.parse(JSON.stringify(v));
-const { fixture, loadPage, fakeScryfall, print, text, CART_SCRIPTS, OFFER_SCRIPTS } = require("./helpers");
+const { fixture, loadPage, fakeScryfall, print, text, nameNotes, priceNotes, CART_SCRIPTS, OFFER_SCRIPTS } = require("./helpers");
 
 // ---------------------------------------------------------------------------
 // Cart (real-cart.html): 2 sellers, 1 card each.
@@ -61,8 +61,31 @@ test("real cart: Σ trend and verdict are two rows under Cardmarket's Total, not
 test("real cart: no coloured price bars on the cards (removed at the owner's request: colour only)", async () => {
   const { w } = realCart();
   await w.CMC.run();
-  assert.equal(w.document.querySelectorAll(".cmc-note").length, 2, "the notes are still there");
+  assert.equal(nameNotes(w).length, 2, "the notes are still there");
   assert.equal(w.document.querySelectorAll("[class*='cmc-row-']").length, 0);
+});
+
+test("real cart: trend and difference sit in Cardmarket's price cell, the set link under the name", async () => {
+  const { w } = realCart();
+  await w.CMC.run();
+  assert.deepEqual(nameNotes(w), ["(Trend from: Marvel)", "(Trend from: Bloomburrow)"]);
+  assert.deepEqual(priceNotes(w), ["▼ 4,50 € / Trend 7,00 €", "▼ 2,00 € / Trend 8,00 €"]);
+  assert.equal(w.document.querySelectorAll("td.price .cmc-price-note").length, 2);
+  // "(Trend from: Set)" on its own line below the card name (owner's wording); only the set is the link.
+  const note = w.document.querySelector("td.name .cmc-note");
+  assert.equal(note.tagName, "DIV", "a block element, so it sits below the name");
+  assert.ok(note.classList.contains("cmc-name-note") && note.parentElement.classList.contains("cmc-name-cell"), "own line even if the cell is a flex row");
+  assert.match(note.previousElementSibling.href, /\/Products\/Singles\//, "right after the card name");
+  const link = note.querySelector("a.cmc-link");
+  assert.equal(link.textContent, "Marvel");
+  assert.match(link.href, /cardmarket\.com/);
+});
+
+test("cart: prices under trend are green like seller-page deals, without % or 🔥", async () => {
+  const { w } = realCart();
+  await w.CMC.run();
+  const under = [...w.document.querySelectorAll(".cmc-diff.cmc-under")].map(text);
+  assert.deepEqual(under, ["▼ 4,50 €", "▼ 2,00 €"]);
 });
 
 test("real cart: the overview doesn't rely on colour alone (symbols for colour-blind users)", async () => {
@@ -117,5 +140,12 @@ test("real seller page: only the 3 offers from €1 are looked up, one is a deal
   const deals = [...w.document.querySelectorAll(".cmc-deal-row")];
   assert.equal(deals.length, 1);
   assert.match(text(deals[0]), /Realm Seekers/);
-  assert.equal(w.document.querySelectorAll(".cmc-note").length, 3);
+  assert.equal(nameNotes(w).length, 3);
+  // Directly under the price, in the desktop price box (owner's layout A).
+  assert.equal(w.document.querySelectorAll(".col-offer .price-container .cmc-price-note").length, 3);
+  // Two lines in Cardmarket's format: difference (+ % and fire for a deal), then the trend.
+  const lines = [...deals[0].querySelectorAll(".cmc-price-note > div")].map(text);
+  assert.equal(lines.length, 2);
+  assert.match(lines[0], /^[\d,]+ € ▼ \(\d+%\) 🔥$/);
+  assert.match(lines[1], /^[\d,]+ € Trend$/);
 });

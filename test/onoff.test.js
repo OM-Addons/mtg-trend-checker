@@ -60,7 +60,7 @@ test("seller page: Off removes everything and is saved, On checks the page again
   button(w, "Off").click();
   await until(() => button(w, "On"));
   assert.equal(browser.storage.local.data.settings.enabled, false);
-  assert.equal(w.document.querySelectorAll(".cmc-note, .cmc-deal-row, .cmc-overview").length, 0);
+  assert.equal(w.document.querySelectorAll(".cmc-note, .cmc-deal-row, .cmc-overview, .cmc-price-room, .cmc-offer-room").length, 0);
 
   button(w, "On").click();
   await until(() => w.document.querySelector(".cmc-overview") && !/Looking up/.test(text(w.document.querySelector(".cmc-overview"))));
