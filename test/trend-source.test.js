@@ -126,7 +126,7 @@ test("seller page, this printing: foil offers vs their foil trend; still no call
   assert.deepEqual(cardmarketCalls(fetch).sort(), ["/cards/cardmarket/676400", "/cards/cardmarket/677324"]);
   assert.equal(searchCalls(fetch).length, 0);
   const notes = priceNotes(w);
-  assert.ok(notes.includes("▼ € 1,01 under / (20%) 🔥 / trend € 5,00"), notes.join(" | "));
+  assert.ok(notes.includes("▼ € 1,01 under (20%) 🔥 / trend € 5,00"), notes.join(" | "));
   assert.ok(notes.some((n) => n.endsWith(" / trend € 3,20")), notes.join(" | "));
   assert.deepEqual(nameNotes(w).sort(), ["(Trend from: Unfinity, foil)", "(Trend from: Unfinity, foil)"]);
   const goblin = [...w.document.querySelectorAll(".cmc-deal-row a")][0];

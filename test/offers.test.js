@@ -217,3 +217,13 @@ test("seller page: the set line gets its own line below the name, also after a r
   assert.equal(w.document.querySelectorAll(".cmc-name-note").length, 7, "not doubled");
   assert.equal(w.document.querySelectorAll(".cmc-name-cell").length, 7);
 });
+
+test("seller page: 'no trend' goes into the trend column too, and a re-run doesn't double it", async () => {
+  const fetch = fakeScryfall({ byProductId: {}, prints: {} });
+  const w = loadPage(fixture("real-offers-list.html"), OFFER_SCRIPTS, fetch);
+  await w.CMC.runOffers();
+  await w.CMC.runOffers();
+  const cols = [...w.document.querySelectorAll(".cmc-trend-col")];
+  assert.equal(cols.length, 3, "the 3 offers from €1");
+  assert.ok(cols.every((c) => text(c) === "no trend"));
+});

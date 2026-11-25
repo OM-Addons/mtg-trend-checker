@@ -44,3 +44,10 @@ test("the note under the card name always gets its own line, also in a flex cell
 test("seller-page price lines wrap inside the narrow price box", () => {
   assert.match(rule(".price-container .cmc-price-note"), /white-space\s*:\s*normal/);
 });
+
+// Seller pages: our column next to the price has a minimum width (so it lines up down the
+// page) and never wraps, so rows don't get taller than two short lines.
+test("seller-page trend column lines up and doesn't wrap", () => {
+  assert.match(rule(".cmc-trend-col"), /min-width\s*:/);
+  assert.match(rule(".cmc-trend-col .cmc-price-note"), /white-space\s*:\s*nowrap/);
+});

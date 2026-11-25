@@ -141,12 +141,16 @@ test("real seller page: only the 3 offers from €1 are looked up, one is a deal
   assert.equal(deals.length, 1);
   assert.match(text(deals[0]), /Realm Seekers/);
   assert.equal(nameNotes(w).length, 3);
-  // The trend lines go into the desktop price box, right under the price.
-  assert.equal(w.document.querySelectorAll(".col-offer .price-container .cmc-price-note").length, 3);
-  // Price -> difference -> trend (owner's order).
-  const lines = [...deals[0].querySelectorAll(".cmc-price-note > div")].map(text);
-  assert.equal(lines.length, 3, "difference, % + fire, trend: short lines that fit the narrow price box");
-  assert.match(lines[0], /^▼ € [\d,]+ under$/);
-  assert.match(lines[1], /^\(\d+%\) 🔥$/);
-  assert.match(lines[2], /^trend € /);
+  // Our own small column at the end of the product info, right next to Cardmarket's price
+  // (the price box is too narrow: text stuck out or made rows tall). The price box is untouched.
+  const cols = [...w.document.querySelectorAll(".col-product > .row > .cmc-trend-col")];
+  assert.equal(cols.length, 3);
+  assert.ok(cols.every((c) => c.classList.contains("col-auto")), "a Bootstrap column in Cardmarket's row");
+  assert.ok(cols.every((c) => !c.nextElementSibling || c.nextElementSibling.matches(".mobile-offer-container")), "last before the (mobile) price");
+  assert.equal(w.document.querySelectorAll(".price-container [data-cmc]").length, 0, "nothing added in the price box");
+  // Two lines: difference (+ % and fire for a deal, fire last), then the trend.
+  const lines = [...deals[0].querySelectorAll(".cmc-trend-col .cmc-price-note > div")].map(text);
+  assert.equal(lines.length, 2);
+  assert.match(lines[0], /^▼ € [\d,]+ under \(\d+%\) 🔥$/);
+  assert.match(lines[1], /^trend € /);
 });

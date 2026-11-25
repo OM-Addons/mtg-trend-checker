@@ -57,7 +57,9 @@ interface Offer {
   el: Element;
   /** Cell the notes are appended to. */
   nameCell: Element;
-  /** Desktop price box: the trend and difference go right under the price. Null if not found. */
+  /** Product-info row (`.col-product > .row`): our trend column goes at its end, next to the price. */
+  trendSlot: Element | null;
+  /** Desktop price box: fallback place for the trend lines. Null if not found. */
   priceEl: Element | null;
   link: HTMLAnchorElement;
   name: string;
