@@ -225,3 +225,17 @@ test("real seller page: 'no trend' under the price, and a re-run doesn't double 
   await w.CMC.runOffers();
   assert.deepEqual(priceNotes(w), ["no trend", "no trend", "no trend"], "the 3 offers from €1");
 });
+
+// The text after the amounts ("▼ (16%) 🔥", "Trend") hangs to the right of the price and covered
+// Cardmarket's "available" count (owner's report). Every price box gets room on its right, also
+// on rows we don't annotate, so all prices stay lined up; turning off removes it again.
+test("real seller page: every price box gets room for the hanging text", async () => {
+  const fetch = fakeScryfall({ byProductId: {}, prints: {} });
+  const w = loadPage(fixture("real-offers-list.html"), OFFER_SCRIPTS, fetch);
+  await w.CMC.runOffers();
+  const boxes = [...w.document.querySelectorAll(".col-offer .price-container")];
+  assert.ok(boxes.length > 3, "also the cheap rows");
+  assert.ok(boxes.every((b) => b.classList.contains("cmc-price-room")));
+  await w.CMC.runOffers();
+  assert.equal(w.document.querySelectorAll(".cmc-price-room").length, boxes.length, "a re-run doesn't add more");
+});

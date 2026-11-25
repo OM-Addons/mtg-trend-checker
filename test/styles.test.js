@@ -50,3 +50,7 @@ test("price lines: amounts line up under the price, the text after them hangs to
   assert.match(rule(".cmc-suffix"), /position\s*:\s*absolute/);
   assert.match(rule(".cmc-suffix"), /left\s*:\s*100%/);
 });
+
+test("seller pages: the price box reserves room on its right for the hanging text", () => {
+  assert.match(rule(".cmc-price-room"), /padding-right\s*:\s*[\d.]+rem\s*!important/);
+});

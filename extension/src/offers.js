@@ -140,6 +140,7 @@
     document.querySelectorAll(`[${MARK}]`).forEach((n) => n.remove());
     document.querySelectorAll(".cmc-deal-row").forEach((n) => n.classList.remove("cmc-deal-row"));
     document.querySelectorAll(".cmc-name-cell").forEach((n) => n.classList.remove("cmc-name-cell"));
+    document.querySelectorAll(".cmc-price-room").forEach((n) => n.classList.remove("cmc-price-room"));
   }
 
   /**
@@ -282,6 +283,12 @@
       // Turned off: nothing is parsed or looked up, only the "On" button is shown.
       if (!settings.enabled) { renderOffBox(restart); return; }
       const offers = parseOffers(document);
+      // Room right of every price for the text hanging after our amounts ("▼ (16%) 🔥", "Trend"),
+      // so it doesn't cover the "available" count. On all rows, so the prices stay lined up.
+      for (const o of offers) {
+        const box = o.priceEl && o.priceEl.closest(".price-container");
+        if (box) box.classList.add("cmc-price-room");
+      }
       if (!offers.length) {
         renderOverview([], "No card offers recognised on this page. Cardmarket's layout may differ: send a copy of the page so the parser can be fixed.");
         return;
