@@ -15,7 +15,7 @@
 
   /**
    * One line under the price: the amount and a short label (arrow / "Trend"). The label hangs to
-   * the right of the amount, or comes first (labelsFirst) and sits at the left edge of the cell.
+   * the right of the amount, or comes first (labelsFirst), right in front of the amount.
    * @param {string} amount @param {string} suffix @param {string} cls @param {boolean} labelsFirst
    */
   function priceLine(amount, suffix, cls, labelsFirst) {
@@ -43,7 +43,7 @@
    * @param {number} trend
    * @param {{pct?: string, green?: boolean, labelsFirst?: boolean}} [opts] pct: seller-page deal
    *   (adds "(N%) 🔥", green); green: price under trend in the cart / wizard; labelsFirst: cart and
-   *   wizard (owner's wish): "▼ 2,02 €" / "Trend 13,01 €", label at the left edge of the cell and
+   *   wizard (owner's wish): "▼ 2,02 €" / "Trend 13,01 €", label right in front of the amount and
    *   the amount under the price, so nothing hangs out of the table cell
    * @returns {HTMLElement}
    */

@@ -62,10 +62,10 @@ test("seller pages: room for the hanging text comes on top of Cardmarket's fixed
   assert.match(css, /@media \(min-width: 1200px\)\s*\{\s*\.cmc-offer-room\s*\{\s*width\s*:\s*calc\(280px \+ 4\.75rem\)\s*!important/);
 });
 
-// Cart and wizard: the label sits before the amount inside the price cell (left edge), the
-// amount stays at the right edge under the price, so nothing hangs out of the cell.
-test("cart/wizard price lines: label left, amount right, nothing hanging out", () => {
-  assert.match(rule(".cmc-labels-first .cmc-line"), /display\s*:\s*flex/);
-  assert.match(rule(".cmc-labels-first .cmc-line"), /justify-content\s*:\s*space-between/);
+// Cart and wizard: the label sits directly in front of its amount ("▼ 4,50 €", owner's wish),
+// the line right-aligned so the amounts end under the price; nothing hangs out of the cell.
+test("cart/wizard price lines: label right in front of the amount, nothing hanging out", () => {
   assert.match(rule(".cmc-labels-first .cmc-suffix"), /position\s*:\s*static/);
+  assert.match(rule(".cmc-labels-first .cmc-suffix"), /margin-left\s*:\s*0/);
+  assert.ok(!/\.cmc-labels-first \.cmc-line\s*\{/.test(css), "no flex row pushing the label to the left edge");
 });
