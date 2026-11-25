@@ -6,12 +6,12 @@
 /* Trend + difference right under Cardmarket's price, aligned with it */
 .cmc-price-note { text-align: right; font-weight: 400; white-space: nowrap; line-height: 1.3; }
 .price-container .cmc-price-note { white-space: normal; }
-/* ↑ seller pages, fallback in the narrow price box: lines may wrap between words (never inside
-   "€ 2,02", which has a no-break space) and stay inside the box instead of sticking out. */
 .cmc-trend-col { min-width: 10.5em; display: flex; align-items: center; justify-content: flex-end; padding: 0 0.75rem; }
 .cmc-trend-col .cmc-price-note { white-space: nowrap; margin-top: 0; line-height: 1.2; }
-/* ↑ seller pages: our own column right before the price, at the end of the card details. The
-   minimum width lines it up down the page; two short lines that don't wrap keep rows low. */
+/* ↑ Seller pages. .cmc-trend-col: our own column right before the price, at the end of the card
+   details; the minimum width lines it up down the page, two short lines that don't wrap keep
+   rows low. .price-container: fallback in the narrow price box, where lines may wrap between
+   words (never inside "€ 2,02", which has a no-break space) instead of sticking out. */
 .cmc-link { color: inherit; text-decoration: underline; }
 .cmc-muted { color: #888; }
 
