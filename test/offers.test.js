@@ -236,6 +236,13 @@ test("real seller page: every price box gets room for the hanging text", async (
   const boxes = [...w.document.querySelectorAll(".col-offer .price-container")];
   assert.ok(boxes.length > 3, "also the cheap rows");
   assert.ok(boxes.every((b) => b.classList.contains("cmc-price-room")));
+  // The room comes on top of Cardmarket's fixed widths: the offer area of every row and the
+  // "Offer" header above it grow too, so nothing in them gets squeezed.
+  const offerCols = [...w.document.querySelectorAll(".article-row .col-offer")];
+  assert.ok(offerCols.length >= boxes.length);
+  assert.ok(offerCols.every((c) => c.classList.contains("cmc-offer-room")));
+  assert.ok(w.document.querySelector(".table-header .col-offer").classList.contains("cmc-offer-room"), "header stays above its column");
   await w.CMC.runOffers();
   assert.equal(w.document.querySelectorAll(".cmc-price-room").length, boxes.length, "a re-run doesn't add more");
+  assert.equal(w.document.querySelectorAll(".cmc-offer-room").length, offerCols.length + 1);
 });

@@ -51,6 +51,13 @@ test("price lines: amounts line up under the price, the text after them hangs to
   assert.match(rule(".cmc-suffix"), /left\s*:\s*100%/);
 });
 
-test("seller pages: the price box reserves room on its right for the hanging text", () => {
-  assert.match(rule(".cmc-price-room"), /padding-right\s*:\s*[\d.]+rem\s*!important/);
+// Cardmarket (users_offers_offers.css, desktop): .price-container is a fixed 4.75rem and
+// .col-offer a fixed 260px (280px from 1200px). Padding inside the fixed price box squeezed the
+// price out to the left (owner's report), so the room must come on top of those widths.
+test("seller pages: room for the hanging text comes on top of Cardmarket's fixed widths", () => {
+  const room = rule(".cmc-price-room");
+  assert.match(room, /box-sizing\s*:\s*content-box\s*!important/, "padding adds to the 4.75rem, not inside it");
+  assert.match(room, /padding-right\s*:\s*4\.75rem\s*!important/);
+  assert.match(css, /@media \(min-width: 992px\)\s*\{\s*\.cmc-offer-room\s*\{\s*width\s*:\s*calc\(260px \+ 4\.75rem\)\s*!important/);
+  assert.match(css, /@media \(min-width: 1200px\)\s*\{\s*\.cmc-offer-room\s*\{\s*width\s*:\s*calc\(280px \+ 4\.75rem\)\s*!important/);
 });

@@ -141,6 +141,7 @@
     document.querySelectorAll(".cmc-deal-row").forEach((n) => n.classList.remove("cmc-deal-row"));
     document.querySelectorAll(".cmc-name-cell").forEach((n) => n.classList.remove("cmc-name-cell"));
     document.querySelectorAll(".cmc-price-room").forEach((n) => n.classList.remove("cmc-price-room"));
+    document.querySelectorAll(".cmc-offer-room").forEach((n) => n.classList.remove("cmc-offer-room"));
   }
 
   /**
@@ -284,11 +285,17 @@
       if (!settings.enabled) { renderOffBox(restart); return; }
       const offers = parseOffers(document);
       // Room right of every price for the text hanging after our amounts ("▼ (16%) 🔥", "Trend"),
-      // so it doesn't cover the "available" count. On all rows, so the prices stay lined up.
+      // so it doesn't cover the "available" count. On all rows, so the prices stay lined up. The
+      // offer area and its header grow by the same amount (styles.css), so nothing is squeezed.
       for (const o of offers) {
         const box = o.priceEl && o.priceEl.closest(".price-container");
-        if (box) box.classList.add("cmc-price-room");
+        if (!box) continue;
+        box.classList.add("cmc-price-room");
+        const area = box.closest(".col-offer");
+        if (area) area.classList.add("cmc-offer-room");
       }
+      const header = document.querySelector(".table-header .col-offer");
+      if (header && document.querySelector(".cmc-offer-room")) header.classList.add("cmc-offer-room");
       if (!offers.length) {
         renderOverview([], "No card offers recognised on this page. Cardmarket's layout may differ: send a copy of the page so the parser can be fixed.");
         return;
