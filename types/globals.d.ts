@@ -57,9 +57,7 @@ interface Offer {
   el: Element;
   /** Cell the notes are appended to. */
   nameCell: Element;
-  /** Product-info row (`.col-product > .row`): our trend column goes at its end, next to the price. */
-  trendSlot: Element | null;
-  /** Desktop price box: fallback place for the trend lines. Null if not found. */
+  /** Desktop price box: the lines go right under the price. Null if not found. */
   priceEl: Element | null;
   link: HTMLAnchorElement;
   name: string;
@@ -200,7 +198,7 @@ interface CMCNamespace {
   ignoredBelow(s: Settings): number;
   rangeLabel(from: number, allFroms: number[]): string;
   fmtEuro(n: number | null | undefined): string;
-  trendDiffText(price: number, trend: number): string;
+  priceNote(price: number | null, trend: number, opts?: { pct?: string; green?: boolean }): HTMLElement;
   // onoff.js (every page with an overview box)
   setEnabled(enabled: boolean): Promise<void>;
   offButton(after: () => unknown): HTMLButtonElement;

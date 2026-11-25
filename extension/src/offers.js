@@ -4,7 +4,7 @@
  * the printing on offer: settings.trendSource). */
 (function (root) {
   "use strict";
-  const { parseEuro, allEuros, cleanName, isFoil, lookup, clearCache, trendSetText, trendDiffText, exclusionOf, getSettings, saveSettings, requiredDiscount, ignoredBelow, offButton, renderOffBox, settingsButton, toggleRow, trendSourceSwitch, trackMinimized, minimizeButton, addMiniBar, migrate } = root.CMC;
+  const { parseEuro, allEuros, cleanName, isFoil, lookup, clearCache, trendSetText, priceNote, exclusionOf, getSettings, saveSettings, requiredDiscount, ignoredBelow, offButton, renderOffBox, settingsButton, toggleRow, trendSourceSwitch, trackMinimized, minimizeButton, addMiniBar, migrate } = root.CMC;
 
   const MARK = "data-cmc";
   /** @param {number | null | undefined} n */
@@ -97,9 +97,7 @@
       offers.push({
         el: row,
         nameCell: link.closest("td, .col-seller, .col-product, div") || row,
-        // Row of the product info (card details); it ends right where the price column starts.
-        trendSlot: row.querySelector(".col-product > .row"),
-        // Desktop price box (stacked column inside it, if any): fallback place for the trend lines.
+        // Desktop price box (stacked column inside it, if any): our lines go right under the price.
         priceEl: row.querySelector(".col-offer .price-container .flex-column") || row.querySelector(".col-offer .price-container"),
         name,
         url: link.href,
@@ -125,25 +123,9 @@
     return { pct, discount, deal };
   }
 
-  /**
-   * Where the trend lines go. Preferably our own small column at the end of the product info,
-   * right next to Cardmarket's price: the price box itself is too narrow (text stuck out or made
-   * rows tall). Fallback: under the price in the price box. Null: neither found.
-   * @param {Offer} offer @returns {{box: Element, column: boolean} | null}
-   */
-  function trendHolder(offer) {
-    if (offer.trendSlot) {
-      const col = el("div", "col-auto cmc-trend-col");
-      offer.trendSlot.insertBefore(col, offer.trendSlot.querySelector(":scope > .mobile-offer-container"));
-      return { box: col, column: true };
-    }
-    return offer.priceEl ? { box: offer.priceEl, column: false } : null;
-  }
-
-  /** "no trend" next to the price (the reason is in the overview box's "couldn't be priced" list). @param {Offer} offer */
+  /** "no trend" under the price (the reason is in the overview box's "couldn't be priced" list). @param {Offer} offer */
   function noTrend(offer) {
-    const holder = trendHolder(offer);
-    if (holder) holder.box.appendChild(el("div", "cmc-note cmc-price-note cmc-muted", "no trend"));
+    if (offer.priceEl) offer.priceEl.appendChild(el("div", "cmc-note cmc-price-note cmc-muted", "no trend"));
   }
 
   /** Discount for display: whole percent, but "<1" instead of a misleading "0". */
@@ -162,8 +144,8 @@
 
   /**
    * Deals: green row + 🔥. Every other checked card: the trend and the € difference, no
-   * percentage (owner's wish). Those go next to the price (trendHolder) and only the set link
-   * under the name; if neither place is found, the old note under the name.
+   * percentage (owner's wish). Those go right under the price (priceNote) and only the set link
+   * under the name; without a price box, the old note under the name.
    * @param {Offer} offer @param {TrendInfo} p @param {Judgement | null} j
    */
   function annotate(offer, p, j) {
@@ -179,20 +161,10 @@
     const note = el("div", "cmc-note cmc-name-note");
     target.classList.add("cmc-name-cell");
     if (j.deal) offer.el.classList.add("cmc-deal-row");
-    const holder = offer.price != null ? trendHolder(offer) : null;
-    const atPrice = Boolean(holder);
-    if (holder && offer.price != null) {
-      const at = el("div", "cmc-note cmc-price-note");
-      // Order (owner's wish): Cardmarket's price, then the difference, then the trend. Fire last.
-      const diff = trendDiffText(offer.price, p.trend);
-      const pct = `(${pctText(j.discount)}%) 🔥`;
-      if (!j.deal) at.appendChild(el("div", "cmc-diff", diff));
-      // Our column has room for "▼ €x under (N%) 🔥" on one line (two lines in all, so rows stay
-      // low); in the narrow price box the % and fire get a line of their own.
-      else if (holder.column) at.appendChild(el("div", "cmc-diff cmc-deal-note", `${diff} ${pct}`));
-      else at.append(el("div", "cmc-diff cmc-deal-note", diff), el("div", "cmc-deal-note", pct));
-      at.appendChild(el("div", null, `trend ${fmt(p.trend)}`));
-      holder.box.appendChild(at);
+    const atPrice = Boolean(offer.priceEl && offer.price != null);
+    if (offer.priceEl && offer.price != null) { // = atPrice, spelled out for the type checker
+      // Deals: "(N%) 🔥" after the arrow (fire last, owner's wish); other offers: no percentage.
+      offer.priceEl.appendChild(priceNote(offer.price, p.trend, j.deal ? { pct: pctText(j.discount) } : {}));
     } else if (j.deal) {
       note.classList.add("cmc-deal-note");
       note.append(`🔥 ${pctText(j.discount)}% (${fmt(savings(offer.price, p.trend))}) under trend ${fmt(p.trend)} `);

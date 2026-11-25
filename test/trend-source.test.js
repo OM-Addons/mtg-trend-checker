@@ -126,8 +126,8 @@ test("seller page, this printing: foil offers vs their foil trend; still no call
   assert.deepEqual(cardmarketCalls(fetch).sort(), ["/cards/cardmarket/676400", "/cards/cardmarket/677324"]);
   assert.equal(searchCalls(fetch).length, 0);
   const notes = priceNotes(w);
-  assert.ok(notes.includes("▼ € 1,01 under (20%) 🔥 / trend € 5,00"), notes.join(" | "));
-  assert.ok(notes.some((n) => n.endsWith(" / trend € 3,20")), notes.join(" | "));
+  assert.ok(notes.includes("1,01 € ▼ (20%) 🔥 / 5,00 € Trend"), notes.join(" | "));
+  assert.ok(notes.some((n) => n.endsWith(" / 3,20 € Trend")), notes.join(" | "));
   assert.deepEqual(nameNotes(w).sort(), ["(Trend from: Unfinity, foil)", "(Trend from: Unfinity, foil)"]);
   const goblin = [...w.document.querySelectorAll(".cmc-deal-row a")][0];
   assert.match(goblin.title, /trend of this printing: €\s5,00 \(Unfinity, foil\)/);
@@ -137,7 +137,7 @@ test("seller page, cheapest EN (default): same offers compared with the cheapest
   const { w } = realFoilOffers({});
   await w.CMC.runOffers();
   assert.deepEqual(flagged(w), [], "both are far above the €1 cheapest trend");
-  assert.deepEqual(priceNotes(w), ["▲ € 1,90 over / trend € 1,00", "▲ € 2,99 over / trend € 1,00"]);
+  assert.deepEqual(priceNotes(w), ["1,90 € ▲ / 1,00 € Trend", "2,99 € ▲ / 1,00 € Trend"]);
   assert.deepEqual(nameNotes(w), ["(Trend from: Unfinity)", "(Trend from: Unfinity)"]);
 });
 
@@ -194,9 +194,9 @@ test("cart, this printing: foil and non-foil copies get their own trend; foil tr
   await w.CMC.run();
   assert.deepEqual(nameNotes(w), ["(Trend from: Unhinged, foil)", "(Trend from: Unhinged)", "(Trend from: Strixhaven, foil)"]);
   assert.deepEqual(priceNotes(w), [
-    "▼ € 0,19 under / trend € 1,00", // foil copy at 0,81
-    "▼ € 0,02 under / trend € 0,30", // non-foil copy at 0,28
-    "▼ € 3,00 under / trend € 8,00", // foil at 5,00
+    "0,19 € ▼ / 1,00 € Trend", // foil copy at 0,81
+    "0,02 € ▼ / 0,30 € Trend", // non-foil copy at 0,28
+    "3,00 € ▼ / 8,00 € Trend", // foil at 5,00
   ]);
   assert.equal(cardmarketCalls(fetch).filter((c) => c.endsWith("313985")).length, 1, "one request for both copies");
   const panels = [...w.document.querySelectorAll(".shipment-block")];

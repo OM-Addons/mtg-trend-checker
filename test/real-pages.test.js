@@ -69,7 +69,7 @@ test("real cart: trend and difference sit in Cardmarket's price cell, the set li
   const { w } = realCart();
   await w.CMC.run();
   assert.deepEqual(nameNotes(w), ["(Trend from: Marvel)", "(Trend from: Bloomburrow)"]);
-  assert.deepEqual(priceNotes(w), ["▼ € 4,50 under / trend € 7,00", "▼ € 2,00 under / trend € 8,00"]);
+  assert.deepEqual(priceNotes(w), ["4,50 € ▼ / 7,00 € Trend", "2,00 € ▼ / 8,00 € Trend"]);
   assert.equal(w.document.querySelectorAll("td.price .cmc-price-note").length, 2);
   // "(Trend from: Set)" on its own line below the card name (owner's wording); only the set is the link.
   const note = w.document.querySelector("td.name .cmc-note");
@@ -85,7 +85,7 @@ test("cart: prices under trend are green like seller-page deals, without % or �
   const { w } = realCart();
   await w.CMC.run();
   const under = [...w.document.querySelectorAll(".cmc-diff.cmc-under")].map(text);
-  assert.deepEqual(under, ["▼ € 4,50 under", "▼ € 2,00 under"]);
+  assert.deepEqual(under, ["4,50 € ▼", "2,00 € ▼"]);
 });
 
 test("real cart: the overview doesn't rely on colour alone (symbols for colour-blind users)", async () => {
@@ -141,16 +141,11 @@ test("real seller page: only the 3 offers from €1 are looked up, one is a deal
   assert.equal(deals.length, 1);
   assert.match(text(deals[0]), /Realm Seekers/);
   assert.equal(nameNotes(w).length, 3);
-  // Our own small column at the end of the product info, right next to Cardmarket's price
-  // (the price box is too narrow: text stuck out or made rows tall). The price box is untouched.
-  const cols = [...w.document.querySelectorAll(".col-product > .row > .cmc-trend-col")];
-  assert.equal(cols.length, 3);
-  assert.ok(cols.every((c) => c.classList.contains("col-auto")), "a Bootstrap column in Cardmarket's row");
-  assert.ok(cols.every((c) => !c.nextElementSibling || c.nextElementSibling.matches(".mobile-offer-container")), "last before the (mobile) price");
-  assert.equal(w.document.querySelectorAll(".price-container [data-cmc]").length, 0, "nothing added in the price box");
-  // Two lines: difference (+ % and fire for a deal, fire last), then the trend.
-  const lines = [...deals[0].querySelectorAll(".cmc-trend-col .cmc-price-note > div")].map(text);
+  // Directly under the price, in the desktop price box (owner's layout A).
+  assert.equal(w.document.querySelectorAll(".col-offer .price-container .cmc-price-note").length, 3);
+  // Two lines in Cardmarket's format: difference (+ % and fire for a deal), then the trend.
+  const lines = [...deals[0].querySelectorAll(".cmc-price-note > div")].map(text);
   assert.equal(lines.length, 2);
-  assert.match(lines[0], /^▼ € [\d,]+ under \(\d+%\) 🔥$/);
-  assert.match(lines[1], /^trend € /);
+  assert.match(lines[0], /^[\d,]+ € ▼ \(\d+%\) 🔥$/);
+  assert.match(lines[1], /^[\d,]+ € Trend$/);
 });

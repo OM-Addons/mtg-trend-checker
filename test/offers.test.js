@@ -59,13 +59,13 @@ test("list layout: deals are flagged; trend and € difference under the price, 
 
   // Under the price, in Cardmarket's price box. Deals: € under, %, then the 🔥 (owner's wish: fire last).
   assert.deepEqual(priceNotes(w), [
-    "▼ € 0,50 under / (25%) 🔥 / trend € 2,00", // Low Deal 1,50
-    "▼ € 0,40 under / trend € 2,20", // Low NoDeal 1,80: no percentage for non-deals
-    "▼ € 0,60 under / (15%) 🔥 / trend € 4,00", // Mid Deal 3,40
-    "▼ € 1,00 under / (10%) 🔥 / trend € 10,00", // High Deal 9,00
-    "▼ € 0,50 under / trend € 10,00", // High NoDeal 9,50
-    "▼ € 0,80 under / (14%) 🔥 / trend € 5,80", // Boundary Five 5,00
-    "▲ € 0,50 over / trend € 2,50", // Above Trend 3,00
+    "0,50 € ▼ (25%) 🔥 / 2,00 € Trend", // Low Deal 1,50
+    "0,40 € ▼ / 2,20 € Trend", // Low NoDeal 1,80: no percentage for non-deals
+    "0,60 € ▼ (15%) 🔥 / 4,00 € Trend", // Mid Deal 3,40
+    "1,00 € ▼ (10%) 🔥 / 10,00 € Trend", // High Deal 9,00
+    "0,50 € ▼ / 10,00 € Trend", // High NoDeal 9,50
+    "0,80 € ▼ (14%) 🔥 / 5,80 € Trend", // Boundary Five 5,00
+    "0,50 € ▲ / 2,50 € Trend", // Above Trend 3,00
   ]);
   const first = w.document.querySelectorAll(".price-container")[1];
   assert.ok(first.querySelector(".cmc-price-note"), "Low Deal's trend sits in its price box");
@@ -218,12 +218,10 @@ test("seller page: the set line gets its own line below the name, also after a r
   assert.equal(w.document.querySelectorAll(".cmc-name-cell").length, 7);
 });
 
-test("seller page: 'no trend' goes into the trend column too, and a re-run doesn't double it", async () => {
+test("real seller page: 'no trend' under the price, and a re-run doesn't double it", async () => {
   const fetch = fakeScryfall({ byProductId: {}, prints: {} });
   const w = loadPage(fixture("real-offers-list.html"), OFFER_SCRIPTS, fetch);
   await w.CMC.runOffers();
   await w.CMC.runOffers();
-  const cols = [...w.document.querySelectorAll(".cmc-trend-col")];
-  assert.equal(cols.length, 3, "the 3 offers from €1");
-  assert.ok(cols.every((c) => text(c) === "no trend"));
+  assert.deepEqual(priceNotes(w), ["no trend", "no trend", "no trend"], "the 3 offers from €1");
 });

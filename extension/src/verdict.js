@@ -4,7 +4,7 @@
  * the verdict texts and the overview box (bottom-right). */
 (function (root) {
   "use strict";
-  const { lookup, clearCache, trendSetText, fmtEuro: fmt, trendDiffText, offButton, settingsButton, trendSourceSwitch, minimizeButton, addMiniBar } = root.CMC;
+  const { lookup, clearCache, trendSetText, fmtEuro: fmt, priceNote, offButton, settingsButton, trendSourceSwitch, minimizeButton, addMiniBar } = root.CMC;
   const MARK = "data-cmc";
 
   /**
@@ -105,15 +105,9 @@
       if (priceCell) priceCell.appendChild(cmcEl("div", "cmc-note cmc-price-note cmc-muted", "no trend"));
     } else {
       if (priceCell) {
-        const at = cmcEl("div", "cmc-note cmc-price-note");
-        // Order (owner's wish): Cardmarket's price, then the difference, then the trend.
-        if (a.unitPrice != null) {
-          // Under trend: green like a seller-page deal (owner's wish), the ▼ and "under" keep it readable without colour.
-          const under = Math.round(a.unitPrice * 100) < Math.round(p.trend * 100);
-          at.appendChild(cmcEl("div", under ? "cmc-diff cmc-under" : "cmc-diff", trendDiffText(a.unitPrice, p.trend)));
-        }
-        at.appendChild(cmcEl("div", null, `trend ${fmt(p.trend)}`));
-        priceCell.appendChild(at);
+        // Under trend: green like a seller-page deal (owner's wish); the ▼ keeps it readable without colour.
+        const under = a.unitPrice != null && Math.round(a.unitPrice * 100) < Math.round(p.trend * 100);
+        priceCell.appendChild(priceNote(a.unitPrice, p.trend, { green: under }));
       } else {
         note.append(`${byPrinting ? "Trend of this printing" : "Cheapest EN trend"}: ${fmt(p.trend)} `);
       }

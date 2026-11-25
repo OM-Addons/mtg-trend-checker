@@ -33,9 +33,9 @@ test("cards: trend and difference per copy under the price, the set link under t
   await w.CMC.run();
   assert.deepEqual(nameNotes(w), ["(Trend from: Promo, foil)", "(Trend from: Masters 25)", "(Trend from: Commander)", "No English trend price found"]);
   assert.deepEqual(priceNotes(w), [
-    "▲ € 0,30 over / trend € 0,50", // 2x Bolt at 0,80 each: per copy, not per line
-    "▲ € 0,10 over / trend € 0,90",
-    "▲ € 1.047,90 over / trend € 2,10",
+    "0,30 € ▲ / 0,50 € Trend", // 2x Bolt at 0,80 each: per copy, not per line
+    "0,10 € ▲ / 0,90 € Trend",
+    "1.047,90 € ▲ / 2,10 € Trend",
     "no trend", // the reason is under the name
   ]);
   assert.equal(w.document.querySelectorAll(".cmc-under").length, 0, "only prices under trend are green, not over");
@@ -43,12 +43,18 @@ test("cards: trend and difference per copy under the price, the set link under t
   assert.ok(priceCell.querySelector(".cmc-price-note"), "the trend is in the price cell itself");
 });
 
-test("trendDiffText: under, over, equal (in whole cents)", () => {
+test("priceNote: Cardmarket's format, amount first; arrow / Trend after it (in whole cents)", () => {
   const { w } = cartPage();
-  const diff = (price, trend) => w.CMC.trendDiffText(price, trend).replace(/\s/g, " ");
-  assert.equal(diff(2.5, 7), "▼ € 4,50 under");
-  assert.equal(diff(5.8, 5), "▲ € 0,80 over");
-  assert.equal(diff(3, 3.0000001), "= trend");
+  const lines = (price, trend, opts) => [...w.CMC.priceNote(price, trend, opts).children].map(text);
+  assert.deepEqual(lines(2.5, 7), ["4,50 € ▼", "7,00 € Trend"]);
+  assert.deepEqual(lines(5.8, 5), ["0,80 € ▲", "5,00 € Trend"]);
+  assert.deepEqual(lines(3, 3.0000001), ["0,00 € =", "3,00 € Trend"]);
+  assert.deepEqual(lines(1050, 2.1), ["1.047,90 € ▲", "2,10 € Trend"]);
+  assert.deepEqual(lines(8, 10, { pct: "20" }), ["2,00 € ▼ (20%) 🔥", "10,00 € Trend"], "deal: % and fire after the arrow");
+  // The amount and the text after it are separate, so the amounts line up under the price.
+  const first = w.CMC.priceNote(2.5, 7).firstElementChild;
+  assert.equal(text(first.querySelector(".cmc-amount")), "4,50 €");
+  assert.equal(text(first.querySelector(".cmc-suffix")), "▼");
 });
 
 test("cart rows without a price cell keep the full note under the name", async () => {

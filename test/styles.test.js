@@ -9,7 +9,8 @@ const css = fs.readFileSync(path.join(__dirname, "..", "extension", "src", "styl
 /** Declarations of the rule whose selector is exactly `selector`. @param {string} selector */
 function rule(selector) {
   const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  const m = css.match(new RegExp(`(?:^|\\})\\s*${escaped}\\s*\\{([^}]*)\\}`));
+  // The rule starts the file or follows another rule or a comment.
+  const m = css.match(new RegExp(`(?:^|\\}|\\*/)\\s*${escaped}\\s*\\{([^}]*)\\}`));
   assert.ok(m, `no rule for ${selector}`);
   return m[1];
 }
@@ -39,15 +40,13 @@ test("the note under the card name always gets its own line, also in a flex cell
   assert.match(rule(".cmc-name-note"), /width\s*:\s*100%/);
 });
 
-// Seller pages: Cardmarket's price box is narrow. Our lines there may wrap between words, so they
-// stay inside the box instead of sticking out to the left (owner's report).
-test("seller-page price lines wrap inside the narrow price box", () => {
-  assert.match(rule(".price-container .cmc-price-note"), /white-space\s*:\s*normal/);
-});
-
-// Seller pages: our column next to the price has a minimum width (so it lines up down the
-// page) and never wraps, so rows don't get taller than two short lines.
-test("seller-page trend column lines up and doesn't wrap", () => {
-  assert.match(rule(".cmc-trend-col"), /min-width\s*:/);
-  assert.match(rule(".cmc-trend-col .cmc-price-note"), /white-space\s*:\s*nowrap/);
+// Lines under the price (owner's layout A): the amounts end exactly where Cardmarket's price
+// ends; the arrow / "Trend" hang to the right of it, outside the layout, so they never push
+// the amounts left or make the box wider or taller.
+test("price lines: amounts line up under the price, the text after them hangs to the right", () => {
+  assert.match(rule(".cmc-price-note"), /text-align\s*:\s*right/);
+  assert.match(rule(".cmc-price-note"), /white-space\s*:\s*nowrap/);
+  assert.match(rule(".cmc-line"), /position\s*:\s*relative/);
+  assert.match(rule(".cmc-suffix"), /position\s*:\s*absolute/);
+  assert.match(rule(".cmc-suffix"), /left\s*:\s*100%/);
 });

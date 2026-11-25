@@ -1,7 +1,7 @@
 # Changelog
 
 ## Unreleased
-- **Trend right under the price:** in the cart, the shopping wizard and on seller pages, right under Cardmarket's price you now see how much it is under or over the trend (e.g. "▼ € 4,50 under"), and below that the trend itself. In the cart and the shopping wizard, prices under trend are green. On seller pages this sits in a small column right before the price, and deals add the percentage and 🔥. Under the card name it now says which set the trend comes from, e.g. "(Trend from: M10)".
+- **Trend right under the price:** in the cart, the shopping wizard and on seller pages, right under Cardmarket's price you now see how much it is under or over the trend (e.g. "4,50 € ▼"), and below that the trend itself ("7,00 € Trend"), lined up with the price. In the cart and the shopping wizard, prices under trend are green. On seller pages deals add the percentage and 🔥. Under the card name it now says which set the trend comes from, e.g. "(Trend from: M10)".
 - **Tidier cart:** the verdict panel above each seller's summary is gone. Instead, two rows appear under Cardmarket's own Total (summed trend, and ✅ Worth it / ❌ Not worth it with the amount), just like in the shopping wizard. The seller block gets a coloured edge. Cards, shipping and total are no longer shown twice.
 
 ## 2.2.0 - 2026-11-22
