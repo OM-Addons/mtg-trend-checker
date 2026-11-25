@@ -93,7 +93,7 @@ test("wizard page: each card gets the cart's note, and no coloured price bar (re
   assert.deepEqual(rows.map((r) => text(r.querySelector("td.card-name .cmc-note"))), ["(Trend from: Set 786368)", "(Trend from: Set 759962)"]);
   // Trend and difference in the price cell (the last one), right under Cardmarket's price.
   assert.deepEqual(rows.map((r) => [...r.querySelectorAll("td:last-child .cmc-price-note > div")].map(text).join(" / ")),
-    ["2,00 € ▼ / 5,00 € Trend", "1,00 € ▼ / 10,00 € Trend"]); // 3,00 and 9,00
+    ["▼ 2,00 € / Trend 5,00 €", "▼ 1,00 € / Trend 10,00 €"]); // 3,00 and 9,00
   assert.equal(rows.filter((r) => r.querySelector(".cmc-diff.cmc-under")).length, 2, "under trend: green");
   assert.equal(w.document.querySelectorAll("[class*='cmc-row-']").length, 0);
   assert.match(text(blocks(w)[4]), /No English trend price found/);
@@ -128,7 +128,7 @@ test("wizard page, this printing: a foil is compared with its foil trend", async
   assert.deepEqual(addedRows(b.querySelector("dl")), ["Σ trend of these printings € 22,98", "✅ Worth it: you save € 0,46"]);
   assert.match(text(b), /\(Trend from: Set 796173, foil\)/);
   const boros = [...b.querySelectorAll("table tbody tr")][2];
-  assert.equal([...boros.querySelectorAll(".cmc-price-note > div")].map(text).join(" / "), "2,01 € ▼ / 6,00 € Trend");
+  assert.equal([...boros.querySelectorAll(".cmc-price-note > div")].map(text).join(" / "), "▼ 2,01 € / Trend 6,00 €");
 });
 
 test("wizard page: the trend switch is saved and the page is re-checked without doubling rows", async () => {

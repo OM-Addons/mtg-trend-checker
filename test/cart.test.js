@@ -33,9 +33,9 @@ test("cards: trend and difference per copy under the price, the set link under t
   await w.CMC.run();
   assert.deepEqual(nameNotes(w), ["(Trend from: Promo, foil)", "(Trend from: Masters 25)", "(Trend from: Commander)", "No English trend price found"]);
   assert.deepEqual(priceNotes(w), [
-    "0,30 € ▲ / 0,50 € Trend", // 2x Bolt at 0,80 each: per copy, not per line
-    "0,10 € ▲ / 0,90 € Trend",
-    "1.047,90 € ▲ / 2,10 € Trend",
+    "▲ 0,30 € / Trend 0,50 €", // 2x Bolt at 0,80 each: per copy, not per line
+    "▲ 0,10 € / Trend 0,90 €",
+    "▲ 1.047,90 € / Trend 2,10 €",
     "no trend", // the reason is under the name
   ]);
   assert.equal(w.document.querySelectorAll(".cmc-under").length, 0, "only prices under trend are green, not over");
@@ -55,6 +55,12 @@ test("priceNote: Cardmarket's format, amount first; arrow / Trend after it (in w
   const first = w.CMC.priceNote(2.5, 7).firstElementChild;
   assert.equal(text(first.querySelector(".cmc-amount")), "4,50 €");
   assert.equal(text(first.querySelector(".cmc-suffix")), "▼");
+  // Cart and wizard (owner's wish): the label goes before the amount, inside the cell.
+  assert.deepEqual(lines(2.5, 7, { labelsFirst: true }), ["▼ 4,50 €", "Trend 7,00 €"]);
+  assert.deepEqual(lines(3, 3, { labelsFirst: true }), ["= 0,00 €", "Trend 3,00 €"]);
+  const box = w.CMC.priceNote(2.5, 7, { labelsFirst: true });
+  assert.ok(box.classList.contains("cmc-labels-first"));
+  assert.equal(box.firstElementChild.firstElementChild.className, "cmc-suffix", "label first in the line");
 });
 
 test("cart rows without a price cell keep the full note under the name", async () => {

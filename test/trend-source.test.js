@@ -194,9 +194,9 @@ test("cart, this printing: foil and non-foil copies get their own trend; foil tr
   await w.CMC.run();
   assert.deepEqual(nameNotes(w), ["(Trend from: Unhinged, foil)", "(Trend from: Unhinged)", "(Trend from: Strixhaven, foil)"]);
   assert.deepEqual(priceNotes(w), [
-    "0,19 € ▼ / 1,00 € Trend", // foil copy at 0,81
-    "0,02 € ▼ / 0,30 € Trend", // non-foil copy at 0,28
-    "3,00 € ▼ / 8,00 € Trend", // foil at 5,00
+    "▼ 0,19 € / Trend 1,00 €", // foil copy at 0,81
+    "▼ 0,02 € / Trend 0,30 €", // non-foil copy at 0,28
+    "▼ 3,00 € / Trend 8,00 €", // foil at 5,00
   ]);
   assert.equal(cardmarketCalls(fetch).filter((c) => c.endsWith("313985")).length, 1, "one request for both copies");
   const panels = [...w.document.querySelectorAll(".shipment-block")];

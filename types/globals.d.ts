@@ -198,7 +198,7 @@ interface CMCNamespace {
   ignoredBelow(s: Settings): number;
   rangeLabel(from: number, allFroms: number[]): string;
   fmtEuro(n: number | null | undefined): string;
-  priceNote(price: number | null, trend: number, opts?: { pct?: string; green?: boolean }): HTMLElement;
+  priceNote(price: number | null, trend: number, opts?: { pct?: string; green?: boolean; labelsFirst?: boolean }): HTMLElement;
   // onoff.js (every page with an overview box)
   setEnabled(enabled: boolean): Promise<void>;
   offButton(after: () => unknown): HTMLButtonElement;

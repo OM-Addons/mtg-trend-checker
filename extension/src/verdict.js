@@ -107,7 +107,7 @@
       if (priceCell) {
         // Under trend: green like a seller-page deal (owner's wish); the ▼ keeps it readable without colour.
         const under = a.unitPrice != null && Math.round(a.unitPrice * 100) < Math.round(p.trend * 100);
-        priceCell.appendChild(priceNote(a.unitPrice, p.trend, { green: under }));
+        priceCell.appendChild(priceNote(a.unitPrice, p.trend, { green: under, labelsFirst: true }));
       } else {
         note.append(`${byPrinting ? "Trend of this printing" : "Cheapest EN trend"}: ${fmt(p.trend)} `);
       }

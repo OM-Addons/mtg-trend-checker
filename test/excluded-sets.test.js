@@ -140,7 +140,7 @@ test("cart: the note says how many cheaper printings were skipped", async () => 
   const notes = nameNotes(w);
   assert.equal(notes[0], "(Trend from: M10, 1 cheaper filtered)");
   assert.equal(notes[1], "(Trend from: Masters 25)", "nothing skipped: plain note");
-  assert.equal(priceNotes(w)[0], "1,00 € ▼ / 1,80 € Trend");
+  assert.equal(priceNotes(w)[0], "▼ 1,00 € / Trend 1,80 €");
 });
 
 test("seller page: default settings skip Memorabilia, in the note and the name tooltip", async () => {
