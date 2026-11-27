@@ -18,6 +18,8 @@ Some printings have a trend that says little about what a normal copy costs. The
 
 If a skipped printing was cheaper than the one used, the set note says so, e.g. "(Trend from: M10, 1 cheaper filtered)". If *every* printing of a card is skipped, its cheapest one is used anyway and the note says "(Trend from: …, excluded set)". **This printing** isn't affected. After you change the selection, open pages look their cards up again.
 
+If the card on offer (or in your cart) is *itself* a printing from a skipped set, e.g. a gold-bordered World Championship card, it gets a warning on its own line under the name, e.g. "⚠️ World Championship Decks 1997 (filtered set)". Such printings are often far below the normal trend. Only the warning is added: the card is still compared with the normal trend and can still be a deal. The overview box counts them ("⚠️ 2 from filtered sets"). This needs the card's product ID (Cardmarket shows it for cards with an image), and costs no extra lookups.
+
 ## Shopping cart
 
 Checks your cart one seller at a time:

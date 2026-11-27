@@ -19,7 +19,7 @@ function cardsOfFixture() {
  * a number (same for both modes), or {eur, foil} for the printing, null = unknown card.
  * @param {(price: number) => number} [base]
  */
-function wizardScryfall(trends = {}, base = (p) => p) {
+function wizardScryfall(trends = {}, base = (p) => p, extra = {}) {
   const byProductId = {};
   const prints = {};
   for (const [pid, price] of cardsOfFixture()) {
@@ -27,7 +27,7 @@ function wizardScryfall(trends = {}, base = (p) => p) {
     if (t == null) continue;
     const eur = typeof t === "number" ? t : t.eur;
     const foil = typeof t === "number" ? t : t.foil;
-    byProductId[pid] = printing(`o${pid}`, eur, foil, `Set ${pid}`);
+    byProductId[pid] = { ...printing(`o${pid}`, eur, foil, `Set ${pid}`), ...(extra[pid] || {}) };
     prints[`o${pid}`] = [print(eur, `Set ${pid}`)];
   }
   return fakeScryfall({ byProductId, prints });
@@ -225,4 +225,13 @@ test("wizard page: price per copy vs per line is decided by Cardmarket's Article
   const perLine = loadPage(qtyBlock(6, 6), WIZARD_SCRIPTS, null);
   const a = perLine.CMC.parseWizard(perLine.document).shipments[0].articles[0];
   assert.deepEqual([a.qty, a.unitPrice], [3, 2]);
+});
+
+test("wizard page: a card from a filtered set gets the warning and is counted in the overview box", async () => {
+  // 786368 is offered as a Memorabilia printing (Memorabilia is skipped by default).
+  const fetch = wizardScryfall(TRENDS, undefined, { 786368: { set_name: "World Championship Decks 1997", set: "wc97", set_type: "memorabilia" } });
+  const w = loadPage(fixture("real-wizard.html"), WIZARD_SCRIPTS, fetch, { browser: fakeBrowser() });
+  await w.CMC.runWizard();
+  assert.deepEqual([...w.document.querySelectorAll(".cmc-filtered-note")].map(text), ["⚠️ World Championship Decks 1997 (filtered set)"]);
+  assert.match(text(w.document.querySelector(".cmc-overview")), /⚠️ 1 from filtered sets/);
 });

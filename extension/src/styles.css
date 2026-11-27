@@ -88,3 +88,6 @@
 .cmc-unmasonry > * { position: static !important; } /* fallback when Cardmarket's Masonry can't lay out again: no absolute positions */
 /* Card names there are truncated to one line; the note under them may wrap. */
 .detailed-result-card .cmc-note { white-space: normal; }
+
+/* The card itself is a printing from a skipped set: the ⚠️ text says it, the colour only adds to it. */
+.cmc-filtered-note { color: #a06f00; font-weight: 600; }

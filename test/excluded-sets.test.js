@@ -170,6 +170,114 @@ test("seller page: skipping sets keeps 'no API calls under €1 and for other la
 });
 
 // ---------------------------------------------------------------------------
+// Warning: the card itself is a printing from a skipped set
+// ---------------------------------------------------------------------------
+
+/** Lightning Bolt, offered as the gold-bordered WC97 printing (product 7) or as M10 (product 1). */
+function goldPage(opts = {}) {
+  const fetch = fakeScryfall({
+    byProductId: {
+      1: { ...printing("bolt", 2, 6, "Magic 2010"), set: "m10", set_type: "core" },
+      7: { ...printing("bolt", 0.4, null, "World Championship Decks 1997"), set: "wc97", set_type: "memorabilia" },
+    },
+    prints: { bolt: [typed(0.4, "World Championship Decks 1997", "wc97", "memorabilia"), typed(2, "Magic 2010", "m10", "core")] },
+  });
+  return { w: loadPage("<body></body>", OFFER_SCRIPTS, fetch, opts), fetch };
+}
+const productCalls = (fetch, id) => fetch.calls.filter((c) => c === `/cards/cardmarket/${id}`).length;
+
+test("filtered-set warning: a printing from a skipped category or set is flagged, still with the normal trend", async () => {
+  const { w, fetch } = goldPage();
+  const p = await w.CMC.lookup("7", "Lightning Bolt", { exclude: ex(["memorabilia"]) });
+  assert.deepEqual([p.trend, p.set, p.filteredSet], [2, "Magic 2010", "World Championship Decks 1997"]);
+  assert.equal(productCalls(fetch, 7), 1, "the printing came with the card: no extra call");
+  const bySet = await w.CMC.lookup("1", "Lightning Bolt", { exclude: ex([], ["m10"]) });
+  assert.equal(bySet.filteredSet, "Magic 2010", "a single skipped set counts too");
+  assert.equal((await w.CMC.lookup("1", "Lightning Bolt", { exclude: ex(["memorabilia"]) })).filteredSet, undefined, "normal printing: no warning");
+});
+
+test("filtered-set warning: not in 'This printing' mode or with nothing skipped", async () => {
+  const { w } = goldPage();
+  assert.equal((await w.CMC.lookup("7", "Lightning Bolt", { source: "printing", exclude: ex(["memorabilia"]) })).filteredSet, undefined);
+  assert.equal((await w.CMC.lookup("7", "Lightning Bolt", { exclude: ex([]) })).filteredSet, undefined);
+  assert.equal((await w.CMC.lookup("7", "Lightning Bolt")).filteredSet, undefined);
+});
+
+test("filtered-set warning: without a product ID the printing is unknown, so no warning and no product call", async () => {
+  const fetch = fakeScryfall({ byName: { "Lightning Bolt": "bolt" }, prints: { bolt: [typed(0.4, "World Championship Decks 1997", "wc97", "memorabilia"), typed(2, "Magic 2010", "m10", "core")] } });
+  const w = loadPage("<body></body>", OFFER_SCRIPTS, fetch);
+  const p = await w.CMC.lookup(null, "Lightning Bolt", { exclude: ex(["memorabilia"]) });
+  assert.deepEqual([p.trend, p.filteredSet], [2, undefined]);
+  assert.ok(!fetch.calls.some((c) => c.startsWith("/cards/cardmarket/")));
+});
+
+test("filtered-set warning: not when every printing is skipped (the note already says 'excluded set')", async () => {
+  const { w } = goldPage();
+  const p = await w.CMC.lookup("7", "Lightning Bolt", { exclude: ex(["memorabilia", "core"]) });
+  assert.deepEqual([p.excludedFallback, p.filteredSet], [true, undefined]);
+});
+
+test("filtered-set warning: a printing cached without its set type is fetched once more", async () => {
+  const browser = fakeBrowser({
+    "cmc:pid:7": { t: Date.now(), v: { oracleId: "bolt", name: "Lightning Bolt" } },
+    "cmc:print:7": { t: Date.now(), v: { name: "Lightning Bolt", set: "World Championship Decks 1997", setCode: "WC97", eur: 0.4, eurFoil: null, nonfoil: true } },
+  });
+  const { w, fetch } = goldPage({ browser });
+  const p = await w.CMC.lookup("7", "Lightning Bolt", { exclude: ex(["memorabilia"]) });
+  assert.equal(p.filteredSet, "World Championship Decks 1997");
+  await w.CMC.lookup("7", "Lightning Bolt", { exclude: ex(["memorabilia"]) });
+  assert.equal(productCalls(fetch, 7), 1, "fetched once, then cached with its set type");
+});
+
+test("seller page: an offer from a filtered set gets a warning line, a tooltip and a count, and is still a deal", async () => {
+  const names = ["Low Deal", "Low NoDeal", "Mid Deal", "High Deal", "High NoDeal", "Boundary Five", "German Deal", "Above Trend", "Cheap Card"];
+  const prints = Object.fromEntries(names.map((n) => [n, [print(10, "S")]]));
+  prints["High Deal"] = [typed(0.5, "World Championship Decks 1997", "wc97", "memorabilia"), typed(12, "M10", "m10", "core")];
+  const fetch = fakeScryfall({
+    byProductId: { 555: { oracle_id: "High Deal", set_name: "World Championship Decks 1997", set: "wc97", set_type: "memorabilia", prices: { eur: "0.5" } } },
+    byName: Object.fromEntries(names.map((n) => [n, n])), prints,
+  });
+  const browser = fakeBrowser({ settings: { englishOnly: true } });
+  const w = loadPage(fixture("offers-list.html"), OFFER_SCRIPTS, fetch, { browser });
+  await w.CMC.runOffers();
+  const warnings = [...w.document.querySelectorAll(".cmc-filtered-note")].map(text);
+  assert.deepEqual(warnings, ["⚠️ World Championship Decks 1997 (filtered set)"]);
+  const high = [...w.document.querySelectorAll("a")].find((a) => a.textContent.trim() === "High Deal");
+  assert.match(high.title, /· ⚠️ World Championship Decks 1997 \(filtered set\)$/);
+  assert.ok(high.closest(".article-row").classList.contains("cmc-deal-row"), "warn only: 9,00 vs 12,00 is still a deal");
+  const box = text(w.document.querySelector(".cmc-overview"));
+  assert.match(box, /⚠️ 1 from filtered sets/);
+  assert.match(box, /High Deal: € 9,00 vs € 12,00/);
+});
+
+test("seller page: no filtered-set line in the overview when there are none", async () => {
+  const fetch = fakeScryfall({ byName: { "Low Deal": "Low Deal" }, prints: { "Low Deal": [print(10, "S")] } });
+  const w = loadPage(fixture("offers-list.html"), OFFER_SCRIPTS, fetch, { browser: fakeBrowser() });
+  await w.CMC.runOffers();
+  assert.doesNotMatch(text(w.document.querySelector(".cmc-overview")), /filtered sets/);
+  assert.equal(w.document.querySelectorAll(".cmc-filtered-note").length, 0);
+});
+
+test("cart: a card from a filtered set gets the warning below the name and counts in the overview; the comparison is unchanged", async () => {
+  const fetch = fakeScryfall({
+    byProductId: { 100: { oracle_id: "bolt", set_name: "Collectors' Edition", set: "ced", set_type: "memorabilia" }, 200: "counter", 300: "solring" },
+    prints: {
+      bolt: [typed(0.5, "Collectors' Edition", "ced", "memorabilia"), typed(1.8, "M10", "m10", "core")],
+      counter: [typed(0.9, "Masters 25", "a25", "masters")],
+      solring: [typed(2.1, "Commander", "cmd", "commander")],
+    },
+  });
+  const w = loadPage(fixture("cart.html"), CART_SCRIPTS, fetch, { browser: fakeBrowser() });
+  await w.CMC.run();
+  const bolt = w.document.querySelector("tr[data-product-id='100'] td.name");
+  assert.deepEqual([...bolt.querySelectorAll(".cmc-name-note")].map(text), ["(Trend from: M10, 1 cheaper filtered)", "⚠️ Collectors' Edition (filtered set)"]);
+  assert.equal(priceNotes(w)[0], "▼ 1,00 € / Trend 1,80 €", "still compared with the normal trend");
+  assert.match(text(w.document.querySelector(".cmc-overview")), /⚠️ 1 from filtered sets/);
+  w.CMC.removeMarks();
+  assert.equal(w.document.querySelectorAll(".cmc-filtered-note").length, 0, "removed on a re-run");
+});
+
+// ---------------------------------------------------------------------------
 // Cleanup of expired cache entries
 // ---------------------------------------------------------------------------
 
