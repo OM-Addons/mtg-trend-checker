@@ -8,7 +8,7 @@
   "use strict";
   const {
     parseEuro, allEuros, cleanName, isFoil, getSettings, migrate, exclusionOf, renderOffBox, trackMinimized, fmtEuro: fmt,
-    cmcEl: el, removeMarks, priceKey, evaluate, lookupArticles, annotateArticle, verdictKind, verdictText, diffWords, verdictRows, renderOverviewBox,
+    cmcEl: el, removeMarks, priceKey, evaluate, lookupArticles, annotateArticle, countFiltered, verdictKind, verdictText, diffWords, verdictRows, renderOverviewBox,
   } = root.CMC;
 
   /** Cardmarket product id hidden in the thumbnail tooltip (.../786368/786368.jpg), if present. */
@@ -188,7 +188,7 @@
       const overall = evaluate({ total: wizard.total, articles: all }, prices, source);
       if (wizard.summaryEl) addRows(wizard.summaryEl, overall, source, "total");
       renderOverviewBox({
-        title: "MTG wizard check", source, results, restart, run,
+        title: "MTG wizard check", source, results, restart, run, filtered: countFiltered(all, prices, source),
         overall: { text: overallText(overall), kind: verdictKind(overall) },
       });
     } finally {

@@ -81,6 +81,7 @@
       name: card.name,
       set: card.set_name,
       setCode: (card.set || "").toUpperCase(),
+      setType: card.set_type || "",
       eur: num(prices.eur),
       eurFoil: num(prices.eur_foil),
       nonfoil: !Array.isArray(card.finishes) || card.finishes.includes("nonfoil"),
@@ -98,10 +99,14 @@
     return card;
   }
 
-  /** @param {string} productId @returns {Promise<PrintingInfo | null>} */
+  /**
+   * Entries cached before the filtered-set warning have no `setType`: those are fetched again
+   * (once), otherwise a printing from a skipped category couldn't be recognised for a day.
+   * @param {string} productId @returns {Promise<PrintingInfo | null>}
+   */
   async function printingForProduct(productId) {
     const cached = await cacheGet(`cmc:print:${productId}`);
-    if (cached !== undefined) return cached;
+    if (cached !== undefined && (cached === null || typeof cached.setType === "string")) return cached;
     const card = await fetchByProductId(productId);
     if (card) await cacheSet(`cmc:pid:${productId}`, { oracleId: oracleIdOf(card), name: card.name });
     return card ? printingInfo(card) : null;
@@ -122,6 +127,15 @@
     const v = card ? { oracleId: oracleIdOf(card), name: card.name } : null;
     await cacheSet(key, v);
     return v;
+  }
+
+  /**
+   * Is a printing (Scryfall set_type and set code) in the skipped sets?
+   * @param {unknown} setType @param {unknown} setCode @param {Exclusion | undefined} ex
+   */
+  function isSkipped(setType, setCode, ex) {
+    if (!ex) return false;
+    return ex.types.includes(String(setType || "")) || ex.sets.includes(String(setCode || "").toLowerCase());
   }
 
   /** Same skipped sets -> same text, whatever order they were ticked in. @param {Exclusion | undefined} ex */
@@ -153,10 +167,8 @@
       url = data.has_more ? data.next_page : null;
     }
 
-    const types = exclude ? exclude.types : [];
-    const sets = exclude ? exclude.sets : [];
     /** @param {any} p */
-    const isExcluded = (p) => types.includes(p.set_type) || sets.includes(String(p.set || "").toLowerCase());
+    const isExcluded = (p) => isSkipped(p.set_type, p.set, exclude);
 
     /** @type {Omit<TrendInfo, "printings" | "url"> | null} */
     let best = null;     // cheapest printing that isn't skipped
@@ -286,6 +298,16 @@
       const card = await cardForProduct(productId, fallbackName);
       const best = card && card.oracleId ? await cheapestEnglishTrend(card.oracleId, opts.exclude) : null;
       found = best ? Object.assign({ name: card ? card.name : fallbackName }, best) : null;
+      // The card itself is a printing from a skipped set (e.g. a gold-bordered WC97 card): it's
+      // still compared with the normal trend, but gets a warning, as it's often far below it.
+      // Its printing was fetched (and cached) together with the card above, so no extra call
+      // (except once for entries cached before this, see printingForProduct). Not when every
+      // printing is skipped: the note already says "excluded set" then.
+      const ex = opts.exclude;
+      if (found && productId && ex && (ex.types.length || ex.sets.length) && !found.excludedFallback) {
+        const info = await printingForProduct(productId);
+        if (info && isSkipped(info.setType, info.setCode, ex)) found.filteredSet = info.set;
+      }
     }
     if (!found) return null;
     // The link is built here, not cached, so prices cached before this change get the new link too.

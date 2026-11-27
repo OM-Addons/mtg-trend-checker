@@ -5,7 +5,7 @@
   "use strict";
   const {
     parseCart, getSettings, migrate, exclusionOf, renderOffBox, trackMinimized,
-    cmcEl: el, removeMarks, priceKey, evaluate, lookupArticles, annotateArticle, verdictKind, verdictRows, renderOverviewBox,
+    cmcEl: el, removeMarks, priceKey, evaluate, lookupArticles, annotateArticle, countFiltered, verdictKind, verdictRows, renderOverviewBox,
   } = root.CMC;
 
   /** @param {Shipment} shipment @param {Map<string, TrendInfo>} prices @param {TrendSource} source @returns {ShipmentResult} */
@@ -44,9 +44,9 @@
     }
   }
 
-  /** @param {TrendSource} source @param {{s: Shipment, r: ShipmentResult}[]} results @param {string} [status] */
-  function renderOverview(source, results, status) {
-    renderOverviewBox({ title: "MTG cart check", source, results, status, restart, run });
+  /** @param {TrendSource} source @param {{s: Shipment, r: ShipmentResult}[]} results @param {string} [status] @param {number} [filtered] */
+  function renderOverview(source, results, status, filtered) {
+    renderOverviewBox({ title: "MTG cart check", source, results, status, filtered, restart, run });
   }
 
   let running = false;
@@ -75,12 +75,13 @@
       renderOverview(source, [], "Looking up trend prices…");
 
       // Turned off (or on, or switched) mid-check: stop, finally{} starts a fresh run.
-      const prices = await lookupArticles(shipments.flatMap((s) => s.articles), source, () => again, exclusionOf(settings));
+      const articles = shipments.flatMap((s) => s.articles);
+      const prices = await lookupArticles(articles, source, () => again, exclusionOf(settings));
       if (!prices) return;
 
       removeMarks();
       const results = shipments.map((s) => ({ s, r: renderShipment(s, prices, source) }));
-      renderOverview(source, results);
+      renderOverview(source, results, undefined, countFiltered(articles, prices, source));
     } finally {
       running = false;
       if (again) { again = false; run(); }

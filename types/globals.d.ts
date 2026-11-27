@@ -87,6 +87,8 @@ interface TrendInfo {
   source?: TrendSource;
   /** Cheapest EN: printings in skipped sets that were cheaper than `trend` (0 or missing: none). */
   skipped?: number;
+  /** Cheapest EN: the card's own printing is in a skipped set; its set name (for the ⚠️ warning). */
+  filteredSet?: string;
   /** Cheapest EN: every priced printing was in a skipped set, so the cheapest of them is used anyway. */
   excludedFallback?: boolean;
 }
@@ -123,6 +125,8 @@ interface PrintingInfo {
   name: string;
   set: string;
   setCode: string;
+  /** Scryfall set_type ("core", "memorabilia", …); missing in entries cached before this was stored. */
+  setType?: string;
   /** Scryfall prices.eur / prices.eur_foil as numbers, null when missing. */
   eur: number | null;
   eurFoil: number | null;
@@ -216,13 +220,16 @@ interface CMCNamespace {
   evaluate(shipment: Pick<Shipment, "total" | "articles">, prices: Map<string, Pick<TrendInfo, "trend">>, source?: TrendSource): ShipmentResult;
   lookupArticles(articles: CartArticle[], source: TrendSource, shouldStop: () => boolean, exclude?: Exclusion): Promise<Map<string, TrendInfo> | null>;
   annotateArticle(a: CartArticle, p: TrendInfo | undefined, source: TrendSource, cell: Element, priceCell?: Element | null): void;
+  filteredSetNote(set: string): HTMLElement;
+  countFiltered(articles: CartArticle[], prices: Map<string, TrendInfo>, source: TrendSource): number;
+  filteredLine(n: number | undefined): HTMLElement | null;
   verdictKind(r: ShipmentResult): "good" | "bad" | "unknown";
   verdictText(r: ShipmentResult, whatTotal?: string): string;
   diffWords(diff: number): string;
   verdictRows(r: ShipmentResult, source: TrendSource, whatTotal?: string): { label: string; value: string; cls: string }[];
   renderOverviewBox(o: {
     title: string; source: TrendSource; restart: () => unknown; run: () => unknown; status?: string;
-    results?: { s: Shipment; r: ShipmentResult }[]; overall?: { text: string; kind: "good" | "bad" | "unknown" };
+    results?: { s: Shipment; r: ShipmentResult }[]; filtered?: number; overall?: { text: string; kind: "good" | "bad" | "unknown" };
   }): void;
   // content.js (cart page)
   run(): Promise<void>;

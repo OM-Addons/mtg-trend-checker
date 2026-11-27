@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+- **Warning for printings from skipped sets:** if a card on a seller page, in the cart or in the shopping wizard is itself from a set you skip for "Cheapest EN" (e.g. a gold-bordered World Championship card), it now says so under the name, e.g. "⚠️ World Championship Decks 1997 (filtered set)". Those often look like huge deals but aren't the normal card. The overview box counts them. Nothing else changes: the card is still compared with the normal trend.
 
 ## 2.3.0 - 2026-11-25
 - **Trend right under the price:** in the cart, the shopping wizard and on seller pages, right under Cardmarket's price you now see how much it is under or over the trend (e.g. "▼ 4,50 €"), and below that the trend itself ("Trend 7,00 €"), lined up with the price. In the cart and the shopping wizard, prices under trend are green. On seller pages deals add the percentage and 🔥. Under the card name it now says which set the trend comes from, e.g. "(Trend from: M10)".

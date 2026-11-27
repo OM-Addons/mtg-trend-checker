@@ -155,7 +155,8 @@
     // so you can verify what was compared.
     if (offer.link) {
       const which = p.source === "printing" ? "trend of this printing" : "cheapest EN trend";
-      offer.link.title = `Price read: ${fmt(offer.price)} · ${which}: ${fmt(p.trend)} (${trendSetText(p)})`;
+      offer.link.title = `Price read: ${fmt(offer.price)} · ${which}: ${fmt(p.trend)} (${trendSetText(p)})` +
+        (p.filteredSet ? ` · ⚠️ ${p.filteredSet} (filtered set)` : "");
     }
     if (!j) return;
     const target = offer.nameCell || offer.el;
@@ -180,9 +181,12 @@
     if (atPrice) note.append("(Trend from: ", a, ")");
     else note.append(a);
     target.appendChild(note);
+    // The offer itself is a printing from a skipped set (e.g. a gold-bordered World Championship
+    // card): often far below the normal trend, so warn, on its own line (same as cart and wizard).
+    if (p.filteredSet) target.appendChild(el("div", "cmc-note cmc-name-note cmc-filtered-note", `⚠️ ${p.filteredSet} (filtered set)`));
   }
 
-  /** @param {{offer: Offer, p: TrendInfo, j: Judgement}[]} deals @param {string | null} [status] @param {{checked: number, cheap: number, cheapBelow: number, lang: number, under: number, above: number, failed: {offer: Offer, reason: string}[]}} [stats] */
+  /** @param {{offer: Offer, p: TrendInfo, j: Judgement}[]} deals @param {string | null} [status] @param {{checked: number, cheap: number, cheapBelow: number, lang: number, under: number, above: number, filtered: number, failed: {offer: Offer, reason: string}[]}} [stats] */
   function renderOverview(deals, status, stats) {
     const box = el("div", "cmc-overview");
     const head = el("div", "cmc-overview-head", "Under-trend deals");
@@ -206,6 +210,7 @@
         // cheapBelow is 0 when the first range starts at €0: then nothing is skipped by price.
         const skipped = stats.cheapBelow > 0 ? `Skipped ${stats.cheap} under ${fmt(stats.cheapBelow)} · ` : "Skipped ";
         box.appendChild(el("div", "cmc-muted", `${skipped}${stats.lang} non-English`));
+        if (stats.filtered) box.appendChild(el("div", "cmc-unknown-text", `⚠️ ${stats.filtered} from filtered sets`));
       }
       if (stats && stats.failed.length) {
         const det = el("details", "cmc-muted");
@@ -307,7 +312,7 @@
       }
       renderOverview([], "Looking up trend prices…");
 
-      const stats = { checked: 0, cheap: 0, cheapBelow: ignoredBelow(settings), lang: 0, under: 0, above: 0, failed: /** @type {{offer: Offer, reason: string}[]} */ ([]) };
+      const stats = { checked: 0, cheap: 0, cheapBelow: ignoredBelow(settings), lang: 0, under: 0, above: 0, filtered: 0, failed: /** @type {{offer: Offer, reason: string}[]} */ ([]) };
       const deals = [];
       for (const offer of offers) {
         if (again) return; // settings changed mid-check: finally{} starts a fresh run
@@ -334,6 +339,7 @@
         }
         const j = judge(price, p.trend, settings);
         annotate(offer, p, j);
+        if (p.filteredSet) stats.filtered++;
         if (j && !j.deal) { if (j.discount > 0) stats.under++; else stats.above++; }
         if (j && j.deal) deals.push({ offer, p, j });
       }

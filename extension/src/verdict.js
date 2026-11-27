@@ -121,7 +121,25 @@
       else note.append(link);
     }
     cell.appendChild(note);
+    if (p && p.filteredSet) cell.appendChild(filteredSetNote(p.filteredSet));
   }
+
+  /**
+   * Warning on its own line below the name: the card itself is a printing from a set the user
+   * skips (e.g. a gold-bordered World Championship card), often far below the normal trend.
+   * Seller pages build the same line in offers.js. @param {string} set
+   */
+  function filteredSetNote(set) {
+    return cmcEl("div", "cmc-note cmc-name-note cmc-filtered-note", `⚠️ ${set} (filtered set)`);
+  }
+
+  /** How many cards (rows) are printings from a skipped set. @param {CartArticle[]} articles @param {Map<string, TrendInfo>} prices @param {TrendSource} source */
+  function countFiltered(articles, prices, source) {
+    return articles.filter((a) => { const p = prices.get(priceKey(a, source)); return !!(p && p.filteredSet); }).length;
+  }
+
+  /** Overview line for countFiltered(), or null when there are none. @param {number | undefined} n */
+  const filteredLine = (n) => (n ? cmcEl("div", "cmc-unknown-text", `⚠️ ${n} from filtered sets`) : null);
 
   /**
    * Symbol per verdict, shown next to the colour: green/red alone is unreadable for
@@ -170,6 +188,7 @@
    * @param {() => unknown} o.run re-checks after "Refresh prices"
    * @param {string} [o.status] shown instead of the results (e.g. "Looking up…")
    * @param {{s: Shipment, r: ShipmentResult}[]} [o.results]
+   * @param {number} [o.filtered] cards that are printings from a skipped set (countFiltered)
    * @param {{text: string, kind: "good" | "bad" | "unknown"}} [o.overall] line above the counts
    */
   function renderOverviewBox(o) {
@@ -191,6 +210,8 @@
       const bad = results.filter((x) => x.r.worth === false);
       const unk = results.length - good.length - bad.length;
       box.appendChild(cmcEl("div", null, `${SYMBOL.good} ${good.length} worth it · ${SYMBOL.bad} ${bad.length} not · ${SYMBOL.unknown} ${unk} unknown`));
+      const filtered = filteredLine(o.filtered);
+      if (filtered) box.appendChild(filtered);
       // Minimized: the counts only; on the wizard coloured like the overall verdict.
       addMiniBar(box, o.title, `${SYMBOL.good} ${good.length} · ${SYMBOL.bad} ${bad.length} · ${SYMBOL.unknown} ${unk}`, o.overall ? textClass(o.overall.kind) : null);
       const list = cmcEl("ul", "cmc-list");
@@ -213,6 +234,6 @@
   const textClass = (kind) => (kind === "good" ? "cmc-good-text" : kind === "bad" ? "cmc-bad-text" : "cmc-muted");
 
   root.CMC = Object.assign(root.CMC, {
-    cmcEl, removeMarks, priceKey, evaluate, lookupArticles, annotateArticle, verdictKind, verdictText, diffWords, verdictRows, renderOverviewBox,
+    cmcEl, removeMarks, priceKey, evaluate, lookupArticles, annotateArticle, filteredSetNote, countFiltered, filteredLine, verdictKind, verdictText, diffWords, verdictRows, renderOverviewBox,
   });
 })(typeof globalThis !== "undefined" ? globalThis : window);
